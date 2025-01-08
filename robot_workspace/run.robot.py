@@ -1,1 +1,0 @@
-#Todo: Lag et skript for å starte/stoppe terminal-kommandoen for rviz automatisk. 

@@ -4,9 +4,8 @@ starts rviz automatically,
 but must be closed manually with ctrl+c
 '''
 
-
 # To open the terminal:
-from subprocess import Popen
+import robot_boot_manager # to open/close rviz
 
 # interbotix libraries:
 from interbotix_common_modules.common_robot.robot import robot_shutdown, robot_startup
@@ -18,16 +17,8 @@ from time import sleep
 
 def main():
     
-    #run shell script
-    Popen(["gnome-terminal", "--", "sh", "-c", 
-        'ros2 launch interbotix_xsarm_control'
-        +' xsarm_control.launch.py'
-        +' robot_model:=vx300s'
-        +' hardware_type:=fake'
-        +' use_sim:=true'
-        #+' &' # allows interactive terminal
-          +"; bash"])
-    
+    pid = robot_boot_manager.launch_robot()
+
     bot = InterbotixManipulatorXS(
         robot_model="vx300s",
         group_name="arm",
@@ -44,6 +35,7 @@ def main():
     sleep(0.1)
     bot.arm.go_to_sleep_pose()
     robot_shutdown()
+    robot_boot_manager.close_robot(pid)
     print("shutdown complete")
     
     

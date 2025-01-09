@@ -16,8 +16,8 @@ from time import sleep
 
 
 def main():
-    
-    pid = robot_boot_manager.launch_robot()
+   
+    pid = robot_boot_manager.robot_launch()
 
     bot = InterbotixManipulatorXS(
         robot_model="vx300s",
@@ -35,7 +35,7 @@ def main():
     sleep(0.1)
     bot.arm.go_to_sleep_pose()
     robot_shutdown()
-    robot_boot_manager.close_robot(pid)
+    robot_boot_manager.robot_close(pid)
     print("shutdown complete")
     
     

@@ -2,7 +2,7 @@ from os import killpg, getpgid, setpgrp
 from subprocess import Popen 
 from signal import SIGTERM
 
-def launch_robot(): 
+def robot_launch(): 
   #run shell script
   process = Popen(["bash", "-c", 
       'ros2 launch interbotix_xsarm_control'
@@ -14,6 +14,6 @@ def launch_robot():
         )
   return(process.pid)
 
-def close_robot(pid):
+def robot_close(pid):
     killpg(getpgid(pid), SIGTERM) 
 

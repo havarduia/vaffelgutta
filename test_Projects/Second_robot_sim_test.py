@@ -6,12 +6,13 @@ from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 
 
 def main():
-    pid = robot_boot_manager.robot_launch()
+    pid = robot_boot_manager.robot_launch(use_real_robot=True)
     
     bot = InterbotixManipulatorXS(
         robot_model='vx300s',
         group_name='arm',
-        gripper_name='gripper'
+        gripper_name='gripper',
+        accel_time=0.05
     )
 
     robot_startup()
@@ -31,7 +32,7 @@ def main():
     bot.gripper.release()
     sleep(0.5)
     bot.arm.go_to_sleep_pose()
-    sleep(0.5)
+    sleep(2)
     robot_shutdown()
     robot_boot_manager.robot_close(pid)
     print("finished!")

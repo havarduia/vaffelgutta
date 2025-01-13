@@ -16,11 +16,13 @@ from time import sleep
 
 
 def main():
-    pid = robot_boot_manager.robot_launch()
+    use_real_robot = True
+    pid = robot_boot_manager.robot_launch(use_real_robot=use_real_robot)
     bot = InterbotixManipulatorXS(
         robot_model="vx300s",
         group_name="arm",
         gripper_name="gripper",
+        accel_time=0.05
     )
     try:  
         robot_startup()
@@ -33,6 +35,7 @@ def main():
         bot.arm.set_ee_cartesian_trajectory(x = -0.1)
         sleep(0.1)
         bot.arm.go_to_sleep_pose()
+        sleep(0.5)
         robot_shutdown()
         robot_boot_manager.robot_close(pid)
         print("shutdown complete")

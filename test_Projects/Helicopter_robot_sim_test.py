@@ -18,7 +18,7 @@ def main():
                     [0,0,0,0]
                     ]
     
-    pid = robot_boot_manager.robot_launch()
+    pid = robot_boot_manager.robot_launch(use_real_robot=0)
     bot = InterbotixManipulatorXS(
         robot_model="vx300s",
         group_name="arm",

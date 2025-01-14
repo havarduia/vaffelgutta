@@ -5,7 +5,7 @@ from backend_controllers import robot_boot_manager
 
 from time import sleep
 def main():
-    robot_boot_manager.robot_launch(use_real_robot=False)
+    robot_boot_manager.robot_launch(use_real_robot=True)
     bot = InterbotixManipulatorXS(robot_model="vx300s",
                                   group_name="arm",
                                   gripper_name="gripper",
@@ -18,9 +18,12 @@ def main():
     bot.core.robot_torque_enable("group", "arm", False)
     sleep(5)
     bot.core.robot_torque_enable("group", "arm", True)
-    print(bot.arm.get_ee_pose())
+    savedpose = bot.arm.get_ee_pose() 
+    print(savedpose)
     sleep(5)
-    
+    bot.arm.go_to_home_pose()
+    bot.arm.set_ee_pose_matrix(savedpose)
+ 
     bot.arm.go_to_home_pose()
     bot.arm.go_to_sleep_pose()
     sleep(1)

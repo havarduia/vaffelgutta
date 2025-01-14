@@ -18,15 +18,17 @@ def main():
                     [0,0,0,0]
                     ]
     
-    pid = robot_boot_manager.robot_launch(use_real_robot=0)
+    pid = robot_boot_manager.robot_launch(use_real_robot=1)
     bot = InterbotixManipulatorXS(
         robot_model="vx300s",
         group_name="arm",
-        gripper_name="gripper"
+        gripper_name="gripper",
+        accel_time=0.05,
     )
     try:
         robot_startup()
         bot.arm.go_to_home_pose()
+        sleep(0.5)
         n=5
         n = 2*n
         for i in range(0,n):
@@ -34,7 +36,10 @@ def main():
             newpos = (rotationmatrix @ currentpos)
             newpos = newpos+offsetmatrix if (i < n/2) else newpos-offsetmatrix
             bot.arm.set_ee_pose_matrix(newpos)
+        sleep(1)
+        bot.arm.go_to_home_pose()
         bot.arm.go_to_sleep_pose()
+        sleep(1.5)
         robot_shutdown()
         robot_boot_manager.robot_close(pid)
 

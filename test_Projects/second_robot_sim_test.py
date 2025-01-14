@@ -34,7 +34,7 @@ def main():
     bot.arm.go_to_sleep_pose()
     sleep(2)
     robot_shutdown()
-    robot_boot_manager.robot_close(pid)
+    robot_boot_manager.robot_close()
     print("finished!")
 
 

@@ -18,7 +18,7 @@ def main():
                     [0,0,0,0]
                     ]
     
-    pid = robot_boot_manager.robot_launch(use_real_robot=1)
+    robot_boot_manager.robot_launch(use_real_robot=1)
     bot = InterbotixManipulatorXS(
         robot_model="vx300s",
         group_name="arm",
@@ -41,12 +41,12 @@ def main():
         bot.arm.go_to_sleep_pose()
         sleep(1.5)
         robot_shutdown()
-        robot_boot_manager.robot_close(pid)
+        robot_boot_manager.robot_close()
 
 
 
     except KeyboardInterrupt:
-        robot_boot_manager.robot_close(pid)
+        robot_boot_manager.robot_close()
 
 
 

@@ -1,11 +1,11 @@
-from os import killpg, getpgid, setpgrp
+from os import killpg, getpgid, setpgrp, kill
 from subprocess import Popen 
 from signal import SIGTERM
 from time import sleep
 
 def robot_launch(use_real_robot): 
   #run shell script
-  #   
+   
   hardwaretype = "actual" if use_real_robot else "fake"
   use_sim = "true" if (not use_real_robot) else "false"
   
@@ -19,10 +19,16 @@ def robot_launch(use_real_robot):
   process = Popen(["bash", "-c", command],
                    preexec_fn=setpgrp
                    )
+  global boot_manager_pid; boot_manager_pid = process.pid
   sleep(1)  
   print("Boot Manager: Process started with pid: " + str(process.pid))
-  return(process.pid)
+  return()
 
-def robot_close(pid):
-    killpg(getpgid(pid), SIGTERM)
-    print("Boot manager: Process killed") 
+def robot_close():
+    try:
+      killpg(getpgid(boot_manager_pid), SIGTERM)
+      print("Boot manager: Process killed") 
+    except NameError:
+       print("Boot manager: PID not found")
+    finally: 
+       print("Boot manager: Robot close finished")

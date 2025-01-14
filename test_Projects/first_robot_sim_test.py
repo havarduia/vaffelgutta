@@ -17,7 +17,7 @@ from time import sleep
 
 def main():
     use_real_robot = True
-    pid = robot_boot_manager.robot_launch(use_real_robot=use_real_robot)
+    robot_boot_manager.robot_launch(use_real_robot=use_real_robot)
     bot = InterbotixManipulatorXS(
         robot_model="vx300s",
         group_name="arm",
@@ -32,15 +32,15 @@ def main():
         bot.arm.set_ee_cartesian_trajectory(y = 0.1)
         bot.arm.set_ee_cartesian_trajectory(x = -0.1)
         sleep(0.1)
-        bot.arm.set_ee_cartesian_trajectory(x = -0.1)
+        bot.arm.set_ee_cartesian_trajectory(x = 0.1)
         sleep(0.1)
         bot.arm.go_to_sleep_pose()
         sleep(0.5)
         robot_shutdown()
-        robot_boot_manager.robot_close(pid)
+        robot_boot_manager.robot_close()
         print("shutdown complete")
     except KeyboardInterrupt:
-        robot_boot_manager.robot_close(pid) 
+        robot_boot_manager.robot_close() 
     
 
 

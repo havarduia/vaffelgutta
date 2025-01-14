@@ -10,6 +10,7 @@ def main():
                                   group_name="arm",
                                   gripper_name="gripper",
                                   accel_time=0.05)
+    
     robot_startup()
     bot.arm.go_to_home_pose()
     bot.arm.go_to_sleep_pose()
@@ -30,12 +31,10 @@ def main():
 
 
 if __name__ == '__main__':
+    # Change the working directory to the base directory
+    from os import chdir, path; chdir(path.expanduser("~/git/vaffelgutta"))
     try:
         main()
-    except KeyboardInterrupt:
-        robot_shutdown()
-        try:
-            robot_boot_manager.robot_close()
-        except NameError:
-            print("Error: Program closed without valid PID")
-    
+    # if error detected, run the error handler
+    except (KeyboardInterrupt, Exception) as error_program_closed_message:
+        with open("robot_workspace/backend_controllers/errorhandling") as errorhandler: exec(errorhandler.read())

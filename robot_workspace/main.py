@@ -16,7 +16,7 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, Exception):
         robot_shutdown()
         try:
             robot_boot_manager.robot_close()

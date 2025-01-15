@@ -20,7 +20,12 @@ def main():
 
 
     # Put your code here:
-    
+
+    for i in range(10):
+        bot.gripper.release()
+        sleep(1)
+        bot.gripper.grasp()
+        sleep(1)
     """"
     Some hints:
     1) use bot.arm.__________ to use most commands.

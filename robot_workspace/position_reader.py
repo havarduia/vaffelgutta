@@ -12,19 +12,33 @@ from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 # user libraries: 
 from robot_workspace.backend_controllers import robot_boot_manager
 from time import sleep
-import keyboard
+from pynput import keyboard
 
 def printmenu():
     print("Press enter to record position\n"
           +"Press q to quit\n"
           +"Press h to show this message again")
-def recordposition(position,bot: InterbotixManipulatorXS):
+    return
+
+def recordposition(bot: InterbotixManipulatorXS):
+    if position == "pass":
+        return
     bot.core.robot_torque_enable("group", "arm", True)
     position = bot.arm.get_ee_pose()
     bot.core.robot_torque_enable("group", "arm", False)
     name = input("Write the name of your position")    
     with open("robot_workspace/assets/arm_positions", "a") as file:
         file.write(name+":\n"+ position +"\n")
+    return
+
+def on_press(key, bot):
+    if key.char == "h":
+        printmenu()
+    elif key.char == "q":
+        return False  # Stop listener
+    elif key.char == "r":
+        recordposition(bot)
+        
 
 def main():
     # boot bot
@@ -34,23 +48,14 @@ def main():
                                   gripper_name="gripper",
                                   accel_time=0.05)
     robot_startup()
-    recordposition(bot)
+    
     bot.arm.go_to_sleep_pose()
     bot.core.robot_torque_enable("group", "arm", False)
     
     #print menu:
     printmenu()
-    
-    WaitForInput = True
-    while WaitForInput == True:
-        if keyboard.read_key() == "enter":
-            print("Enter pressed!")
-        if keyboard.read_key() == "h":
-            printmenu()
-        if keyboard.read_key == "q":
-            WaitForInput = False
-
-    
+    with keyboard.Listener(on_press=on_press(key= bot=bot)) as listener:
+        listener.join()
 
 
 
@@ -67,7 +72,7 @@ def main():
     robot_boot_manager.robot_close()
 
 
-
+    return
 if __name__ == '__main__':
     try:
         main()

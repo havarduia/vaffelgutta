@@ -6,7 +6,7 @@ from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 
 
 def main():
-    pid = robot_boot_manager.robot_launch(use_real_robot=True)
+    pid = robot_boot_manager.robot_launch(use_real_robot=False)
     
     bot = InterbotixManipulatorXS(
         robot_model='vx300s',

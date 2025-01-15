@@ -2,6 +2,7 @@
 # Change the working directory to the base directory
 from os import chdir, getcwd
 from os import path as ospath 
+from sys import stdin
 from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
@@ -15,29 +16,42 @@ from time import sleep
 from pynput import keyboard
 
 def printmenu():
-    print("Press enter to record position\n"
-          +"Press q to quit\n"
-          +"Press h to show this message again")
+    print("Press 1 to record position\n"
+          +"Press 2 to show this message again\n"
+          +"Press 3 to quit")
     return
 
 def recordposition(bot: InterbotixManipulatorXS):
-    if position == "pass":
-        return
     bot.core.robot_torque_enable("group", "arm", True)
     position = bot.arm.get_ee_pose()
     bot.core.robot_torque_enable("group", "arm", False)
-    name = input("Write the name of your position")    
-    with open("robot_workspace/assets/arm_positions", "a") as file:
-        file.write(name+":\n"+ position +"\n")
+    input("Please press enter")
+    name = input("Write the name of your position:\n")    
+    with open("robot_workspace/assets/arm_positions.py", "a") as file:
+        file.write("def " + name +"():\n" + "return " + str(position) +"\n")
+    print('Successfully written "' + name + '" to the positions list')
     return
 
-def on_press(key, bot):
-    if key.char == "h":
-        printmenu()
-    elif key.char == "q":
-        return False  # Stop listener
-    elif key.char == "r":
-        recordposition(bot)
+
+def make_on_press(bot):
+    def on_press(key):
+        try:
+            if hasattr(key, 'char') and key.char:  # Check if the key has a 'char' attribute
+                if key.char == "2":
+                    printmenu()  # This will print the menu when 'h' is pressed
+                elif key.char == "3":
+                    print("Exiting...")
+                    return False  # Stop the listener when 'q' is pressed
+                elif key.char == "1":
+                    recordposition(bot)  # Call recordposition function when 'r' is pressed
+        except AttributeError:
+            # Handle special keys like shift, ctrl, etc.
+            print("Caught error, no worries")
+            pass  # We don't need to worry about special keys
+        return True  # Continue listening for other keys
+
+    return on_press  # Return the inner on_press function
+   
         
 
 def main():
@@ -52,13 +66,11 @@ def main():
     bot.arm.go_to_sleep_pose()
     bot.core.robot_torque_enable("group", "arm", False)
     
-    #print menu:
+    #print menu and listen for keystrokes:
     printmenu()
-    with keyboard.Listener(on_press=on_press(key= bot=bot)) as listener:
+    on_press = make_on_press(bot)
+    with keyboard.Listener(on_press=on_press) as listener:
         listener.join()
-
-
-
 
 
     # close bot, close program.

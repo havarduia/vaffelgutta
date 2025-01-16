@@ -10,8 +10,12 @@ finally:
         print("Error Caused. Shutting down robot.")
         # Countdown before stopping the robot - to create reaction time
         for i in range(0,11):
-            sleep(1)
-            print("Shutting down in: " + str(10-i) ) 
+            try:
+                sleep(1)
+                print("Shutting down in: " + str(10-i) ) 
+            except KeyboardInterrupt:
+                print("\nCtrl+c pressed again. Shutting down early:")
+                break
         # Shut down robot using library
         try:
             robot_shutdown()

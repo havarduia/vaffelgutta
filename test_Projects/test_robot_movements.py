@@ -38,11 +38,10 @@ def main():
     5) See the other scripts for examples of movement.
     """
 
-    from robot_workspace.assets import arm_positions
-    bot.arm.set_ee_pose_matrix(arm_positions.Hagle())
-    sleep(2)
-
-
+    bot.gripper.grasp()
+    bot.gripper.release()
+    sleep(20)
+    
 
 
 

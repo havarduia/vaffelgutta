@@ -1,1 +1,4 @@
 __pycache__/
+camera_env/
+robot_arm_env/
+nohup.out

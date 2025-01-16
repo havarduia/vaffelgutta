@@ -16,7 +16,7 @@ from time import sleep
 
 
 def main():
-    use_real_robot = True
+    use_real_robot = False
     robot_boot_manager.robot_launch(use_real_robot=use_real_robot)
     bot = InterbotixManipulatorXS(
         robot_model="vx300s",

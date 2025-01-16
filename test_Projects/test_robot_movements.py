@@ -25,6 +25,7 @@ def main():
         bot.gripper.release()
         sleep(1)
         bot.gripper.grasp()
+        bot.gripper.set_pressure(0.5)
         sleep(1)
     """"
     Some hints:

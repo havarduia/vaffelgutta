@@ -1,3 +1,10 @@
+# Change the working directory to the base directory
+from os import chdir
+from os import path as ospath 
+from sys import path as syspath
+chdir(ospath.expanduser("~/git/vaffelgutta"))
+syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
+
 import robot_boot_manager
 from time import sleep
 
@@ -18,15 +25,8 @@ def main():
     # Not required but recommended:
     bot.arm.go_to_home_pose()
 
-
     # Put your code here:
 
-    for i in range(10):
-        bot.gripper.release()
-        sleep(1)
-        bot.gripper.grasp()
-        bot.gripper.set_pressure(0.5)
-        sleep(1)
     """"
     Some hints:
     1) use bot.arm.__________ to use most commands.
@@ -38,7 +38,9 @@ def main():
     5) See the other scripts for examples of movement.
     """
 
-
+    from robot_workspace.assets import arm_positions
+    bot.arm.set_ee_pose_matrix(arm_positions.Hagle())
+    sleep(2)
 
 
 

@@ -2,9 +2,9 @@
 from time import sleep
 try:
     bot.core.robot_torque_enable("group", "arm", True)
-    print("Robot torquing successful!")
+    print("\nRobot torquing successful!")
 except NameError:
-    print("robot torquing failed")
+    print("robot retorquing failed")
 finally:
     if True:
         print("Error Caused. Shutting down robot.")

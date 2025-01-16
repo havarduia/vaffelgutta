@@ -20,7 +20,7 @@ def robot_launch(use_real_robot):
                    preexec_fn=setpgrp
                    )
   global boot_manager_pid; boot_manager_pid = process.pid
-  sleep(1)  
+  sleep(0.5)  
   print("Boot Manager: Process started with pid: " + str(process.pid))
   return()
 

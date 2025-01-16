@@ -1,8 +1,6 @@
-
 # Change the working directory to the base directory
-from os import chdir, getcwd
+from os import chdir
 from os import path as ospath 
-from sys import stdin
 from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
@@ -11,25 +9,38 @@ syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 from interbotix_common_modules.common_robot.robot import robot_startup, robot_shutdown
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 # user libraries: 
-from robot_workspace.backend_controllers import robot_boot_manager
 from time import sleep
 from pynput import keyboard
+import numpy as numphy
+from robot_workspace.backend_controllers import robot_boot_manager
+
 
 def printmenu():
-    print("Press 1 to record position\n"
+    print("\nPress 1 to record position\n"
           +"Press 2 to show this message again\n"
           +"Press 3 to quit")
     return
 
 def recordposition(bot: InterbotixManipulatorXS):
+    sleep(0.25)
+    input("\nPress enter to record") 
     bot.core.robot_torque_enable("group", "arm", True)
     position = bot.arm.get_ee_pose()
     bot.core.robot_torque_enable("group", "arm", False)
-    input("Please press enter")
-    name = input("Write the name of your position:\n")    
-    with open("robot_workspace/assets/arm_positions.py", "a") as file:
-        file.write("def " + name +"():\n" + "return " + str(position) +"\n")
-    print('Successfully written "' + name + '" to the positions list')
+
+    name = input("Press enter to cancel recording\n"
+                    + "Write the name of your position:\n")
+    
+    if name != "":
+        with open("robot_workspace/assets/arm_positions.py", "a") as file:
+            file.write(f"\ndef {name}():\n")
+            file.write("  return ([\n")
+            numphy.savetxt(file, position, fmt="  [% .8f, % .8f, % .8f, % .8f],")
+            file.write("  ])\n")
+        
+        print(f'Successfully written "{name}" to arm_positions.py')
+
+    printmenu()
     return
 
 

@@ -4,7 +4,7 @@ try:
     bot.core.robot_torque_enable("group", "arm", True)
     print("\nRobot torquing successful!")
 except NameError:
-    print("robot retorquing failed")
+    print("\nrobot retorquing failed")
 finally:
     if True:
         print("Error Caused. Shutting down robot.")
@@ -13,15 +13,19 @@ finally:
             try:
                 sleep(1)
                 print("Shutting down in: " + str(10-i) ) 
+            
+            # If pressed again, skip countdown and close immediately
             except KeyboardInterrupt:
                 print("\nCtrl+c pressed again. Shutting down early:")
                 break
+
         # Shut down robot using library
         try:
             robot_shutdown()
         except Exception as error_robot_shutdown_message:
             print("Error raised using robot_shutdown().\nError contents: " + str(error_robot_shutdown_message))
         finally:
+
         # shut down robot software
             try:
                 robot_boot_manager.robot_close()

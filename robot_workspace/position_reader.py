@@ -14,6 +14,7 @@ from pynput import keyboard
 import numpy as numphy
 from robot_workspace.backend_controllers import robot_boot_manager
 from robot_workspace.assets import arm_positions
+from importlib import reload as import_reload
 
 def printmenu():
     print("\nPress 1 to record position\n"
@@ -21,9 +22,14 @@ def printmenu():
           +"Press 3 to show this message again\n"
           +"Press 4 to quit")
     return
+
+
 def playposition(bot: InterbotixManipulatorXS): 
-    input("\nPress enter to continue")
+    import_reload(arm_positions)
     bot.core.robot_torque_enable("group", "arm", True)
+    bot.arm.capture_joint_positions()
+    bot.arm.go_to_home_pose()
+    input("\nPress enter to continue")
     print("The stored positions are:")
     for func in dir(arm_positions):
         if (callable(getattr(arm_positions, func)) 
@@ -32,16 +38,21 @@ def playposition(bot: InterbotixManipulatorXS):
         ):
             print(func)
     #print the stored positions.
-    name = input("Enter the name of the position you want to go to:\n")
-    if not hasattr(arm_positions,name):
-        print(f"position {name} not found in position list")
-        printmenu()
-        return
-    pose = getattr(arm_positions, name)()
-    bot.arm.set_ee_pose_matrix(pose)
-    sleep(5)
+    names = input("Enter the name of the position(s) you want to go to,\n"
+                  +"separated by a comma (,):\n")
+    names = names.split(",")
+    for name in names:
+        name = name.strip() # remove whitespace
+        if not hasattr(arm_positions,name):
+            print(f"position {name} not found in position list")
+            sleep(5)
+            break
+        pose = getattr(arm_positions, name)()
+        bot.arm.set_ee_pose_matrix(pose)
+        sleep(1)
     bot.arm.go_to_home_pose()
     bot.arm.go_to_sleep_pose()
+    sleep(0.5)
     bot.core.robot_torque_enable("group","arm",False)
     printmenu()
     return
@@ -51,6 +62,7 @@ def recordposition(bot: InterbotixManipulatorXS):
     sleep(0.25)
     input("\nPress enter to record") 
     bot.core.robot_torque_enable("group", "arm", True)
+    bot.arm.capture_joint_positions()
     position = bot.arm.get_ee_pose()
     bot.core.robot_torque_enable("group", "arm", False)
 
@@ -95,10 +107,11 @@ def make_on_press(bot):
 
 def main():
     # boot bot
-    robot_boot_manager.robot_launch(use_real_robot=False)
+    robot_boot_manager.robot_launch(use_real_robot=True)
     bot = InterbotixManipulatorXS(robot_model="vx300s",
                                   group_name="arm",
                                   gripper_name="gripper",
+                                  accel_time=0.05
                                   )
     robot_startup()
     

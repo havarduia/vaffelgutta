@@ -51,20 +51,18 @@ def playposition(bot: InterbotixManipulatorXS):
         bot.arm.set_ee_pose_matrix(pose)
         sleep(1)
     bot.arm.go_to_home_pose()
-    bot.arm.go_to_sleep_pose()
-    sleep(0.5)
-    bot.core.robot_torque_enable("group","arm",False)
     printmenu()
     return
 
 
 def recordposition(bot: InterbotixManipulatorXS):
+    bot.core.robot_torque_enable("group", "arm", False)
     sleep(0.25)
     input("\nPress enter to record") 
     bot.core.robot_torque_enable("group", "arm", True)
     bot.arm.capture_joint_positions()
     position = bot.arm.get_ee_pose()
-    bot.core.robot_torque_enable("group", "arm", False)
+    
 
     name = input("Press enter to cancel recording\n"
                     + "Write the name of your position:\n")
@@ -77,7 +75,7 @@ def recordposition(bot: InterbotixManipulatorXS):
             file.write("  ])\n")
         
         print(f'Successfully written "{name}" to arm_positions.py')
-
+    
     printmenu()
     return
 
@@ -116,7 +114,6 @@ def main():
     robot_startup()
     
     bot.arm.go_to_sleep_pose()
-    bot.core.robot_torque_enable("group", "arm", False)
     
     #print menu and listen for keystrokes:
     printmenu()
@@ -128,7 +125,7 @@ def main():
     # close bot, close program.
     bot.core.robot_torque_enable("group", "arm", True)
     bot.arm.capture_joint_positions()
-    sleep(5)
+    sleep(4)
     bot.arm.go_to_home_pose()
     bot.arm.go_to_sleep_pose()
     sleep(1)

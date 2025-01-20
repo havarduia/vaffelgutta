@@ -83,7 +83,7 @@ def main():
     with keyboard.Listener(on_press=on_press) as listener:
         listener.join()
 
-
+    
     # close bot, close program.
     bot.core.robot_torque_enable("group", "arm", True)
     bot.arm.capture_joint_positions()

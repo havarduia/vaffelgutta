@@ -9,9 +9,9 @@ from robot_workspace.assets.Wafflebot import Wafflebot
 from time import sleep
 from robot_workspace.robot_movements import rock_paper_scissors
 def main():
-    bot = Wafflebot(use_real_robot = False)
+    bot = Wafflebot(use_real_robot = True)
 
-    rock_paper_scissors.rock_paper.scissors(bot)
+    rock_paper_scissors.rock_paper_scissors(bot)
     
     sleep(5)
     bot.safe_stop()

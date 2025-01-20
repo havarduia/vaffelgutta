@@ -24,7 +24,9 @@ class Wafflebot:
             )
         self.arm = self.bot.arm
         self.gripper = self.bot.gripper
+        self.arm.capture_joint_positions()
         robot_startup()
+        self.arm.capture_joint_positions()
 
     def __getattr__(self, name):
         return getattr(self.bot, name)

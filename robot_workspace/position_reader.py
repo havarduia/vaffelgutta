@@ -13,13 +13,39 @@ from time import sleep
 from pynput import keyboard
 import numpy as numphy
 from robot_workspace.backend_controllers import robot_boot_manager
-
+from robot_workspace.assets import arm_positions
 
 def printmenu():
     print("\nPress 1 to record position\n"
-          +"Press 2 to show this message again\n"
-          +"Press 3 to quit")
+          +"Press 2 to play back saved position\n"
+          +"Press 3 to show this message again\n"
+          +"Press 4 to quit")
     return
+def playposition(bot: InterbotixManipulatorXS): 
+    input("\nPress enter to continue")
+    bot.core.robot_torque_enable("group", "arm", True)
+    print("The stored positions are:")
+    for func in dir(arm_positions):
+        if (callable(getattr(arm_positions, func)) 
+            and
+        not func.startswith("__")
+        ):
+            print(func)
+    #print the stored positions.
+    name = input("Enter the name of the position you want to go to:\n")
+    if not hasattr(arm_positions,name):
+        print(f"position {name} not found in position list")
+        printmenu()
+        return
+    pose = getattr(arm_positions, name)()
+    bot.arm.set_ee_pose_matrix(pose)
+    sleep(5)
+    bot.arm.go_to_home_pose()
+    bot.arm.go_to_sleep_pose()
+    bot.core.robot_torque_enable("group","arm",False)
+    printmenu()
+    return
+
 
 def recordposition(bot: InterbotixManipulatorXS):
     sleep(0.25)
@@ -48,13 +74,15 @@ def make_on_press(bot):
     def on_press(key):
         try:
             if hasattr(key, 'char') and key.char:  # Check if the key has a 'char' attribute
-                if key.char == "2":
-                    printmenu()  # This will print the menu when 'h' is pressed
-                elif key.char == "3":
+                if key.char == "3":
+                    printmenu()  # This will print the menu when '3' is pressed
+                elif key.char == "4":
                     print("Exiting...")
-                    return False  # Stop the listener when 'q' is pressed
+                    return False  # Stop the listener when '4' is pressed
                 elif key.char == "1":
-                    recordposition(bot)  # Call recordposition function when 'r' is pressed
+                    recordposition(bot)  # Call recordposition function when '1' is pressed
+                elif key.char == "2":
+                    playposition(bot)
         except AttributeError:
             # Handle special keys like shift, ctrl, etc.
             print("Caught error, no worries")
@@ -71,7 +99,7 @@ def main():
     bot = InterbotixManipulatorXS(robot_model="vx300s",
                                   group_name="arm",
                                   gripper_name="gripper",
-                                  accel_time=0.05)
+                                  )
     robot_startup()
     
     bot.arm.go_to_sleep_pose()

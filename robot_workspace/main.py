@@ -1,13 +1,20 @@
-from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
-from interbotix_common_modules.common_robot.robot import robot_startup, robot_shutdown   
-from backend_controllers import robot_boot_manager
+# Change the working directory to the base directory
+from os import chdir
+from os import path as ospath 
+from sys import path as syspath
+chdir(ospath.expanduser("~/git/vaffelgutta"))
+syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
+from robot_workspace.assets.Wafflebot import Wafflebot
+from time import sleep
+from robot_workspace.robot_movements import rock_paper_scissors
 def main():
-    use_real_robot =False 
-    robot_boot_manager.robot_launch(use_real_robot=use_real_robot)
-    bot = InterbotixManipulatorXS(robot_model="vx300s",group_name="arm",gripper_name="gripper",)
-    robot_startup()
+    bot = Wafflebot(use_real_robot = False)
 
+    rock_paper_scissors.rock_paper.scissors(bot)
+    
+    sleep(5)
+    bot.safe_stop()
 
 
 
@@ -16,9 +23,6 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except (KeyboardInterrupt, Exception):
-        robot_shutdown()
-        try:
-            robot_boot_manager.robot_close()
-        except NameError:
-            print("Error: Program closed without valid PID")
+    # if error detected, run the error handler
+    except (KeyboardInterrupt, Exception) as error_program_closed_message:
+        with open("robot_workspace/backend_controllers/errorhandling.py") as errorhandler: exec(errorhandler.read())

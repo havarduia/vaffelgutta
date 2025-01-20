@@ -1,5 +1,7 @@
 # Code to be executed whenever an error is caused
 from time import sleep
+from interbotix_common_modules.common_robot.robot import robot_shutdown
+from robot_workspace.backend_controllers import robot_boot_manager
 try:
     bot.core.robot_torque_enable("group", "arm", True)
     print("\nRobot torquing successful!")

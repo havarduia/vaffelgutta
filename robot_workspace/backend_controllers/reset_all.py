@@ -43,6 +43,7 @@ def main():
         "xs_sdk",
     ]
     for proc in processes:
+        print(f"Killing {proc}")
         kill_processes_by_name(proc, killsig)
 
 

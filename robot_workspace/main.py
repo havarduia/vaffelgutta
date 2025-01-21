@@ -9,7 +9,10 @@ from robot_workspace.assets.Wafflebot import Wafflebot
 from time import sleep
 from robot_workspace.robot_movements import rock_paper_scissors
 def main():
-    bot = Wafflebot(use_real_robot = True)
+    
+    bot = Wafflebot()
+    
+    bot.arm.go_to_home_pose()
 
     rock_paper_scissors.rock_paper_scissors(bot)
     

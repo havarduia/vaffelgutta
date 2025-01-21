@@ -40,6 +40,7 @@ def main():
         "python3",
         "robot_state_publisher",
         "ros2",
+        "xs_sdk",
     ]
     for proc in processes:
         kill_processes_by_name(proc, killsig)

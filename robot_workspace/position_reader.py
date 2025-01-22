@@ -103,7 +103,7 @@ def make_on_press(bot):
 
 def main():
     # boot bot
-    bot =  Wafflebot()
+    bot =  Wafflebot(1)
     bot.arm.go_to_sleep_pose()
     
     #print menu and listen for keystrokes:
@@ -123,12 +123,15 @@ def main():
     robot_shutdown()
     robot_boot_manager.robot_close()
 
-
     return
 
+# Footer:
+def handle_error(signum, frame):raise KeyboardInterrupt
 if __name__ == '__main__':
+    from signal import signal, SIGINT; signal(SIGINT, handle_error)
     try:
         main()
     # if error detected, run the error handler
     except (KeyboardInterrupt, Exception) as error_program_closed_message:
         with open("robot_workspace/backend_controllers/errorhandling.py") as errorhandler: exec(errorhandler.read())
+    

@@ -6,7 +6,7 @@ from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 
 
 def main():
-    pid = robot_boot_manager.robot_launch(use_real_robot=False)
+    pid = robot_boot_manager.robot_launch(use_real_robot=True)
     
     bot = InterbotixManipulatorXS(
         robot_model='vx300s',
@@ -44,6 +44,13 @@ def main():
 
 
 
-if __name__=='__main__':
-    main()
-
+# Footer:
+def handle_error(signum, frame):raise KeyboardInterrupt
+if __name__ == '__main__':
+    from signal import signal, SIGINT; signal(SIGINT, handle_error)
+    try:
+        main()
+    # if error detected, run the error handler
+    except (KeyboardInterrupt, Exception) as error_program_closed_message:
+        with open("robot_workspace/backend_controllers/errorhandling.py") as errorhandler: exec(errorhandler.read())
+    

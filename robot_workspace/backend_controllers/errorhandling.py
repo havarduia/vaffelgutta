@@ -2,6 +2,11 @@
 from time import sleep
 from interbotix_common_modules.common_robot.robot import robot_shutdown
 from robot_workspace.backend_controllers import robot_boot_manager
+from signal import signal, SIGINT, SIG_IGN
+
+def handle_second_sigint(signum, frame):
+    raise KeyboardInterrupt
+signal(SIGINT, handle_second_sigint) # ignore SIGINT while shutting down
 try:
     bot.core.robot_torque_enable("group", "arm", True)
     print("\nRobot torquing successful!")
@@ -25,9 +30,14 @@ finally:
         try:
             robot_shutdown()
         except Exception as error_robot_shutdown_message:
-            print("Error raised using robot_shutdown().\nError contents: " + str(error_robot_shutdown_message))
+            if str(repr(error_robot_shutdown_message)) ==(
+            "RCLError('failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:241')"
+            ):
+                print("Robot_shutdown() already called. Skipping...")
+            else:
+                print("Error raised using robot_shutdown().\nError contents: " + str(error_robot_shutdown_message))
+            
         finally:
-
         # shut down robot software
             try:
                 robot_boot_manager.robot_close()

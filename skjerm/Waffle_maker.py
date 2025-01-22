@@ -52,11 +52,18 @@ home_button.place(x=10, y=10)
 waffles_label = tk.Label(root, text=f"Waffles made: {waffles_made}", font=("Arial", 28), bg="black", fg="orange")
 waffles_label.place(x=1024 - 10 - 350, y=100)  # Right corner
 
-mimic_button = tk.Button(
-    root, text="MIMIC", command=lambda: open_script('mimic.py'), 
+
+Startbutton = tk.Button(
+    root, text="Start", command=lambda: open_script('mimic.py'), 
+    width=button_width, height=button_height, font=font_style, bg="green", fg="white"
+)
+Startbutton.place(x=10, y=600 - 160 - 200)  # Bottom left corner 
+
+Stopbutton = tk.Button(
+    root, text="Stop", command=lambda: open_script('mimic.py'), 
     width=button_width, height=button_height, font=font_style, bg="red", fg="white"
 )
-mimic_button.place(x=10, y=600 - 10 - 200)  # Bottom left corner
+Stopbutton.place(x=10, y=600 - 10 - 200)  # Bottom left corner
 
 
 # Add progress bar and labels

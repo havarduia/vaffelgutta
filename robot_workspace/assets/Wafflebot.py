@@ -12,18 +12,28 @@ from interbotix_common_modules.angle_manipulation import angle_manipulation
 from robot_workspace.backend_controllers import find_pose_from_matrix, robot_boot_manager
 from time import sleep
 from robot_workspace.assets import check_safety
+import argparse
 
 class Wafflebot:
     def __init__(self, use_real_robot = False):
-        robot_boot_manager.robot_launch(use_real_robot=use_real_robot)
+        # Include launch arguments 
+        parser = argparse.ArgumentParser(description="Runs a wafflebot")
+        parser.add_argument("-r", required=False, type=int, default=0, help="1 to use real robot, 0 to simulate")
+        args = parser.parse_args()
+        self.use_real_robot = bool(args.r)
+
+        if use_real_robot == True: self.use_real_robot = True # Override launch option if program specifies otherwise
+
+        robot_boot_manager.robot_launch(use_real_robot=self.use_real_robot)
         self.bot = InterbotixManipulatorXS(
             robot_model= "vx300s",
             group_name="arm",
             gripper_name="gripper",
-            accel_time=0.05 # to allow weak PSU
             )
+        
         self.arm = self.bot.arm
         self.gripper = self.bot.gripper
+        self.core = self.bot.core
         self.arm.capture_joint_positions()
         robot_startup()
         self.arm.capture_joint_positions()
@@ -52,16 +62,17 @@ class Wafflebot:
         
         target_matrix = find_pose_from_matrix.compute_relative_pose(target, self.arm.get_ee_pose())
         target_matrix = check_safety.check_safety(target_matrix)
-        
+        if target_matrix[3][0] == 1: return False # if safety bit is 1, cancel movement 
         goal_pose = find_pose_from_matrix.find_pose_from_matrix(target_matrix)
         
-        self.arm.set_ee_cartesian_trajectory(
+        if not (self.arm.set_ee_cartesian_trajectory(
             x = goal_pose.x,
             y = goal_pose.y,
             z = goal_pose.z,
             roll = goal_pose.roll,
             pitch = goal_pose.pitch,
             yaw = goal_pose.yaw,
-            )
+            )):
+            self.arm.set_ee_pose_matrix(target)
         self.arm.capture_joint_positions() # in hopes of reminding the bot not to kill itself with its next move
         return

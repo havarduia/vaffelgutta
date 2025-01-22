@@ -5,15 +5,13 @@ from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
-# interbotix modules
-from interbotix_common_modules.common_robot.robot import robot_startup, robot_shutdown
-from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
+# robot modules
+from robot_workspace.assets import arm_positions
+from robot_workspace.assets.Wafflebot import *
 # user libraries: 
 from time import sleep
 from pynput import keyboard
 import numpy as numphy
-from robot_workspace.backend_controllers import robot_boot_manager
-from robot_workspace.assets import arm_positions
 from importlib import reload as import_reload
 
 def printmenu():
@@ -24,9 +22,9 @@ def printmenu():
     return
 
 
-def playposition(bot: InterbotixManipulatorXS): 
+def playposition(bot: Wafflebot): 
     import_reload(arm_positions)
-    bot.core.robot_torque_enable("group", "arm", True)
+    bot.bot.core.robot_torque_enable("group", "arm", True)
     bot.arm.capture_joint_positions()
     bot.arm.go_to_home_pose()
     input("\nPress enter to continue")
@@ -105,14 +103,7 @@ def make_on_press(bot):
 
 def main():
     # boot bot
-    robot_boot_manager.robot_launch(use_real_robot=True)
-    bot = InterbotixManipulatorXS(robot_model="vx300s",
-                                  group_name="arm",
-                                  gripper_name="gripper",
-                                  accel_time=0.05
-                                  )
-    robot_startup()
-    
+    bot =  Wafflebot()
     bot.arm.go_to_sleep_pose()
     
     #print menu and listen for keystrokes:

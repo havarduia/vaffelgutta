@@ -17,12 +17,15 @@ def rock_paper_scissors(bot: Wafflebot):
     bot.arm.go_to_home_pose()
     bot.gripper.grasp()
     for i in range(3):
+        bot.arm.set_joint_positions
         bot.arm.set_single_joint_position("shoulder", -0.2, moving_time=0.5)
         bot.arm.set_single_joint_position("elbow", -0.3, moving_time= 0.5)
         bot.arm.set_single_joint_position("shoulder", 0.0, moving_time=0.5)
         bot.arm.set_single_joint_position("elbow", -0.0, moving_time=0.5)
         
-    bot.arm.set_single_joint_position("elbow", -0.0, moving_time=None)
+    bot.arm.set_single_joint_position("elbow", -0.0, moving_time=0.5)
+    
+    bot.arm.set_trajectory_time(moving_time=2.0)
         
     action = randint(1,3)
     if action == 1:

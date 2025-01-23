@@ -11,15 +11,10 @@ from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 # user libraries: 
 from robot_workspace.backend_controllers import robot_boot_manager
 from time import sleep
-
+from robot_workspace.assets.Wafflebot import Wafflebot
 def main():
-    robot_boot_manager.robot_launch(use_real_robot=False)
-    bot = InterbotixManipulatorXS(robot_model="vx300s",
-                                  group_name="arm",
-                                  gripper_name="gripper",
-                                  accel_time=0.05)
+    bot = Wafflebot()
     
-    robot_startup()
     bot.arm.go_to_home_pose()
     bot.arm.go_to_sleep_pose()
     sleep(2)
@@ -32,13 +27,9 @@ def main():
     sleep(5)
     bot.arm.go_to_home_pose()
     bot.arm.set_ee_pose_matrix(savedpose)
- 
     bot.arm.go_to_home_pose()
-    bot.arm.go_to_sleep_pose()
-    sleep(1)
 
-    robot_shutdown()
-    robot_boot_manager.robot_close()
+    bot.safe_stop()
 
 
 

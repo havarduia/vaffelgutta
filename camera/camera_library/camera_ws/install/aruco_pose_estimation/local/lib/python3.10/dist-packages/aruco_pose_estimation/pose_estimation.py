@@ -1,1 +1,0 @@
-/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/src/ros2-aruco-pose-estimation/aruco_pose_estimation/aruco_pose_estimation/pose_estimation.py

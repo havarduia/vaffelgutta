@@ -1,1 +1,0 @@
-/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/build/aruco_interfaces/rosidl_typesupport_fastrtps_cpp/aruco_interfaces/msg/detail/aruco_markers__rosidl_typesupport_fastrtps_cpp.hpp

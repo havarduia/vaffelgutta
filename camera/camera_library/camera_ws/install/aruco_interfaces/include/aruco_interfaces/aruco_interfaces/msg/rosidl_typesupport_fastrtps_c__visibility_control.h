@@ -1,1 +1,0 @@
-/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/build/aruco_interfaces/rosidl_typesupport_fastrtps_c/aruco_interfaces/msg/rosidl_typesupport_fastrtps_c__visibility_control.h

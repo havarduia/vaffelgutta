@@ -1,1 +1,0 @@
-/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/build/aruco_pose_estimation/ament_cmake_core/aruco_pose_estimationConfig.cmake

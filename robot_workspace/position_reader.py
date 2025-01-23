@@ -108,7 +108,7 @@ def make_on_press(bot):
 
 def main():
     # boot bot
-    bot =  Wafflebot(1)
+    bot =  Wafflebot()
     bot.arm.go_to_sleep_pose()
     
     #print menu and listen for keystrokes:

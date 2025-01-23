@@ -1,0 +1,6 @@
+{
+  "package_name": "aruco_interfaces",
+  "non_idl_tuples": [
+    "/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/src/ros2-aruco-pose-estimation/aruco_interfaces:msg/ArucoMarkers.msg"
+  ]
+}

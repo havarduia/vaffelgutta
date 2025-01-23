@@ -1,0 +1,8 @@
+setup.py
+aruco_pose_estimation/__init__.py
+aruco_pose_estimation/pose_estimation.py
+aruco_pose_estimation/utils.py
+aruco_pose_estimation.egg-info/PKG-INFO
+aruco_pose_estimation.egg-info/SOURCES.txt
+aruco_pose_estimation.egg-info/dependency_links.txt
+aruco_pose_estimation.egg-info/top_level.txt

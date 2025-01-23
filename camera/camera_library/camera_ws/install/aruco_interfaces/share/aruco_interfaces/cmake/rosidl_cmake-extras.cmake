@@ -1,0 +1,1 @@
+/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/build/aruco_interfaces/rosidl_cmake/rosidl_cmake-extras.cmake

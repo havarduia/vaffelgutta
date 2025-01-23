@@ -1,0 +1,8 @@
+source;share/aruco_pose_estimation/hook/cmake_prefix_path.ps1
+source;share/aruco_pose_estimation/hook/cmake_prefix_path.dsv
+source;share/aruco_pose_estimation/hook/cmake_prefix_path.sh
+source;share/aruco_pose_estimation/local_setup.bash
+source;share/aruco_pose_estimation/local_setup.dsv
+source;share/aruco_pose_estimation/local_setup.ps1
+source;share/aruco_pose_estimation/local_setup.sh
+source;share/aruco_pose_estimation/local_setup.zsh

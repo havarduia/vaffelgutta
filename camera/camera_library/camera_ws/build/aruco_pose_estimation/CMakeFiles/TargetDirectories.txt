@@ -1,0 +1,11 @@
+/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/build/aruco_pose_estimation/CMakeFiles/uninstall.dir
+/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/build/aruco_pose_estimation/CMakeFiles/aruco_pose_estimation_uninstall.dir
+/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/build/aruco_pose_estimation/CMakeFiles/ament_cmake_python_symlink_aruco_pose_estimation.dir
+/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/build/aruco_pose_estimation/CMakeFiles/ament_cmake_python_build_aruco_pose_estimation_egg.dir
+/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/build/aruco_pose_estimation/CMakeFiles/test.dir
+/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/build/aruco_pose_estimation/CMakeFiles/edit_cache.dir
+/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/build/aruco_pose_estimation/CMakeFiles/rebuild_cache.dir
+/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/build/aruco_pose_estimation/CMakeFiles/list_install_components.dir
+/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/build/aruco_pose_estimation/CMakeFiles/install.dir
+/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/build/aruco_pose_estimation/CMakeFiles/install/local.dir
+/home/vaffelgutta/git/vaffelgutta/camera_library/camera_ws/build/aruco_pose_estimation/CMakeFiles/install/strip.dir

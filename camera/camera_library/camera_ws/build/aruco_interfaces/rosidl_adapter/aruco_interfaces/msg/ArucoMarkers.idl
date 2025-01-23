@@ -1,0 +1,18 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from aruco_interfaces/msg/ArucoMarkers.msg
+// generated code does not contain a copyright notice
+
+#include "geometry_msgs/msg/Pose.idl"
+#include "std_msgs/msg/Header.idl"
+
+module aruco_interfaces {
+  module msg {
+    struct ArucoMarkers {
+      std_msgs::msg::Header header;
+
+      sequence<int64> marker_ids;
+
+      sequence<geometry_msgs::msg::Pose> poses;
+    };
+  };
+};

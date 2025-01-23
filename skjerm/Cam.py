@@ -30,7 +30,7 @@ waffle_button = tk.Button(
 waffle_button.place(x=10, y=10)
 
 cam_button = tk.Button(
-    root, text="Record pose", command=lambda: open_script(''), 
+    root, text="Video feed", command=lambda: open_script(''), 
     width=button_width, height=button_height, font=font_style, bg="green", fg="white"
 )
 cam_button.place(x=1024 - 10 - 350, y=10)  # Right corner

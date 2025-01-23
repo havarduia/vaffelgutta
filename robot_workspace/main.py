@@ -35,10 +35,17 @@ def main():
     bot.safe_stop()
 
 
+<<<<<<< HEAD
 
+=======
+# Footer:
+def handle_error(signum, frame):raise KeyboardInterrupt
+>>>>>>> a24404a8200de72f69ab0cffc40d073848da4775
 if __name__ == '__main__':
+    from signal import signal, SIGINT; signal(SIGINT, handle_error)
     try:
         main()
     # if error detected, run the error handler
     except (KeyboardInterrupt, Exception) as error_program_closed_message:
         with open("robot_workspace/backend_controllers/errorhandling.py") as errorhandler: exec(errorhandler.read())
+    

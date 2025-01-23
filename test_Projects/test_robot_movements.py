@@ -13,7 +13,7 @@ from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 
 def main():
     # Init robot
-    robot_boot_manager.robot_launch(use_real_robot=False)
+    robot_boot_manager.robot_launch(use_real_robot=True)
     
     bot = InterbotixManipulatorXS(
         robot_model='vx300s',
@@ -37,10 +37,11 @@ def main():
     4) bot.arm.go_to_home_pose() and bot.arm.go_to_sleep_pose() are the only built in movements.
     5) See the other scripts for examples of movement.
     """
-
-    bot.gripper.grasp()
-    bot.gripper.release()
-    sleep(20)
+    bot.gripper.set_pressure(1.0)
+    for i in range(10):
+        bot.gripper.grasp(3)
+        bot.gripper.release(3)
+    sleep(2)
     
 
 
@@ -66,9 +67,13 @@ def main():
     robot_shutdown()
     robot_boot_manager.robot_close()
 
+# Footer:
+def handle_error(signum, frame):raise KeyboardInterrupt
 if __name__ == '__main__':
+    from signal import signal, SIGINT; signal(SIGINT, handle_error)
     try:
         main()
     # if error detected, run the error handler
     except (KeyboardInterrupt, Exception) as error_program_closed_message:
         with open("robot_workspace/backend_controllers/errorhandling.py") as errorhandler: exec(errorhandler.read())
+    

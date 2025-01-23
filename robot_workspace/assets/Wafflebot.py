@@ -9,11 +9,15 @@ from interbotix_common_modules.common_robot.robot import robot_startup, robot_sh
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from interbotix_common_modules.angle_manipulation import angle_manipulation
 
+import Jetson.GPIO as GPIO
 from robot_workspace.backend_controllers import find_pose_from_matrix, robot_boot_manager
 from robot_workspace.backend_controllers.tf_publisher import publish_tf
 from robot_workspace.assets import check_safety
 from time import sleep
 import argparse
+import threading
+from sys import modules as sysmodules
+
 
 class Wafflebot:
     def __init__(self, use_real_robot = False):
@@ -38,17 +42,47 @@ class Wafflebot:
         self.arm.capture_joint_positions()
         robot_startup()
         self.arm.capture_joint_positions()
-
+        # Monitor emergency stop
+        if "Jetson.GPIO" in sysmodules:
+            # **Start GPIO monitoring in a separate thread**
+            self.gpio_thread = threading.Thread(
+                target=self.monitor_gpio,
+                daemon=True
+                  )
+            self.gpio_thread.start()
+    
+    
     def __getattr__(self, name):
         return getattr(self.bot, name)
     
+    def monitor_gpio(self):
+        """ Function to monitor GPIO button in a separate thread. """
+        # Set the GPIO mode
+        GPIO.setmode(GPIO.BOARD)
+        button_pin = 18  # Define button pin
+        # Set the pin as an input
+        GPIO.setup(button_pin, GPIO.IN)#pull_up_down=GPIO.PUD_DOWN)
+        previous_presssed = False                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+        while True:
+            pin_state = GPIO.input(button_pin)
+            if not previous_presssed: # edge detction
+                if pin_state == GPIO.LOW:
+                    from os import kill, getpid
+                    from signal import SIGINT
+                    kill(getpid(), SIGINT)
+            previous_presssed = True if pin_state == GPIO.LOW else False
+            sleep(0.1)  # Prevent CPU overuse
+    
+    
     def exit(self):
-        robot_shutdown()
+        robot_shutdown()  
         robot_boot_manager.robot_close()
     
+
     def cancel_movement(self):
         current_pose = self.arm.get_ee_pose()
         self.arm.set_ee_pose_matrix(current_pose)
+    
     
     def safe_stop(self):
         self.bot.core.robot_torque_enable("group", "arm", True)

@@ -16,6 +16,7 @@ def main():
     bot.arm.go_to_home_pose()
     bot.gripper.release()
     
+    bot.go_to(arm_positions.home())
     bot.go_to(arm_positions.pgrab())
     bot.go_to(arm_positions.grab())
     bot.gripper.grasp()
@@ -35,12 +36,9 @@ def main():
     bot.safe_stop()
 
 
-<<<<<<< HEAD
 
-=======
 # Footer:
 def handle_error(signum, frame):raise KeyboardInterrupt
->>>>>>> a24404a8200de72f69ab0cffc40d073848da4775
 if __name__ == '__main__':
     from signal import signal, SIGINT; signal(SIGINT, handle_error)
     try:

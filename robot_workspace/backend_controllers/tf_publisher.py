@@ -38,7 +38,6 @@ class TFPublisher:
         self.parent_frame = parent_frame
         self.child_frame = child_frame
         self.last_transform = None
-        print("__init__ finished")
     def broadcast_transform(self, matrix):
         """
         Sends a 4x4 transformation matrix as a TF broadcast, replacing the previous one.
@@ -60,11 +59,9 @@ class TFPublisher:
         t.transform.rotation.y = quaternion[1]
         t.transform.rotation.z = quaternion[2]
         t.transform.rotation.w = quaternion[3]
-        print("zoo")
         # Overwrite the last transform and publish the new one
         self.last_transform = t
         self.broadcaster.sendTransform(t)
-        print("broadcast_transform finished")
 
 # Singleton instance
 _tf_publisher = None
@@ -78,14 +75,12 @@ def publish_tf(matrix, parent_frame="world", child_frame="robot"):
     :param parent_frame: Parent frame ID.
     :param child_frame: Child frame ID.
     """
-    print("publish_tf")
     global _tf_publisher
     if _tf_publisher is None:
         _tf_publisher = TFPublisher(parent_frame, child_frame)
 
     _tf_publisher.broadcast_transform(matrix)
 
-    print("publish_tf finished")
 
 
 #

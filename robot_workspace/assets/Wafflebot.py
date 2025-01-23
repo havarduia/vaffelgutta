@@ -9,14 +9,19 @@ from interbotix_common_modules.common_robot.robot import robot_startup, robot_sh
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from interbotix_common_modules.angle_manipulation import angle_manipulation
 
-import Jetson.GPIO as GPIO
+
+    
 from robot_workspace.backend_controllers import find_pose_from_matrix, robot_boot_manager
 from robot_workspace.backend_controllers.tf_publisher import publish_tf
 from robot_workspace.assets import check_safety
 from time import sleep
 import argparse
 import threading
+import numpy as numphy
+
 from sys import modules as sysmodules
+if "Jetson.GPIO" in sysmodules: # Check if running on Jetson
+    import Jetson.GPIO as GPIO
 
 
 class Wafflebot:
@@ -43,7 +48,7 @@ class Wafflebot:
         robot_startup()
         self.arm.capture_joint_positions()
         # Monitor emergency stop
-        if "Jetson.GPIO" in sysmodules:
+        if "Jetson.GPIO" in sysmodules: # Check if running on Jetson
             # **Start GPIO monitoring in a separate thread**
             self.gpio_thread = threading.Thread(
                 target=self.monitor_gpio,
@@ -61,8 +66,8 @@ class Wafflebot:
         GPIO.setmode(GPIO.BOARD)
         button_pin = 18  # Define button pin
         # Set the pin as an input
-        GPIO.setup(button_pin, GPIO.IN)#pull_up_down=GPIO.PUD_DOWN)
-        previous_presssed = False                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+        GPIO.setup(button_pin, GPIO.IN)#punll_up_down=GPIO.PUD_DOWN)
+        previous_presssed = False         
         while True:
             pin_state = GPIO.input(button_pin)
             if not previous_presssed: # edge detction
@@ -94,16 +99,44 @@ class Wafflebot:
 
     def go_to(self, target):
         self.arm.capture_joint_positions() # in hopes of reminding the bot not to kill itself with its next move
+        current_arm_pos = self.arm.get_ee_pose() 
+        print("Publishing given target position")
         publish_tf(target)
-        target_matrix = find_pose_from_matrix.compute_relative_pose(target, self.arm.get_ee_pose())
-        target_matrix = check_safety.check_safety(self.bot, target_matrix)
-        if target_matrix[3][0] == 1: return False # if safety bit is 1, cancel movement 
-        goal_pose = find_pose_from_matrix.find_pose_from_matrix(target_matrix)
-        sleep(1)
-        print("coo")
-        publish_tf(angle_manipulation.pose_to_transformation_matrix(goal_pose)) 
-        print("car")
-        if not (self.arm.set_ee_cartesian_trajectory(goal_pose)):
+        delta_matrix = find_pose_from_matrix.compute_relative_pose(T_start=current_arm_pos, T_target=target)
+
+        sleep(3)
+        #print("publising delta matrix")
+        #publish_tf(target_matrix)
+        #sleep(5)
+        
+        print("The bot is currently at:")
+        print(self.arm.get_ee_pose())
+        print("\nThe current target pose is: ") 
+        print(numphy.matrix(target))
+        print("\nand the delta matrix is:")
+        print(delta_matrix)
+        print("\nand the final computed position is:")
+        delta_matrix = check_safety.check_safety(self.bot, delta_matrix)
+        if delta_matrix[3][0] == 1: return False # if safety bit is 1, cancel movement 
+        goal_pose = find_pose_from_matrix.find_pose_from_matrix(delta_matrix)
+        print(numphy.matrix(goal_pose.all))
+        goal_pose_as_matrix = angle_manipulation.pose_to_transformation_matrix(goal_pose.all)
+        print("=")
+        print(goal_pose_as_matrix)
+        publish_tf(goal_pose_as_matrix+current_arm_pos) 
+
+        print("Publishing Caclulated target position") 
+        sleep(3)
+        print("Moving")
+        if not (self.arm.set_ee_cartesian_trajectory(
+            x = goal_pose.x,
+            y = goal_pose.y,
+            z = goal_pose.z,
+            roll=goal_pose.roll,
+            pitch=goal_pose.pitch,
+            yaw= goal_pose.yaw,
+        )):
+            pass
             self.arm.set_ee_pose_matrix(target)
         self.arm.capture_joint_positions() # in hopes of reminding the bot not to kill itself with its next move
         return

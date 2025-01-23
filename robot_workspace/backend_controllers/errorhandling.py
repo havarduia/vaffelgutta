@@ -2,15 +2,12 @@
 from time import sleep
 from interbotix_common_modules.common_robot.robot import robot_shutdown
 from robot_workspace.backend_controllers import robot_boot_manager
-<<<<<<< HEAD
 import traceback
-=======
 from signal import signal, SIGINT, SIG_IGN
 
 def handle_second_sigint(signum, frame):
     raise KeyboardInterrupt
 signal(SIGINT, handle_second_sigint) # ignore SIGINT while shutting down
->>>>>>> a24404a8200de72f69ab0cffc40d073848da4775
 try:
     bot.core.robot_torque_enable("group", "arm", True)
     print("\nRobot torquing successful!")
@@ -52,4 +49,4 @@ finally:
                 error_program_closed_message = "Ctrl+C (KeyboardInterrupt)"
             # Print error message  
             print("Program closed by: " + str(error_program_closed_message))
-            print("Traceback is:" + traceback.format_exc())
+            print(traceback.format_exc())

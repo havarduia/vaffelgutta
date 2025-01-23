@@ -10,8 +10,9 @@ from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from interbotix_common_modules.angle_manipulation import angle_manipulation
 
 from robot_workspace.backend_controllers import find_pose_from_matrix, robot_boot_manager
-from time import sleep
+from robot_workspace.backend_controllers.tf_publisher import publish_tf
 from robot_workspace.assets import check_safety
+from time import sleep
 import argparse
 
 class Wafflebot:
@@ -59,20 +60,16 @@ class Wafflebot:
 
     def go_to(self, target):
         self.arm.capture_joint_positions() # in hopes of reminding the bot not to kill itself with its next move
-        
+        publish_tf(target)
         target_matrix = find_pose_from_matrix.compute_relative_pose(target, self.arm.get_ee_pose())
-        target_matrix = check_safety.check_safety(target_matrix)
+        target_matrix = check_safety.check_safety(self.bot, target_matrix)
         if target_matrix[3][0] == 1: return False # if safety bit is 1, cancel movement 
         goal_pose = find_pose_from_matrix.find_pose_from_matrix(target_matrix)
-        
-        if not (self.arm.set_ee_cartesian_trajectory(
-            x = goal_pose.x,
-            y = goal_pose.y,
-            z = goal_pose.z,
-            roll = goal_pose.roll,
-            pitch = goal_pose.pitch,
-            yaw = goal_pose.yaw,
-            )):
+        sleep(1)
+        print("coo")
+        publish_tf(angle_manipulation.pose_to_transformation_matrix(goal_pose)) 
+        print("car")
+        if not (self.arm.set_ee_cartesian_trajectory(goal_pose)):
             self.arm.set_ee_pose_matrix(target)
         self.arm.capture_joint_positions() # in hopes of reminding the bot not to kill itself with its next move
         return

@@ -2,6 +2,7 @@
 from time import sleep
 from interbotix_common_modules.common_robot.robot import robot_shutdown
 from robot_workspace.backend_controllers import robot_boot_manager
+import traceback
 try:
     bot.core.robot_torque_enable("group", "arm", True)
     print("\nRobot torquing successful!")
@@ -38,3 +39,4 @@ finally:
                 error_program_closed_message = "Ctrl+C (KeyboardInterrupt)"
             # Print error message  
             print("Program closed by: " + str(error_program_closed_message))
+            print("Traceback is:" + traceback.format_exc())

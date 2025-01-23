@@ -61,8 +61,8 @@ def find_pose_from_matrix(delta_matrix: list):
         target_positions.y,
         target_positions.z,
         target_positions.roll,
-        target_positions.yaw,
         target_positions.pitch,
+        target_positions.yaw,
         ])
     print("debug 2")
     print(numphy.matrix(angle_manipulation.pose_to_transformation_matrix(target_positions.all)))

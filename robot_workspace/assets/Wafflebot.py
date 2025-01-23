@@ -103,25 +103,20 @@ class Wafflebot:
         print("Publishing given target position")
         publish_tf(target)
         delta_matrix = find_pose_from_matrix.compute_relative_pose(T_start=current_arm_pos, T_target=target)
-
+        print("target angle:")
+        rotatinmatrix = numphy.matrix(delta_matrix)
+        rotatinmatrix = rotatinmatrix[:3,:3]
+        print(angle_manipulation.rotation_matrix_to_euler_angles(rotatinmatrix))
         sleep(3)
-        #print("publising delta matrix")
-        #publish_tf(target_matrix)
-        #sleep(5)
-        
-        print("The bot is currently at:")
-        print(self.arm.get_ee_pose())
-        print("\nThe current target pose is: ") 
-        print(numphy.matrix(target))
-        print("\nand the delta matrix is:")
-        print(delta_matrix)
-        print("\nand the final computed position is:")
+
         delta_matrix = check_safety.check_safety(self.bot, delta_matrix)
         if delta_matrix[3][0] == 1: return False # if safety bit is 1, cancel movement 
         goal_pose = find_pose_from_matrix.find_pose_from_matrix(delta_matrix)
+        print("Goal pose is")
         print(numphy.matrix(goal_pose.all))
         goal_pose_as_matrix = angle_manipulation.pose_to_transformation_matrix(goal_pose.all)
         print("=")
+    
         print(goal_pose_as_matrix)
         publish_tf(goal_pose_as_matrix+current_arm_pos) 
 

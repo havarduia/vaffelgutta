@@ -58,17 +58,22 @@ def recordposition(bot: InterbotixManipulatorXS):
     sleep(0.25)
     input("\nPress enter to record") 
     bot.core.robot_torque_enable("group", "arm", True)
+    sleep(1)
     bot.arm.capture_joint_positions()
-    position = bot.arm.get_ee_pose()
-    
+    if bot.arm._check_joint_limits(bot.arm.get_joint_positions()):
+        position = bot.arm.get_ee_pose()
+        bot.arm.get_ee_pose_command
+    else:
+        print("Joints are not within their limits. Try again bozo.")
+        printmenu()
+        return
 
     name = input("Press enter to cancel recording\n"
                     + "Write the name of your position:\n")
     
     if name != "":
         with open("robot_workspace/assets/arm_positions.py", "a") as file:
-            file.write(f"\ndef {name}():\n")
-            file.write("  return ([\n")
+            file.write(f"\n{name}=([\n")
             numphy.savetxt(file, position, fmt="  [% .8f, % .8f, % .8f, % .8f],")
             file.write("  ])\n")
         

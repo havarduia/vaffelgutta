@@ -2,6 +2,7 @@
 from time import sleep
 from interbotix_common_modules.common_robot.robot import robot_shutdown
 from robot_workspace.backend_controllers import robot_boot_manager
+import traceback
 from signal import signal, SIGINT, SIG_IGN
 
 def handle_second_sigint(signum, frame):
@@ -48,3 +49,4 @@ finally:
                 error_program_closed_message = "Ctrl+C (KeyboardInterrupt)"
             # Print error message  
             print("Program closed by: " + str(error_program_closed_message))
+            print(traceback.format_exc())

@@ -6,18 +6,35 @@ chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
 from robot_workspace.assets.Wafflebot import Wafflebot
+from robot_workspace.assets import arm_positions
 from time import sleep
-from robot_workspace.robot_movements import rock_paper_scissors
+
 def main():
     
     bot = Wafflebot()
     
     bot.arm.go_to_home_pose()
-
-    rock_paper_scissors.rock_paper_scissors(bot)
+    bot.gripper.release()
     
-    sleep(5)
+    bot.go_to(arm_positions.home())
+    bot.go_to(arm_positions.pgrab())
+    bot.go_to(arm_positions.grab())
+    bot.gripper.grasp()
+    bot.go_to(arm_positions.postgrab())
+    bot.arm.go_to_home_pose()
+    bot.go_to(arm_positions.spray())
+    sleep(1)
+    bot.go_to(arm_positions.sprayy())
+    sleep(1)
+    bot.arm.go_to_home_pose()
+    bot.go_to(arm_positions.pgrab())
+    bot.go_to(arm_positions.grab())
+    bot.gripper.release()
+    bot.go_to(arm_positions.postgrab())
+
+
     bot.safe_stop()
+
 
 
 # Footer:

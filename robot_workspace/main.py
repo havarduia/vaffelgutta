@@ -8,35 +8,25 @@ syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 from robot_workspace.assets.Wafflebot import Wafflebot
 from robot_workspace.assets import arm_positions
 from time import sleep
+import numpy as numphy
 
 def main():
     
     bot = Wafflebot()
     
     bot.arm.go_to_home_pose()
-    bot.gripper.release()
+    from robot_workspace.backend_controllers.tf_publisher import publish_tf
+    while True:
+        publish_tf(arm_positions.havar)
+        sleep(2)
+        bot.arm.set_ee_pose_matrix((arm_positions.havar))
     
-    bot.go_to(arm_positions.home())
-    bot.go_to(arm_positions.pgrab())
-    bot.go_to(arm_positions.grab())
-    bot.gripper.grasp()
-    bot.go_to(arm_positions.postgrab())
-    bot.arm.go_to_home_pose()
-    bot.go_to(arm_positions.spray())
-    sleep(1)
-    bot.go_to(arm_positions.sprayy())
-    sleep(1)
-    bot.arm.go_to_home_pose()
-    bot.go_to(arm_positions.pgrab())
-    bot.go_to(arm_positions.grab())
-    bot.gripper.release()
-    bot.go_to(arm_positions.postgrab())
-
-
+    from robot_workspace.backend_controllers import safety_functions as safety
+    lim = bot.arm.get_joint_positions()
+    safety.fix_joint_limits(lim)
+    
     bot.safe_stop()
-
-
-
+    
 # Footer:
 def handle_error(signum, frame):raise KeyboardInterrupt
 if __name__ == '__main__':

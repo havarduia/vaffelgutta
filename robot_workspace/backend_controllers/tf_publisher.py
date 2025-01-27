@@ -1,6 +1,7 @@
 """
 The following is greg code used for debugging.
 The conversation history is pasted in the bottom of the script.
+Edit: I forgor
 """
 
 import rclpy
@@ -49,7 +50,7 @@ class TFPublisher:
         t.header.frame_id = self.parent_frame
         t.child_frame_id = self.child_frame
         # Extract translation
-        """NB! Changed indexing from [x,]to [][]"""
+        """NB! Changed indexing from [x,y]to [x][y]"""
         t.transform.translation.x = matrix[0][3]
         t.transform.translation.y = matrix[1][3]
         t.transform.translation.z = matrix[2][3]
@@ -80,7 +81,3 @@ def publish_tf(matrix, parent_frame="world", child_frame="robot"):
         _tf_publisher = TFPublisher(parent_frame, child_frame)
 
     _tf_publisher.broadcast_transform(matrix)
-
-
-
-#

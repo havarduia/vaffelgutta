@@ -13,6 +13,7 @@ from time import sleep
 from pynput import keyboard
 import numpy as numphy
 from importlib import reload as import_reload
+import inspect
 
 def printmenu():
     print("\nPress 1 to record position\n"
@@ -29,23 +30,21 @@ def playposition(bot: Wafflebot):
     bot.arm.go_to_home_pose()
     input("\nPress enter to continue")
     print("The stored positions are:")
-    for func in dir(arm_positions):
-        if (callable(getattr(arm_positions, func)) 
-            and
-        not func.startswith("__")
-        ):
-            print(func)
     #print the stored positions.
+    members = inspect.getmembers(arm_positions)
+    valid_positions = ([name for name, obj in members if not inspect.isfunction(obj) and not inspect.isclass(obj) and not name.startswith("__")])
+    print(valid_positions)
     names = input("Enter the name of the position(s) you want to go to,\n"
                   +"separated by a comma (,):\n")
     names = names.split(",")
     for name in names:
         name = name.strip() # remove whitespace
-        if not hasattr(arm_positions,name):
+        if name not in valid_positions:
             print(f"position {name} not found in position list")
-            sleep(5)
+            sleep(2)
+            printmenu()
             break
-        pose = getattr(arm_positions, name)()
+        pose = getattr(arm_positions, name)
         bot.arm.set_ee_pose_matrix(pose)
         sleep(1)
     bot.arm.go_to_home_pose()
@@ -127,7 +126,7 @@ def main():
     sleep(1)
     robot_shutdown()
     robot_boot_manager.robot_close()
-
+    bot.arm.set_ee_pose_matrix()
     return
 
 # Footer:

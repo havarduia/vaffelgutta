@@ -7,16 +7,11 @@ syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
 from robot_workspace.assets.Wafflebot import Wafflebot
 from time import sleep
+from robot_workspace.assets import camera_readings
 
-from kamera.create_matrix_from_apriltag import save_apriltag_matrix
 
 def get_apriltag_pose():
-    return [
-        [1,0,0,0.3],
-        [0,1,0,0],
-        [0,0,1,0],
-        [0,0,0,1]
-    ]
+    return camera_readings.[sett inn navn på posisjon her]
 
 
 def main():
@@ -26,11 +21,13 @@ def main():
 
     # Put your code here:
     running = True
+    i = 1
     while running:
+        i+=1
         pose = get_apriltag_pose()
-        bot.go_to(pose)
-        if get_apriltag_pose == False: running = False
-
+        bot.arm.set_ee_pose_components(pose)
+        if i == 700: running = False
+        sleep(0.1)
     # Close bot, close program:
     bot.safe_stop()
 

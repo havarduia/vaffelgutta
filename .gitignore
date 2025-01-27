@@ -1,4 +1,6 @@
 __pycache__/
 nohup.out
 .vscode/
-camera_ws/build/
+build/
+install/
+camera/camera_library/camera_ws/log/

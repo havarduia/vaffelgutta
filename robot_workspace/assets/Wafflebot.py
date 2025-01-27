@@ -11,9 +11,9 @@ from interbotix_common_modules.angle_manipulation import angle_manipulation
 
 
     
-from robot_workspace.backend_controllers import find_pose_from_matrix, robot_boot_manager
+from robot_workspace.backend_controllers import robot_boot_manager
 from robot_workspace.backend_controllers.tf_publisher import publish_tf
-from robot_workspace.assets import check_safety
+from robot_workspace.backend_controllers import safety_functions
 from time import sleep
 import argparse
 import threading
@@ -24,6 +24,14 @@ if "Jetson.GPIO" in sysmodules: # Check if running on Jetson
     import Jetson.GPIO as GPIO
 
 
+def calculate_translation(startpos: list, endpos: list):
+    """Calculate the translation of two 4x4 matrices"""
+    x = endpos[0][3] - startpos[0][3]
+    y = endpos[1][3] - startpos[1][3]
+    z = endpos[2][3] - startpos[2][3]
+    return (x, y, z)
+    
+
 class Wafflebot:
     def __init__(self, use_real_robot = False):
         # Include launch arguments 
@@ -32,7 +40,7 @@ class Wafflebot:
         args = parser.parse_args()
         self.use_real_robot = bool(args.r)
 
-        if use_real_robot == True: self.use_real_robot = True # Override launch option if program specifies otherwise
+        if use_real_robot == True: self.use_real_robot = True # Override launch option if program specifies real bot
 
         robot_boot_manager.robot_launch(use_real_robot=self.use_real_robot)
         self.bot = InterbotixManipulatorXS(
@@ -41,12 +49,16 @@ class Wafflebot:
             gripper_name="gripper",
             )
         
+        # Define shorthands to call bot functions intuitively 
         self.arm = self.bot.arm
         self.gripper = self.bot.gripper
         self.core = self.bot.core
+
+        # start up robot
         self.arm.capture_joint_positions()
         robot_startup()
         self.arm.capture_joint_positions()
+        
         # Monitor emergency stop
         if "Jetson.GPIO" in sysmodules: # Check if running on Jetson
             # **Start GPIO monitoring in a separate thread**
@@ -56,40 +68,18 @@ class Wafflebot:
                   )
             self.gpio_thread.start()
     
-    
+    # return the methods of the child class
     def __getattr__(self, name):
         return getattr(self.bot, name)
-    
-    def monitor_gpio(self):
-        """ Function to monitor GPIO button in a separate thread. """
-        # Set the GPIO mode
-        GPIO.setmode(GPIO.BOARD)
-        button_pin = 18  # Define button pin
-        # Set the pin as an input
-        GPIO.setup(button_pin, GPIO.IN)#punll_up_down=GPIO.PUD_DOWN)
-        previous_presssed = False         
-        while True:
-            pin_state = GPIO.input(button_pin)
-            if not previous_presssed: # edge detction
-                if pin_state == GPIO.LOW:
-                    from os import kill, getpid
-                    from signal import SIGINT
-                    kill(getpid(), SIGINT)
-            previous_presssed = True if pin_state == GPIO.LOW else False
-            sleep(0.1)  # Prevent CPU overuse
     
     
     def exit(self):
         robot_shutdown()  
         robot_boot_manager.robot_close()
     
-
-    def cancel_movement(self):
-        current_pose = self.arm.get_ee_pose()
-        self.arm.set_ee_pose_matrix(current_pose)
     
-    
-    def safe_stop(self):
+    def safe_stop(self, slow = False):
+        self.arm.set_trajectory_time(moving_time=(8.0 if slow else 2.0)) # reset moving time if changed elsewhere
         self.bot.core.robot_torque_enable("group", "arm", True)
         sleep(2)
         self.arm.go_to_home_pose()
@@ -97,41 +87,35 @@ class Wafflebot:
         sleep(0.5)
         self.exit()
 
+
+    def monitor_gpio(self):
+        """ Function to monitor GPIO button in a separate thread. """
+        # Set the GPIO mode
+        GPIO.setmode(GPIO.BOARD)
+        button_pin = 18  # Define button pin
+        # Set the pin as an input
+        GPIO.setup(button_pin, GPIO.IN)#punll_up_down=GPIO.PUD_DOWN)
+              
+        while True:
+            pin_state = GPIO.input(button_pin)
+            if pin_state == GPIO.LOW:
+                self.safe_stop(slow = True)
+                break
+            sleep(0.1)  # Prevent CPU overuse
+    
+    
+    def cancel_movement(self):
+        current_pose = self.arm.get_ee_pose()
+        self.arm.set_ee_pose_matrix(current_pose)
+    
+
+    
     def go_to(self, target):
         self.arm.capture_joint_positions() # in hopes of reminding the bot not to kill itself with its next move
-        current_arm_pos = self.arm.get_ee_pose() 
-        print("Publishing given target position")
-        publish_tf(target)
-        delta_matrix = find_pose_from_matrix.compute_relative_pose(T_start=current_arm_pos, T_target=target)
-        print("target angle:")
-        rotatinmatrix = numphy.matrix(delta_matrix)
-        rotatinmatrix = rotatinmatrix[:3,:3]
-        print(angle_manipulation.rotation_matrix_to_euler_angles(rotatinmatrix))
-        sleep(3)
 
-        delta_matrix = check_safety.check_safety(self.bot, delta_matrix)
-        if delta_matrix[3][0] == 1: return False # if safety bit is 1, cancel movement 
-        goal_pose = find_pose_from_matrix.find_pose_from_matrix(delta_matrix)
-        print("Goal pose is")
-        print(numphy.matrix(goal_pose.all))
-        goal_pose_as_matrix = angle_manipulation.pose_to_transformation_matrix(goal_pose.all)
-        print("=")
-    
-        print(goal_pose_as_matrix)
-        publish_tf(goal_pose_as_matrix+current_arm_pos) 
-
-        print("Publishing Caclulated target position") 
-        sleep(3)
-        print("Moving")
-        if not (self.arm.set_ee_cartesian_trajectory(
-            x = goal_pose.x,
-            y = goal_pose.y,
-            z = goal_pose.z,
-            roll=goal_pose.roll,
-            pitch=goal_pose.pitch,
-            yaw= goal_pose.yaw,
-        )):
-            pass
-            self.arm.set_ee_pose_matrix(target)
+        waypoints = safety_functions.check_collisions(bot=self.bot, start_pose_matrix= self.arm.get_ee_pose(), end_pose_matrix= target)
+        for waypoint in waypoints:
+            self.arm.set_joint_positions(waypoint)
+        
         self.arm.capture_joint_positions() # in hopes of reminding the bot not to kill itself with its next move
         return

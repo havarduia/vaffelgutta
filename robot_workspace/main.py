@@ -16,10 +16,13 @@ def main():
     
     bot.arm.go_to_home_pose()
     from robot_workspace.backend_controllers.tf_publisher import publish_tf
+    from robot_workspace.assets import camera_readings
+    from importlib import reload as import_reload
+
     while True:
-        publish_tf(arm_positions.havar)
-        sleep(2)
-        bot.arm.set_ee_pose_matrix((arm_positions.havar))
+        import_reload(camera_readings)
+        publish_tf(camera_readings.test_marker)
+        bot.arm.set_ee_pose_matrix((camera_readings.test_marker), blocking=False)
     
     from robot_workspace.backend_controllers import safety_functions as safety
     lim = bot.arm.get_joint_positions()

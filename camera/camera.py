@@ -1,4 +1,3 @@
-
 # Change the working directory to the base directory
 from os import chdir
 from os import path as ospath 
@@ -6,28 +5,29 @@ from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
+import os
 import pyrealsense2 as rs
 import cv2
 import numpy as np
 
+# Load camera calibration data
+calibration_file = os.path.expanduser("~/git/vaffelgutta/camera/camera.npy")
+mtx, dist, _, _ = np.load(calibration_file, allow_pickle=True)
+
 # Camera intrinsic parameters
-camera_matrix = np.array([
-    [960.981, 0, 956.882],
-    [0, 960.981, 529.997],
-    [0, 0, 1]
-])
-dist_coeffs = np.array([0, 0, 0, 0, 0])  # Update if distortion coefficients are available
+camera_matrix = mtx
+dist_coeffs = dist
 
 # Configure the RealSense pipeline
 pipeline = rs.pipeline()
 config = rs.config()
-config.enable_stream(rs.stream.color, 1920, 1080, rs.format.bgr8, 30)
+config.enable_stream(rs.stream.color, 1280, 720, rs.format.bgr8, 30)
 
 # Start the pipeline
 pipeline.start(config)
 
 # Load ArUco marker dictionary and parameters
-aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_50)
 aruco_params = cv2.aruco.DetectorParameters()
 
 try:
@@ -52,25 +52,26 @@ try:
             for i in range(len(ids)):
                 # Estimate pose of the ArUco marker
                 rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corners[i], 0.035, camera_matrix, dist_coeffs)
-                print(tvec)
-                tvec = tvec[0][0]
-                x = tvec[0]; y = tvec[1]; z = tvec[2]
-             
-                x_new = z
-                y_new = -x
-                z_new = -y 
-                tvec = np.array([[[x_new, y_new, z_new]]])   
-                print(tvec)
+
                 # Draw the marker and axes
                 cv2.aruco.drawDetectedMarkers(color_image, corners, ids)
+                # Red is X-axis, green is Y-axis, and blue is Z-axis
                 cv2.drawFrameAxes(color_image, camera_matrix, dist_coeffs, rvec, tvec, length=0.05)
+                tvec = tvec[0][0]
+                x = tvec[0]
+                y = tvec[1]
+                z = tvec[2]
+
+                x_new = z
+                y_new = -x
+                z_new = -y
+                tvec = np.array([[[x_new, y_new, z_new]]])
 
                 # Create a 4x4 transformation matrix
                 rotation_matrix, _ = cv2.Rodrigues(rvec)
                 transformation_matrix = np.eye(4)
                 transformation_matrix[:3, :3] = rotation_matrix
                 transformation_matrix[:3, 3] = tvec.flatten()
-
 
                 with open("robot_workspace/assets/camera_readings.py", "a") as file:
                     file.write(f"\ntest_marker =([\n")
@@ -79,7 +80,7 @@ try:
                 # Print the transformation matrix in the desired format
                 print(f"([")
                 for row in transformation_matrix:
-                    print(f"  [{', '.join(f'{x: .8f}' for x in row)}],")
+                    print(f"  [{', '.join(f'{x: .3f}' for x in row)}],")
                 print(f" ])\n")
 
         else:

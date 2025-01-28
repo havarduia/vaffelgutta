@@ -1,3 +1,11 @@
+
+# Change the working directory to the base directory
+from os import chdir
+from os import path as ospath 
+from sys import path as syspath
+chdir(ospath.expanduser("~/git/vaffelgutta"))
+syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
+
 import pyrealsense2 as rs
 import cv2
 import numpy as np
@@ -22,14 +30,6 @@ pipeline.start(config)
 aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 aruco_params = cv2.aruco.DetectorParameters()
 
-def drawAxis(img, rvec, tvec, camera_matrix, dist_coeffs, axis_length=0.1):
-    axis = np.float32([[axis_length, 0, 0], [0, axis_length, 0], [0, 0, axis_length], [0, 0, 0]]).reshape(-1, 3)
-    img_pts, _ = cv2.projectPoints(axis, rvec, tvec, camera_matrix, dist_coeffs)
-    origin = tuple(img_pts[3].ravel().astype(int))
-    cv2.line(img, origin, tuple(img_pts[0].ravel().astype(int)), (0, 0, 255), 2)  # X-axis (red)
-    cv2.line(img, origin, tuple(img_pts[1].ravel().astype(int)), (0, 255, 0), 2)  # Y-axis (green)
-    cv2.line(img, origin, tuple(img_pts[2].ravel().astype(int)), (255, 0, 0), 2)  # Z-axis (blue)
-
 try:
     while True:
         # Wait for a coherent frame
@@ -52,10 +52,18 @@ try:
             for i in range(len(ids)):
                 # Estimate pose of the ArUco marker
                 rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corners[i], 0.035, camera_matrix, dist_coeffs)
-
+                print(tvec)
+                tvec = tvec[0][0]
+                x = tvec[0]; y = tvec[1]; z = tvec[2]
+             
+                x_new = z
+                y_new = -x
+                z_new = -y 
+                tvec = np.array([[[x_new, y_new, z_new]]])   
+                print(tvec)
                 # Draw the marker and axes
                 cv2.aruco.drawDetectedMarkers(color_image, corners, ids)
-                drawAxis(color_image, rvec, tvec, camera_matrix, dist_coeffs, 0.1)
+                cv2.drawFrameAxes(color_image, camera_matrix, dist_coeffs, rvec, tvec, length=0.05)
 
                 # Create a 4x4 transformation matrix
                 rotation_matrix, _ = cv2.Rodrigues(rvec)
@@ -63,9 +71,11 @@ try:
                 transformation_matrix[:3, :3] = rotation_matrix
                 transformation_matrix[:3, 3] = tvec.flatten()
 
-                # Swap x (first row, fourth column) and z (third row, fourth column)
-                transformation_matrix[0, 3], transformation_matrix[2, 3] = transformation_matrix[2, 3], transformation_matrix[0, 3]
 
+                with open("robot_workspace/assets/camera_readings.py", "a") as file:
+                    file.write(f"\ntest_marker =([\n")
+                    np.savetxt(file, transformation_matrix, fmt="  [% .8f, % .8f, % .8f, % .8f],")
+                    file.write("  ])\n")
                 # Print the transformation matrix in the desired format
                 print(f"([")
                 for row in transformation_matrix:

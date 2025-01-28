@@ -7,26 +7,21 @@ syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
 from robot_workspace.assets.Wafflebot import Wafflebot
 from robot_workspace.assets import arm_positions
+from robot_workspace.backend_controllers import safety_functions as safety 
 from time import sleep
 import numpy as numphy
 
 def main():
     
     bot = Wafflebot()
-    
-    bot.arm.go_to_home_pose()
-    from robot_workspace.backend_controllers.tf_publisher import publish_tf
-    from robot_workspace.assets import camera_readings
-    from importlib import reload as import_reload
 
-    while True:
-        import_reload(camera_readings)
-        publish_tf(camera_readings.test_marker)
-        bot.arm.set_ee_pose_matrix((camera_readings.test_marker), blocking=False)
-    
-    from robot_workspace.backend_controllers import safety_functions as safety
-    lim = bot.arm.get_joint_positions()
-    safety.fix_joint_limits(lim)
+    bot.arm.go_to_home_pose()
+
+    bot.arm.set_ee_pose_matrix(arm_positions.a)
+    bot.arm.set_ee_pose_matrix(arm_positions.b)
+    bot.arm.set_ee_pose_matrix(arm_positions.ma)
+
+    bot.go_to(arm_positions.ma)
     
     bot.safe_stop()
     

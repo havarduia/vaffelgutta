@@ -113,9 +113,13 @@ class Wafflebot:
     def go_to(self, target):
         self.arm.capture_joint_positions() # in hopes of reminding the bot not to kill itself with its next move
 
-        waypoints = safety_functions.check_collisions(bot=self.bot, start_pose_matrix= self.arm.get_ee_pose(), end_pose_matrix= target)
+        waypoints = safety_functions.check_collisions(bot=self.bot, start_pose_matrix = self.arm.get_ee_pose(), end_pose_matrix= target)
         for waypoint in waypoints:
-            self.arm.set_joint_positions(waypoint)
-        
+            
+            joints = self.arm.set_ee_pose_matrix(waypoint, execute=False)[0]
+            joints = safety_functions.fix_joint_limits(joints=joints)
+            
+            self.arm.set_joint_positions(joints)
+
         self.arm.capture_joint_positions() # in hopes of reminding the bot not to kill itself with its next move
         return

@@ -41,6 +41,7 @@ def main():
         "robot_state_publisher",
         "ros2",
         "xs_sdk",
+        "realsense2_camera_node"
     ]
     for proc in processes:
         print(f"Killing {proc}")

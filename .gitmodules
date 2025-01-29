@@ -1,3 +1,0 @@
-[submodule "camera/camera_library/camera_ws/src/ros2-aruco-pose-estimation"]
-	path = camera/camera_library/camera_ws/src/ros2-aruco-pose-estimation
-	url = https://github.com/AIRLab-POLIMI/ros2-aruco-pose-estimation.git

@@ -6,7 +6,7 @@ chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
 # robot modules
-from robot_workspace.assets import arm_positions
+from robot_workspace.assets import arm_positions, arm_joint_states
 from robot_workspace.assets.Wafflebot import *
 # user libraries: 
 from time import sleep
@@ -18,8 +18,9 @@ import inspect
 def printmenu():
     print("\nPress 1 to record position\n"
           +"Press 2 to play back saved position\n"
-          +"Press 3 to show this message again\n"
-          +"Press 4 to quit")
+          +"Press 3 to play back saved position using joint method\n"
+          +"Press 4 to show this message again\n"
+          +"Press 5 to quit")
     return
 
 
@@ -27,11 +28,60 @@ def playposition(bot: Wafflebot):
     import_reload(arm_positions)
     bot.bot.core.robot_torque_enable("group", "arm", True)
     bot.arm.capture_joint_positions()
-    bot.arm.go_to_home_pose()
+    #bot.arm.go_to_home_pose()
+    input("\nPress enter to continue")
+    print("The stored positions are:")
+    
+    #print the stored positions.
+    members = inspect.getmembers(arm_positions)
+    valid_positions = ([name for name, obj in members if not inspect.isfunction(obj) and not inspect.isclass(obj) and not name.startswith("__")])
+    print(valid_positions)
+    
+    names = input("Enter the name of the position(s) you want to go to,\n"
+                  +"separated by a comma (,):\n")
+    names = names.split(",")
+    
+    for name in names:
+        name = name.strip() # remove whitespace
+        if name not in valid_positions:
+            print(f"position {name} not found in position list")
+            sleep(2)
+            break
+        
+        pose = getattr(arm_positions, name)
+        import_reload(arm_joint_states)
+        waistpos = getattr(arm_joint_states, name)[0]
+        
+        bot.arm.set_single_joint_position("waist",waistpos, blocking=False)
+        print(f"Going to {name}")
+
+        #bot.arm.set_ee_pose_matrix(pose, custom_guess=bot.arm.get_joint_commands())
+        bot.go_to(pose)
+        
+        cmd = bot.arm.get_joint_commands()
+        '''
+        print("Waist: "+ str(cmd[0]))
+        print("Shoulder: "+ str(cmd[1]))
+        print("Elmo: "+ str(cmd[2]))
+        print("Wrist angle: "+ str(cmd[3]))
+        print("Forearm roll: "+ str(cmd[4]))
+        print("Wrist rotate: "+ str(cmd[5]))
+        '''
+        sleep(1)
+    #bot.arm.go_to_home_pose()
+    printmenu()
+    return
+
+
+def playjoints(bot: Wafflebot):
+    import_reload(arm_joint_states)
+    bot.bot.core.robot_torque_enable("group", "arm", True)
+    bot.arm.capture_joint_positions()
+    #bot.arm.go_to_home_pose()
     input("\nPress enter to continue")
     print("The stored positions are:")
     #print the stored positions.
-    members = inspect.getmembers(arm_positions)
+    members = inspect.getmembers(arm_joint_states)
     valid_positions = ([name for name, obj in members if not inspect.isfunction(obj) and not inspect.isclass(obj) and not name.startswith("__")])
     print(valid_positions)
     names = input("Enter the name of the position(s) you want to go to,\n"
@@ -42,15 +92,24 @@ def playposition(bot: Wafflebot):
         if name not in valid_positions:
             print(f"position {name} not found in position list")
             sleep(2)
-            printmenu()
             break
-        pose = getattr(arm_positions, name)
-        bot.arm.set_ee_pose_matrix(pose)
+        pose = getattr(arm_joint_states, name)
+        bot.arm.set_joint_positions(pose)
+        print(f"Going to {name}")
+        cmd = bot.arm.get_joint_commands()
+        '''
+        print("Waist: "+ str(cmd[0]) )
+        print("Shoulder: "+ str(cmd[1]) )
+        print("Elmo: "+ str(cmd[2]) )
+        print("Wrist angle: "+ str(cmd[3]))
+        print("Forearm roll: "+ str(cmd[4]))
+        print("Wrist rotate: "+ str(cmd[5]))
+        '''
         sleep(1)
-    bot.arm.go_to_home_pose()
+    #bot.arm.go_to_home_pose()
     printmenu()
     return
-
+    
 
 def recordposition(bot: InterbotixManipulatorXS):
     bot.core.robot_torque_enable("group", "arm", False)
@@ -59,9 +118,9 @@ def recordposition(bot: InterbotixManipulatorXS):
     bot.core.robot_torque_enable("group", "arm", True)
     sleep(1)
     bot.arm.capture_joint_positions()
-    if bot.arm._check_joint_limits(bot.arm.get_joint_positions()):
-        position = bot.arm.get_ee_pose()
-        bot.arm.get_ee_pose_command
+    position_joints = bot.arm.get_joint_positions()
+    if bot.arm._check_joint_limits(position_joints):
+        position_mat = bot.arm.get_ee_pose()
     else:
         print("Joints are not within their limits. Try again bozo.")
         printmenu()
@@ -71,12 +130,18 @@ def recordposition(bot: InterbotixManipulatorXS):
                     + "Write the name of your position:\n")
     
     if name != "":
+        # write ee position
         with open("robot_workspace/assets/arm_positions.py", "a") as file:
             file.write(f"\n{name}=([\n")
-            numphy.savetxt(file, position, fmt="  [% .8f, % .8f, % .8f, % .8f],")
+            numphy.savetxt(file, position_mat, fmt="  [% .8f, % .8f, % .8f, % .8f],")
             file.write("  ])\n")
-        
-        print(f'Successfully written "{name}" to arm_positions.py')
+        # write joint state:
+        with open("robot_workspace/assets/arm_joint_states.py", "a") as file:
+            file.write(f"{name}=( ")
+            file.write(str(position_joints))
+            file.write(" )\n")
+
+        print(f'Successfully written "{name}" to arm_positions_mat.py and arm_positions_joint.py')
     
     printmenu()
     return
@@ -86,19 +151,20 @@ def make_on_press(bot):
     def on_press(key):
         try:
             if hasattr(key, 'char') and key.char:  # Check if the key has a 'char' attribute
-                if key.char == "3":
+                if key.char == "4":
                     printmenu()  # This will print the menu when '3' is pressed
-                elif key.char == "4":
+                elif key.char == "5":
                     print("Exiting...")
                     return False  # Stop the listener when '4' is pressed
                 elif key.char == "1":
                     recordposition(bot)  # Call recordposition function when '1' is pressed
                 elif key.char == "2":
                     playposition(bot)
+                elif key.char == "3":
+                    playjoints(bot)
         except AttributeError:
             # Handle special keys like shift, ctrl, etc.
-            print("Caught error, no worries")
-            pass  # We don't need to worry about special keys
+            print("Caught error, no worries") # We don't need to worry about special keys
         return True  # Continue listening for other keys
 
     return on_press  # Return the inner on_press function
@@ -108,6 +174,7 @@ def make_on_press(bot):
 def main():
     # boot bot
     bot =  Wafflebot()
+
     bot.arm.go_to_sleep_pose()
     
     #print menu and listen for keystrokes:
@@ -116,17 +183,8 @@ def main():
     with keyboard.Listener(on_press=on_press) as listener:
         listener.join()
 
-    
     # close bot, close program.
-    bot.core.robot_torque_enable("group", "arm", True)
-    bot.arm.capture_joint_positions()
-    sleep(4)
-    bot.arm.go_to_home_pose()
-    bot.arm.go_to_sleep_pose()
-    sleep(1)
-    robot_shutdown()
-    robot_boot_manager.robot_close()
-    bot.arm.set_ee_pose_matrix()
+    bot.safe_stop()
     return
 
 # Footer:

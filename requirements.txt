@@ -1,0 +1,3 @@
+numpy==2.2.2
+transforms3d==0.4.2
+pynput==1.7.7

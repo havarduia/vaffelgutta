@@ -4,21 +4,21 @@ from os import path as ospath
 from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
+
 from robot_workspace.assets.Wafflebot import Wafflebot
 from robot_workspace.assets import arm_positions
 from robot_workspace.backend_controllers import safety_functions as safety 
 from time import sleep
 import numpy as numphy
-from camera.camera import ArucoPoseLauncher
+
 
 def main():
-    camera = ArucoPoseLauncher("/home/havard/git/vaffelgutta/camera/run_camera.sh")
     bot = Wafflebot()
-    camera.launch()
     bot.arm.go_to_home_pose()
-    sleep(120)
+ 
+    
     bot.safe_stop()
-    camera.kill()
+
     
 # Footer:
 def handle_error(signum, frame): raise KeyboardInterrupt

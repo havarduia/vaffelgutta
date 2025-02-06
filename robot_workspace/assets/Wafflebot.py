@@ -33,6 +33,7 @@ def calculate_translation(startpos: list, endpos: list):
     
 
 class Wafflebot:
+    #Todo: Replace bota.arm.go_to_home_pose og ....sleep_pose with error checked versions. 
     def __init__(self, use_real_robot = False):
         # Include launch arguments 
         parser = argparse.ArgumentParser(description="Runs a wafflebot")
@@ -113,12 +114,47 @@ class Wafflebot:
     def go_to(self, target):
         self.arm.capture_joint_positions() # in hopes of reminding the bot not to kill itself with its next move
 
-        waypoints = safety_functions.check_collisions(bot=self.bot, start_pose_matrix = self.arm.get_ee_pose(), end_pose_matrix= target)
+        waypoints = safety_functions.check_collisions(
+                bot=self.bot,
+                start_pose_matrix = self.arm.get_ee_pose(),
+                end_pose_matrix= target
+                )
+        
         for waypoint in waypoints:
+            joints = self.arm.get_joint_positions()
             
-            joints = self.arm.set_ee_pose_matrix(waypoint, execute=False)[0]
+            
+            joints = self.arm.set_ee_pose_matrix(
+                waypoint,
+                execute=False,
+                custom_guess=joints
+                )[0]
             joints = safety_functions.fix_joint_limits(joints=joints)
             
+            if joints[0] == False:
+                print("Go_to failed.")
+                return
+                #todo error handling
+
+            
+            # if joint values are "out of wack", retry with upright-er positions 
+            for i in range(1,6):
+                if abs(joints[i]) > numphy.pi/2:
+                    joints[i] = 0.0
+            
+            joints = self.arm.set_ee_pose_matrix(
+                waypoint,
+                execute=False,
+                custom_guess=joints
+                )[0]
+            joints = safety_functions.fix_joint_limits(joints=joints)            
+
+        
+            if joints[0] == False:
+                print("Go_to failed.")
+                return
+                #todo error handling
+        
             self.arm.set_joint_positions(joints)
 
         self.arm.capture_joint_positions() # in hopes of reminding the bot not to kill itself with its next move

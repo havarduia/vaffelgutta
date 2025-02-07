@@ -75,12 +75,8 @@ def _adjust_joint_bound(joint, ind: int):
         print(f"adjusting joint {ind} DOWN")
         joint -= numphy.pi*2  
         adjusted = True
-
-    #if joint < lower_bound:
-    #    joint += numphy.pi
-    #    print("joint still not in bounds after adjustment. trying half rotation.")
     
-    if True:
+    if adjusted:
         print ("final joint state for joint " + str(ind) +": "
             + str(_get_joint_limit_map(ind=ind, bound_is_upper=False))+
               " < " + str(joint) + " < "

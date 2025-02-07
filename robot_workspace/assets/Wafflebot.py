@@ -10,14 +10,16 @@ from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from interbotix_common_modules.angle_manipulation import angle_manipulation
 
 
-    
+from robot_workspace.assets import arm_joint_states, arm_positions, arm_offsets
 from robot_workspace.backend_controllers import robot_boot_manager
 from robot_workspace.backend_controllers.tf_publisher import publish_tf
 from robot_workspace.backend_controllers import safety_functions
+
 from time import sleep
 import argparse
 import threading
 import numpy as numphy
+from importlib import reload as import_reload
 
 from sys import modules as sysmodules
 if "Jetson.GPIO" in sysmodules: # Check if running on Jetson
@@ -110,16 +112,52 @@ class Wafflebot:
         self.arm.set_ee_pose_matrix(current_pose)
     
 
+    def big_movement(self, joint_state_target: str, target_position_matrix = None):
+        """
+        moves the bot to a faraway place. requires a preset waypoint in joint space
+        A list of joint states are stored in assets/arm_joint_states.py
+        :input: joint_state_target: The joint state to go to
+        :input: target_position_matrix: optional parameter to adjust waist position to point towards the given direction  
+        """
+        
+        import_reload(arm_joint_states)
+        joint_name = joint_state_target # save name for future use
+        joint_state_target = getattr(arm_joint_states,joint_name)
+        
+        # If a target matrix is given, adjust the joint first  
+        if target_position_matrix != None:
+            
+            # To ensure compatibility - cast to a numphy matrix
+            target_position_matrix = numphy.matrix(target_position_matrix)             
+            # extract the angle of the position
+            target_x = target_position_matrix[3,0]
+            target_y = target_position_matrix[3,1]
+            target_rad = numphy.atan2(target_y, target_x)
+            # commit the position    
+            joint_state_target[0] = target_rad
+        
+        # Check the feasability of the movement 
+        joint_state_target = safety_functions.fix_joint_limits(joint_state_target)
+        # If an error was raised, abort movement
+        if joint_state_target[0] == False: 
+            print("big_movement: joint positions not reachable - aborting movement")
+        # Else, move.
+        else:
+            self.arm.set_joint_positions(joint_state_target)
+            self.small_movement(joint_name)
     
-    def go_to(self, target):
+    def small_movement(self, target_matrix:str):
+        import_reload(arm_positions)
+        target_matrix = getattr(arm_positions,target_matrix)
         self.arm.capture_joint_positions() # in hopes of reminding the bot not to kill itself with its next move
-
         waypoints = safety_functions.check_collisions(
                 bot=self.bot,
                 start_pose_matrix = self.arm.get_ee_pose(),
-                end_pose_matrix= target
+                end_pose_matrix= target_matrix
                 )
         
+
+
         for waypoint in waypoints:
             joints = self.arm.get_joint_positions()
             
@@ -128,11 +166,15 @@ class Wafflebot:
                 waypoint,
                 execute=False,
                 custom_guess=joints
-                )[0]
+                )[0]            
             joints = safety_functions.fix_joint_limits(joints=joints)
-            
+
+            ####
+            #Todo: precalculate this or skip it outright
+            #self.arm.set_single_joint_position("waist",joints[0],blocking=False)
+            ###       
             if joints[0] == False:
-                print("Go_to failed.")
+                print("small_movement failed.")
                 return
                 #todo error handling
 
@@ -151,11 +193,13 @@ class Wafflebot:
 
         
             if joints[0] == False:
-                print("Go_to failed.")
+                print("Small_movement failed.")
                 return
                 #todo error handling
         
             self.arm.set_joint_positions(joints)
-
-        self.arm.capture_joint_positions() # in hopes of reminding the bot not to kill itself with its next move
         return
+    
+    def go_to(self, position_name: str):
+        #todo big movement if approporiate
+        self.small_movement(position_name)

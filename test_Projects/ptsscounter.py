@@ -35,7 +35,7 @@ def main():
             count+=1
             print(count)
             write_counter(count)
-        sleep(0.05)  # Prevent CPU overuse
+        sleep(0.1)  # Prevent CPU overuse
 
 
 if __name__ == "__main__":

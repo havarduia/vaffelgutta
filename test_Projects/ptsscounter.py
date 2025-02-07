@@ -1,3 +1,9 @@
+# Change the working directory to the base directory
+from os import chdir
+from os import path as ospath 
+from sys import path as syspath
+chdir(ospath.expanduser("~/git/vaffelgutta"))
+syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 from sys import modules as sysmodules
 from time import sleep
 if "Jetson.GPIO" in sysmodules: # Check if running on Jetson
@@ -19,7 +25,7 @@ def main():
     #init counter 
     try:
         count = read_counter()
-    except Exception:
+    except FileNotFoundError:
         write_counter(1)
     # Set the GPIO mode
     GPIO.setmode(GPIO.BOARD)

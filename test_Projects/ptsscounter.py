@@ -2,11 +2,12 @@
 from os import chdir
 from os import path as ospath 
 from sys import path as syspath
-chdir(ospath.expanduser("~/git/vaffelgutta"))
-syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
+chdir(ospath.expanduser("/home/vaffel/git/vaffelgutta"))
+syspath.append(ospath.abspath(ospath.expanduser("/home/vaffel/git/vaffelgutta")))
 from sys import modules as sysmodules
 from time import sleep
-if "Jetson.GPIO" in sysmodules: # Check if running on Jetson
+from importlib import reload as import_reload
+if not "Jetson.GPIO" in sysmodules: # Check if running on Jetson
     import Jetson.GPIO as GPIO
 else:
     print("Please run on a jetson nano device.")
@@ -35,12 +36,12 @@ def main():
     
     #Read counter, increment if button pressed
     while True:
-        print(read_counter())
         pin_state = GPIO.input(button_pin)
         if pin_state == GPIO.LOW:
-            count+=1
+            count=read_counter()+1
             print(count)
             write_counter(count)
+            sleep(3)
         sleep(0.1)  # Prevent CPU overuse
 
 

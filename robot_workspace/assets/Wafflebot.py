@@ -2,6 +2,8 @@
 from os import chdir
 from os import path as ospath 
 from sys import path as syspath
+
+from robot_workspace.assets.positions import arm_joint_states, arm_offsets
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
@@ -10,7 +12,7 @@ from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from interbotix_common_modules.angle_manipulation import angle_manipulation
 
 
-from robot_workspace.assets import arm_joint_states, arm_positions, arm_offsets
+from robot_workspace.assets.positions import arm_positions
 from robot_workspace.backend_controllers import robot_boot_manager
 from robot_workspace.backend_controllers.tf_publisher import publish_tf
 from robot_workspace.backend_controllers import safety_functions
@@ -110,9 +112,9 @@ class Wafflebot:
     def cancel_movement(self):
         current_pose = self.arm.get_ee_pose()
         self.arm.set_ee_pose_matrix(current_pose)
-    
 
-    def big_movement(self, joint_state_target: str, target_position_matrix = None):
+
+    def big_movement(self, target: str, target_position_matrix = None):
         """
         moves the bot to a faraway place. requires a preset waypoint in joint space
         A list of joint states are stored in assets/arm_joint_states.py
@@ -121,8 +123,8 @@ class Wafflebot:
         """
         
         import_reload(arm_joint_states)
-        joint_name = joint_state_target # save name for future use
-        joint_state_target = getattr(arm_joint_states,joint_name)
+        joint_name = target # save name for future use
+        target = getattr(arm_joint_states,joint_name)
         
         # If a target matrix is given, adjust the joint first  
         if target_position_matrix != None:
@@ -134,26 +136,28 @@ class Wafflebot:
             target_y = target_position_matrix[3,1]
             target_rad = numphy.atan2(target_y, target_x)
             # commit the position    
-            joint_state_target[0] = target_rad
+            target[0] = target_rad
         
         # Check the feasability of the movement 
-        joint_state_target = safety_functions.fix_joint_limits(joint_state_target)
+        target = safety_functions.fix_joint_limits(target)
         # If an error was raised, abort movement
-        if joint_state_target[0] == False: 
+        if target[0] == False: 
             print("big_movement: joint positions not reachable - aborting movement")
         # Else, move.
         else:
-            self.arm.set_joint_positions(joint_state_target)
+            self.arm.set_joint_positions(target)
             self.small_movement(joint_name)
     
-    def small_movement(self, target_matrix:str):
+    
+    def small_movement(self, target:str):
         import_reload(arm_positions)
-        target_matrix = getattr(arm_positions,target_matrix)
+        print(f"target is: {target}")
+        target = getattr(arm_positions,target)
         self.arm.capture_joint_positions() # in hopes of reminding the bot not to kill itself with its next move
         waypoints = safety_functions.check_collisions(
                 bot=self.bot,
                 start_pose_matrix = self.arm.get_ee_pose(),
-                end_pose_matrix= target_matrix
+                end_pose_matrix= target
                 )
         
 
@@ -200,6 +204,3 @@ class Wafflebot:
             self.arm.set_joint_positions(joints)
         return
     
-    def go_to(self, position_name: str):
-        #todo big movement if approporiate
-        self.small_movement(position_name)

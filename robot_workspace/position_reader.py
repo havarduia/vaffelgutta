@@ -2,11 +2,13 @@
 from os import chdir
 from os import path as ospath 
 from sys import path as syspath
+
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
 # robot modules
-from robot_workspace.assets import arm_positions, arm_joint_states
+from robot_workspace.assets.positions import arm_positions
+from robot_workspace.assets.positions import arm_joint_states
 from robot_workspace.assets.Wafflebot import *
 # user libraries: 
 from time import sleep
@@ -52,8 +54,7 @@ def playposition(bot: Wafflebot):
             break
         
         print(f"Going to {name}")
-        pose = getattr(arm_positions, name)
-        bot.small_movement(pose)
+        bot.small_movement(name)
         
         sleep(1)
     
@@ -128,17 +129,17 @@ def recordposition(bot: InterbotixManipulatorXS):
                     + "Write the name of your position:\n")
     if name != "":
         # write ee position
-        with open("robot_workspace/assets/arm_positions.py", "a") as file:
+        with open("robot_workspace/assets/positions/arm_positions.py", "a") as file:
             file.write(f"\n{name}=([\n")
             numphy.savetxt(file, position_mat, fmt="  [% .8f, % .8f, % .8f, % .8f],")
             file.write("  ])\n")
         # write joint state:
-        with open("robot_workspace/assets/arm_joint_states.py", "a") as file:
+        with open("robot_workspace/assets/positions/arm_joint_states.py", "a") as file:
             file.write(f"{name}=( ")
             file.write(str(position_joints))
             file.write(" )\n")
 
-        print(f'Successfully written "{name}" to arm_positions_mat.py and arm_positions_joint.py')
+        print(f'Successfully written "{name}" to arm_positions.py and arm_joint_states.py')
 
     #Reset before next move    
     printmenu()

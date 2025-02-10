@@ -5,8 +5,9 @@ from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
+from robot_workspace.assets.positions import arm_joint_states
 from robot_workspace.assets.Wafflebot import Wafflebot
-from robot_workspace.assets import arm_positions, arm_joint_states
+from robot_workspace.assets.positions import arm_positions
 from robot_workspace.backend_controllers import safety_functions as safety 
 from time import sleep
 import numpy as numphy
@@ -16,8 +17,12 @@ def main():
     bot = Wafflebot()
     bot.arm.go_to_home_pose()
 
+    bot.arm.set_single_joint_position("shoulder", 0.2)
+    bot.safe_stop()
+    return
+
     bot.gripper.release()
-    bot.big_movement(joint_state_target="prep")
+    bot.big_movement(target="prep")
     bot.small_movement("prepare")
     bot.small_movement("grab")
     bot.gripper.grasp()

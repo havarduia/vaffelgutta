@@ -9,36 +9,74 @@ from robot_workspace.assets.positions import arm_joint_states
 from robot_workspace.assets.Wafflebot import Wafflebot
 from robot_workspace.assets.positions import arm_positions
 from robot_workspace.backend_controllers import safety_functions as safety 
+from robot_workspace.backend_controllers import robot_bounding_boxes, create_boxes
+from importlib import reload as import_reload
 from time import sleep
 import numpy as numphy
+from os import getcwd
+import threading
+import rclpy
 
+def convert_box(box):
+    lower_corner = box[0]
+    higher_corner = box[1]
+    center =[lower_corner[ind] +1*(higher_corner[ind] - lower_corner[ind])/2 for ind in range(len(lower_corner))]
+    length = higher_corner[0] - lower_corner[0]
+    width = higher_corner[1] - lower_corner[1]
+    height = higher_corner[2] - lower_corner[2]
+
+    box = {
+        "x":center[0],
+        "y":center[1], # y left when arm forward
+        "z":center[2],
+        "depth":0.005,#height, # z
+        "width":0.005,#length, # x
+        "height":0.005#width # y
+    }
+    return box
+    """
+        "depth":0.02 if i == 5 else 0.01,#height, # z
+        "width":0.02 if i == 5 else 0.01,#length, # x
+        "height":0.02 if i == 5 else 0.01 #width # y
+    """
+    
+def read_boxes():
+    path = getcwd()
+    path += "/robot_workspace/assets/boundingboxes/robot.py"
+    with open(path,"r") as file:
+        box_list: dict = eval(file.read(), {"np":numphy})
+    boxes = []
+    for key in box_list.keys():
+        boxes.append(convert_box(box_list[key]))
+    return boxes
 
 def main():
     bot = Wafflebot()
     bot.arm.go_to_home_pose()
 
-    bot.arm.set_single_joint_position("shoulder", 0.2)
-    bot.safe_stop()
-    return
+    start = bot.arm.get_joint_commands()        
 
-    bot.gripper.release()
-    bot.big_movement(target="prep")
-    bot.small_movement("prepare")
-    bot.small_movement("grab")
-    bot.gripper.grasp()
+    robot_bounding_boxes.update_robot_bounding_box(bot, joints=start)
 
+    boxes = read_boxes()
 
-    bot.big_movement("up")
-    bot.arm.set_trajectory_time(accel_time=0.25)
-    bot.small_movement("upp")
-    bot.small_movement("up")
-    bot.small_movement("upp")
-    bot.small_movement("up")
-    bot.arm.set_trajectory_time(moving_time=2.0)
-    sleep(1.5)
-    bot.gripper.release()
+    visualizer = create_boxes.BoxVisualizer(boxes)
+    spin_thread = threading.Thread(target=rclpy.spin, args=(visualizer,), daemon=True)
+    spin_thread.start()   
     sleep(2)
-    bot.big_movement("home")
+
+
+    bot.big_movement("hitler")
+    start = bot.arm.get_joint_commands()
+    print("reading hitler")
+    robot_bounding_boxes.update_robot_bounding_box(bot, start)
+    
+    print("showing hitler")
+    boxes = read_boxes()
+    visualizer.update_boxes(boxes)
+    print("hitler finished")    
+    sleep(5)    
+    
     bot.safe_stop()
 
     

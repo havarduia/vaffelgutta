@@ -4,28 +4,31 @@ from os import path as ospath
 from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
-
+from threading import Thread
 from robot_workspace.assets.Wafflebot import Wafflebot
 from time import sleep
-from robot_workspace.assets import camera_readings
-
+from robot_workspace.assets.positions import camera_readings
+import camera.camera
+from importlib import reload as import_reload
 
 def get_apriltag_pose():
-    return camera_readings.[sett inn navn på posisjon her]
+    import_reload(camera_readings)
+    print(camera_readings.elon)
+    return camera_readings.elon
 
 
 def main():
     # Init robot
     bot = Wafflebot(use_real_robot=False)    
     bot.arm.go_to_home_pose()
-
+    camerathread = Thread(target=camera.camera.run_camera, args=(), daemon=True)
+    camerathread.start()
     # Put your code here:
     running = True
     i = 1
     while running:
         i+=1
         pose = get_apriltag_pose()
-        bot.arm.set_ee_pose_components(pose)
         if i == 700: running = False
         sleep(0.1)
     # Close bot, close program:

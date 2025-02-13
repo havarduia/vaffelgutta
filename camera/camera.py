@@ -1,11 +1,12 @@
 import rclpy
 from rclpy.node import Node
 from isaac_ros_apriltag_interfaces.msg import AprilTagDetectionArray
-from tf_transformations import quaternion_matrix
+from tf_transformations import quaternion_matrix, quaternion_from_matrix
 import numpy as np
+import tf_transformations
 
 # File path to save the matrix
-FILE_PATH = "/home/vaffel/git/vaffelgutta/robot_workspace/assets/positions/camera_readings.py"
+FILE_PATH = "/home/havard/git/vaffelgutta/robot_workspace/assets/positions/camera_readings.py"
 
 class AprilTagSubscriber(Node):
     def __init__(self):
@@ -16,13 +17,9 @@ class AprilTagSubscriber(Node):
             self.listener_callback,
             10
         )
-        self.get_logger().info('Subscribed to /tag_detections')
+        self.get_logger().info('Apriltag Online')
 
     def listener_callback(self, msg):
-        if not msg.detections:
-            self.get_logger().info('No AprilTags detected')
-            return
-
         for detection in msg.detections:
             pose = detection.pose.pose.pose  # Extract Pose
 
@@ -51,6 +48,18 @@ class AprilTagSubscriber(Node):
             # Round to 8 decimals
             transformation_matrix = np.round(transformation_matrix, 8)
 
+            # Swap Z and X translation
+            t = tf_transformations.Transform()
+            t.transform.translation.x = float(transformation_matrix[2][3])
+            t.transform.translation.y = float(transformation_matrix[1][3])
+            t.transform.translation.z = -float(transformation_matrix[0][3])
+
+            q = quaternion_from_matrix(transformation_matrix)
+            t.transform.rotation.x = q[0]
+            t.transform.rotation.y = q[1]
+            t.transform.rotation.z = q[2]
+            t.transform.rotation.w = q[3]
+
             # Format as Python list
             matrix_str = "elon=([\n"
             for row in transformation_matrix:
@@ -58,18 +67,12 @@ class AprilTagSubscriber(Node):
                 matrix_str += row_str + "\n"
             matrix_str += "])\n"
 
-            # Print
-            self.get_logger().info(f'\n{matrix_str}')
-
             # Save to file
             with open(FILE_PATH, "w") as f:
                 f.write(matrix_str)
 
-            self.get_logger().info(f'Saved matrix to {FILE_PATH}')
 
-def run_camera(args=None):
-    rclpy.init(args=args)
+def run_camera():
     node = AprilTagSubscriber()
     rclpy.spin(node)
     node.destroy_node()
-    rclpy.shutdown()

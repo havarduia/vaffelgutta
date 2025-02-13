@@ -42,21 +42,24 @@ def _rotate_cube_by_waist_angle(corners, waist_angle):
         corner[1] = float(radius * numphy.sin(theta_0 + waist_angle))
         #corner[2] = corner[2]
     return corners
-    
-def _pitch(corners, angle, origin):
+
+def _pitch_point(point, angle, origin):
     x0 = origin[0]
     #y0 = origin[1]
     z0 = origin[2]
-    
+    x = point[0]
+    #y = corner[1]
+    z = point[2]
+    radius = numphy.hypot((x-x0),(z-z0))
+    theta_0 = numphy.arctan2((z-z0), (x-x0))
+    point[0] = x0+float(radius * numphy.cos(theta_0 + angle))
+    #corner[1] = corner[1]
+    point[2] = z0+float(radius * numphy.sin(theta_0 + angle))
+    return point
+
+def _pitch_corners(corners, angle, origin):
     for corner in corners:
-        x = corner[0]
-        #y = corner[1]
-        z = corner[2]
-        radius = numphy.hypot((x-x0),(z-z0))
-        theta_0 = numphy.arctan2((z-z0), (x-x0))
-        corner[0] = x0+float(radius * numphy.cos(theta_0 + angle))
-        #corner[1] = corner[1]
-        corner[2] = z0+float(radius * numphy.sin(theta_0 + angle))
+        _pitch_point(corner, angle, origin)
     return corners
 
 def _roll(corners, angle, origin):
@@ -136,14 +139,14 @@ def update_robot_bounding_box(
     #arm_1_angle = waist_direction
     
     arm_1_corners = _bb_from_endpoints(arm_1_min, arm_1_max) 
-    arm_1_corners = _pitch(arm_1_corners,-shoulder_angle,arm_1_origin)
+    arm_1_corners = _pitch_corners(arm_1_corners,-shoulder_angle,arm_1_origin)
     arm_1_corners = _rotate_cube_by_waist_angle(arm_1_corners,waist_angle)
     (arm_1_min,arm_1_max) = _endpoints_from_bb(arm_1_corners)
     
     bounding_boxes["arm_1"] = (arm_1_min.copy(), arm_1_max.copy())
     
     
-    #create 
+    #create something
     arm_1_division_origin = arm_1_origin
     arm_1_division_dimensions = [2e-2, 4e-2,33e-2]
     arm_1_division_offset = [-elem/2 for elem in arm_1_division_dimensions] # x, y offsets are half of the arm size
@@ -167,7 +170,7 @@ def update_robot_bounding_box(
         # create a cube and apply rotation
         
         subdivision_corners = _bb_from_endpoints(subdivision_start,subdivision_end)
-        subdivision_corners = _pitch(subdivision_corners, -shoulder_angle, shoulder_origin)
+        subdivision_corners = _pitch_corners(subdivision_corners, -shoulder_angle, shoulder_origin)
         subdivision_corners = _rotate_cube_by_waist_angle(subdivision_corners, waist_angle)
         (subdivision_start, subdivision_end) = _endpoints_from_bb(subdivision_corners)
         
@@ -190,7 +193,7 @@ def update_robot_bounding_box(
     arm_link_max =[ arm_link_min [i]+ arm_link_dimensions[i] for i in range(3)]# rotate the bounding box
     
     arm_link_corners = _bb_from_endpoints(arm_link_min, arm_link_max)
-    arm_link_corners = _pitch(arm_link_corners, shoulder_angle, shoulder_origin)
+    arm_link_corners = _pitch_corners(arm_link_corners, shoulder_angle, shoulder_origin)
     arm_link_corners = _rotate_cube_by_waist_angle(arm_link_corners, waist_angle)
     (arm_link_min, arm_link_max) = _endpoints_from_bb(arm_link_corners)
     
@@ -199,21 +202,33 @@ def update_robot_bounding_box(
     "second arm mount"
     # origin set at the dynamixel servo to arm 2
     arm_2_mount_origin =arm_link_origin 
+    ### DEBUG
+    x = arm_2_mount_origin[0]
+    z = arm_2_mount_origin[2]
+    r = numphy.hypot(x,z)
+    v0 = numphy.arctan2(z,x)
+    z = r*numphy.sin(v0 - shoulder_angle)
+    x = r*numphy.cos(v0 - shoulder_angle)
+    arm_2_mount_origin[0] = x
+    arm_2_mount_origin[2] = z
+    ### DEBUG
     # Calculate offsets to the lowermost point
     arm_2_mount_dimensions =[7e-2,10.5e-2,3.5e-2] #measured by hand 
     arm_2_mount_offset = [-elem/2 for elem in arm_2_mount_dimensions]
     arm_2_mount_offset[0] = 0.0 # origin is aligned with the start of the joint
     arm_2_mount_min =[ arm_2_mount_origin [i]+ arm_2_mount_offset[i] for i in range(3)]
     arm_2_mount_max =[ arm_2_mount_min [i]+ arm_2_mount_dimensions[i] for i in range(3)]# rotate the bounding box
-    
     arm_2_mount_corners = _bb_from_endpoints(arm_2_mount_min, arm_2_mount_max)
-    for i in range(8):
-        bounding_boxes[f"arm_2_corner_{i}"] = (arm_2_mount_corners[i], arm_2_mount_corners[i])
-    arm_2_mount_corners = _pitch(arm_2_mount_corners,-elbow_angle, arm_2_mount_origin)
-    arm_2_mount_corners = _pitch(arm_2_mount_corners, -shoulder_angle, shoulder_origin)
-    #arm_2_mount_corners = _rotate_cube_by_waist_angle(arm_2_mount_corners, waist_angle)
+
+
+    bounding_boxes["arm_2_originDEBUG"] = (arm_2_mount_origin,arm_2_mount_origin)
+    #for i in range(8):
+    #    bounding_boxes[f"arm_2_corner_{i}"] = (arm_2_mount_corners[i], arm_2_mount_corners[i])
+    arm_2_mount_corners = _pitch_corners(arm_2_mount_corners, -shoulder_angle, arm_2_mount_origin)
+    arm_2_mount_corners = _pitch_corners(arm_2_mount_corners,-elbow_angle, shoulder_origin)
+    arm_2_mount_corners = _rotate_cube_by_waist_angle(arm_2_mount_corners, waist_angle)
     (arm_2_mount_min, arm_2_mount_max) = _endpoints_from_bb(arm_2_mount_corners)
-    #bounding_boxes["arm_2_mount"] = (arm_2_mount_min, arm_2_mount_max)
+    bounding_boxes["arm_2_mount"] = (arm_2_mount_min, arm_2_mount_max)
     """
     "second arm joint"
     # Declare arm dimensions

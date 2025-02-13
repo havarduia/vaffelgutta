@@ -48,17 +48,12 @@ class AprilTagSubscriber(Node):
             # Round to 8 decimals
             transformation_matrix = np.round(transformation_matrix, 8)
 
-            # Swap Z and X translation
-            t = tf_transformations.Transform()
-            t.transform.translation.x = float(transformation_matrix[2][3])
-            t.transform.translation.y = float(transformation_matrix[1][3])
-            t.transform.translation.z = -float(transformation_matrix[0][3])
+            # Swap X and Z translation values
+            transformation_matrix[2, 3] = transformation_matrix[0, 3]  # Z -> X
+            transformation_matrix[0, 3] = transformation_matrix[2, 3]  # X -> Z
 
-            q = quaternion_from_matrix(transformation_matrix)
-            t.transform.rotation.x = q[0]
-            t.transform.rotation.y = q[1]
-            t.transform.rotation.z = q[2]
-            t.transform.rotation.w = q[3]
+            # Negate the new Z translation (since you had a negative sign)
+            transformation_matrix[0, 3] = -transformation_matrix[0, 3]
 
             # Format as Python list
             matrix_str = "elon=([\n"

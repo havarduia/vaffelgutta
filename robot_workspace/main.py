@@ -29,23 +29,26 @@ def convert_box(box):
         "x":center[0],
         "y":center[1], # y left when arm forward
         "z":center[2],
-        "depth":0.005,#height, # z
-        "width":0.005,#length, # x
-        "height":0.005#width # y
+        #"depth": height,
+        #"width": length,
+        #"height": width
+        "depth":0.005,# z
+        "width":0.005,# x
+        "height":0.005# y
     }
     return box
     """
         "depth":0.02 if i == 5 else 0.01,#height, # z
         "width":0.02 if i == 5 else 0.01,#length, # x
         "height":0.02 if i == 5 else 0.01 #width # y
-    """
+    """ 
     
 def read_boxes():
     path = getcwd()
     path += "/robot_workspace/assets/boundingboxes/robot.py"
     with open(path,"r") as file:
         box_list: dict = eval(file.read(), {"np":numphy})
-    boxes = []
+    boxes = []  
     for key in box_list.keys():
         boxes.append(convert_box(box_list[key]))
     return boxes
@@ -65,8 +68,7 @@ def main():
     spin_thread.start()   
     sleep(2)
 
-
-    bot.big_movement("hitler")
+    bot.big_movement("e")
     start = bot.arm.get_joint_commands()
     print("reading hitler")
     robot_bounding_boxes.update_robot_bounding_box(bot, start)
@@ -75,7 +77,7 @@ def main():
     boxes = read_boxes()
     visualizer.update_boxes(boxes)
     print("hitler finished")    
-    sleep(5)    
+    sleep(10)    
     
     bot.safe_stop()
 

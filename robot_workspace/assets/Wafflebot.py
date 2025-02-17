@@ -114,7 +114,7 @@ class Wafflebot:
         self.arm.set_ee_pose_matrix(current_pose)
 
 
-    def big_movement(self, target: str, target_position_matrix = None):
+    def big_movement(self, target: str, target_position_matrix = None): # todo: add support to convert variables to string
         """
         moves the bot to a faraway place. requires a preset waypoint in joint space
         A list of joint states are stored in assets/arm_joint_states.py
@@ -149,7 +149,7 @@ class Wafflebot:
             self.small_movement(joint_name)
     
     
-    def small_movement(self, target:str):
+    def small_movement(self, target:str): # todo: add support to convert variables to string
         import_reload(arm_positions)
         print(f"target is: {target}")
         target = getattr(arm_positions,target)

@@ -174,7 +174,7 @@ def main():
     # boot bot
     bot =  Wafflebot()
     bot.arm.go_to_sleep_pose()
-    bot.arm.set_trajectory_time(moving_time=5) 
+
     #print menu and listen for keystrokes:
     printmenu()
     on_press = make_on_press(bot)

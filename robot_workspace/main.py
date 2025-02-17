@@ -29,19 +29,14 @@ def convert_box(box):
         "x":center[0],
         "y":center[1], # y left when arm forward
         "z":center[2],
-        #"depth": height,
-        #"width": length,
-        #"height": width
-        "depth":0.005,# z
-        "width":0.005,# x
-        "height":0.005# y
+        "depth": height,
+        "width": length,
+        "height": width
+        #"depth":0.005,# z
+        #"width":0.005,# x
+        #"height":0.005# y
     }
     return box
-    """
-        "depth":0.02 if i == 5 else 0.01,#height, # z
-        "width":0.02 if i == 5 else 0.01,#length, # x
-        "height":0.02 if i == 5 else 0.01 #width # y
-    """ 
     
 def read_boxes():
     path = getcwd()
@@ -58,26 +53,21 @@ def main():
     bot.arm.go_to_home_pose()
 
     start = bot.arm.get_joint_commands()        
-
     robot_bounding_boxes.update_robot_bounding_box(bot, joints=start)
-
     boxes = read_boxes()
 
     visualizer = create_boxes.BoxVisualizer(boxes)
     spin_thread = threading.Thread(target=rclpy.spin, args=(visualizer,), daemon=True)
     spin_thread.start()   
-    sleep(2)
 
-    bot.big_movement("e")
-    start = bot.arm.get_joint_commands()
-    print("reading hitler")
-    robot_bounding_boxes.update_robot_bounding_box(bot, start)
-    
-    print("showing hitler")
-    boxes = read_boxes()
-    visualizer.update_boxes(boxes)
-    print("hitler finished")    
-    sleep(10)    
+    bot.arm.go_to_sleep_pose()
+    sleep(1)
+    bot.core.robot_torque_enable("group","arm",False)
+    while True:
+        start = bot.arm.get_joint_commands()
+        robot_bounding_boxes.update_robot_bounding_box(bot, start)
+        boxes = read_boxes()
+        visualizer.update_boxes(boxes)
     
     bot.safe_stop()
 

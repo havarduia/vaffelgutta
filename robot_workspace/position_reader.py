@@ -154,7 +154,7 @@ def make_on_press(bot):
                 if key.char == "4":
                     printmenu()  
                 elif key.char == "5":
-                    print("Exiting...")
+                    print("\nExiting...")
                     return False  
                 elif key.char == "1":
                     recordposition(bot)  
@@ -172,7 +172,7 @@ def make_on_press(bot):
 
 def main():
     # boot bot
-    bot =  Wafflebot()
+    bot =  Wafflebot(  )
     bot.arm.go_to_sleep_pose()
 
     #print menu and listen for keystrokes:

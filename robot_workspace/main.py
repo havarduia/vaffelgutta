@@ -51,26 +51,14 @@ def read_boxes():
 def main():
     bot = Wafflebot()
     bot.arm.go_to_home_pose()
-
-    start = bot.arm.get_joint_commands()        
-    robot_bounding_boxes.update_robot_bounding_box(bot, joints=start)
-    boxes = read_boxes()
-
-    visualizer = create_boxes.BoxVisualizer(boxes)
-    spin_thread = threading.Thread(target=rclpy.spin, args=(visualizer,), daemon=True)
-    spin_thread.start()   
-
-    bot.arm.go_to_sleep_pose()
-    sleep(1)
-    bot.core.robot_torque_enable("group","arm",False)
-    while True:
-        start = bot.arm.get_joint_commands()
-        robot_bounding_boxes.update_robot_bounding_box(bot, start)
-        boxes = read_boxes()
-        visualizer.update_boxes(boxes)
     
-    bot.safe_stop()
+    bot.move(arm_positions.e)
 
+    sleep(5)
+    bot.safe_stop()
+    
+
+    
     
 # Footer:
 def handle_error(signum, frame): raise KeyboardInterrupt

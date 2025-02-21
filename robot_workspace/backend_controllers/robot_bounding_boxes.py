@@ -89,7 +89,6 @@ def _roll_cube(corners, angle, origin):
     return corners
 
 def update_robot_bounding_box(
-        bot: InterbotixManipulatorXS,
         joints: list
         ) -> None:
     bounding_boxes = {}
@@ -237,7 +236,7 @@ def update_robot_bounding_box(
     #arm_2_angle = waist_direction
     
     # Iterate over multiple segments of the arm to reduce error.
-    arm_subs = 3
+    arm_subs = 5 
     DT = arm_subs
     for dt in range(arm_subs): 
         #initialize arm positions

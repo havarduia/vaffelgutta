@@ -1,29 +1,38 @@
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 import numpy as numphy
+from importlib import reload as import_reload
+from robot_workspace.assets.boundingboxes import robot as robotboxes
+from robot_workspace.assets.boundingboxes import boundingboxes
+from robot_workspace.backend_controllers.robot_bounding_boxes import update_robot_bounding_box
+from os import getcwd
+import inspect
 
-def check_collisions(bot: InterbotixManipulatorXS, start_pose_matrix, end_pose_matrix, overrides: list[str] = "None"):
-    waypoints = list()
-    
-    start_pose_matrix = numphy.matrix(start_pose_matrix)
-    end_pose_matrix = numphy.matrix(end_pose_matrix)
+def _test_collision(object1: list, object2: list)-> bool:
+    """
+    Returns True if two objects intersect, else false.
+    """
+    x1_start    =   object1[0][0];    x2_start   =  object2[0][0]
+    x1_end      =   object1[1][0];    x2_end     =  object2[1][0]
+    y1_start    =   object1[0][1];    y2_start   =  object2[0][1]
+    y1_end      =   object1[1][1];    y2_end     =  object2[1][1]
+    z1_start    =   object1[0][2];    z2_start   =  object2[0][2]
+    z1_end      =   object1[1][2];    z2_end     =  object2[1][2]
 
-    start_position_vector = start_pose_matrix[3,:3] 
-    end_position_vector = end_pose_matrix[3,:3] 
-    delta_position_vector = end_position_vector-start_position_vector
-    # Test for collisions
-    N_max = 20
-    for N in range(0,N_max):
-        step =  N*delta_position_vector/N_max  
-        LERP = start_position_vector + step
-        # todo: check if it hit anything
-    
-    # test for floor collision
-    while (end_pose_matrix[2,3] <= 0.03): # If z is below floor height
-        # Reset to a taller place
-        end_pose_matrix[2,3] += 0.001 
+    if ((x1_start > x2_end) and (x1_end < x2_start)):
+        if ((y1_start > y2_end) and (y1_end < y2_start)):
+            if ((z1_start > z2_end) and (z1_end < z2_start)):
+                return False
+    return True
 
-    waypoints.append(end_pose_matrix.tolist())
-    return waypoints
+def read_boxes(name):
+    path = getcwd()
+    path += f"/robot_workspace/assets/boundingboxes/{name}.py"
+    with open(path,"r") as file:
+        box_list: dict = eval(file.read(), {"np":numphy})
+    boxes = []  
+    for key in box_list.keys():
+        boxes.append((box_list[key]))
+    return boxes
 
 
 def _get_joint_limit_map(ind: int, bound_is_upper: bool):
@@ -97,6 +106,9 @@ def _fix_single_joint(joint: float, ind: int):
     # Return error if adjusted joint is out of bounds  
     if (joint < lower_bound
         or joint > upper_bound):
+        print("Safety_functions: Joint fixer returned an invalid value.")
+        print(f"expected: {lower_bound} < joint < {upper_bound}")
+        print(f"got: {joint}")
         return False
     if joint == 0: joint = 1e-6 # reserve 0.0 for error messaging
     
@@ -111,8 +123,6 @@ def fix_joint_limits(joints: list)->list:
     :input: joints - joint to be limited
     :output: list of joint postions if valid, [False] if invalid 
     """
-    
-
     ind = 0
     for joint in joints:
         joint = _fix_single_joint(joint=joint, ind=ind)
@@ -121,3 +131,42 @@ def fix_joint_limits(joints: list)->list:
         ind+=1
     
     return joints 
+
+def _valid_box_names_test(boxnames, banned_names = []):
+    names = []
+    for name, obj in boxnames:
+        skip = False
+        if name.startswith("__"):   skip = True
+        if inspect.isfunction(obj): skip = True 
+        if inspect.isclass(obj):    skip = True
+        for banned_name in banned_names:
+            if name == banned_name: skip = True; break # dont continue checking if a banned name has been found 
+        
+        if not skip:
+            names.append(name)
+
+    return names
+        
+
+def check_collisions(bot: InterbotixManipulatorXS, pose: list, overrides: list = []):
+    update_robot_bounding_box(pose)
+    
+    import_reload(robotboxes)
+    import_reload(boundingboxes)
+    robot_boxes = read_boxes("robot")
+    boxnames = inspect.getmembers(boundingboxes)
+    
+    valid_boxnames = _valid_box_names_test(boxnames)
+#   valid_boxnames = ([name for name, obj in boxnames if not inspect.isfunction(obj) and not inspect.isclass(obj) and not name.startswith("__")])
+    collisionobjects = []
+    for name in valid_boxnames:
+        collisionobjects.append(getattr(boundingboxes,name))
+
+    # Test for collision:
+    for robot_box in robot_boxes:
+        for object in collisionobjects:
+            if _test_collision(robot_box, object): 
+                return(True, robot_box, object)
+    #else:
+    return(False, None, None)
+     

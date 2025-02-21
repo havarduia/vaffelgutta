@@ -11,11 +11,10 @@ from interbotix_common_modules.common_robot.robot import robot_startup, robot_sh
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from interbotix_common_modules.angle_manipulation import angle_manipulation
 
-
 from robot_workspace.assets.positions import arm_positions
 from robot_workspace.backend_controllers import robot_boot_manager
 from robot_workspace.backend_controllers.tf_publisher import publish_tf
-from robot_workspace.backend_controllers import safety_functions
+from robot_workspace.backend_controllers import safety_functions, path_planner
 
 from time import sleep
 import argparse
@@ -114,7 +113,53 @@ class Wafflebot:
         self.arm.set_ee_pose_matrix(current_pose)
 
 
+    def move(self, target, ignore = []):
+        
+        start_joints = self.arm.get_joint_positions()
+                
+                    
+        target_joints = self.arm.set_ee_pose_matrix(
+            target,
+            execute=False,
+            )[0]            
+        target_joints = safety_functions.fix_joint_limits(joints=target_joints)
+
+        if target_joints[0] == False:
+            print("Wafflebot: move failed after first fix joints")
+            return
+            #todo error handling
+        
+        # if joint values are "out of wack", retry with upright-er positions 
+        for i in range(1,6):
+            if abs(target_joints[i]) > numphy.pi/2:
+                target_joints[i] = 0.0
+        
+        target_joints = self.arm.set_ee_pose_matrix(
+            target,
+            execute=False,
+            custom_guess=target_joints
+            )[0]
+        target_joints = safety_functions.fix_joint_limits(joints=target_joints)            
+    
+        if target_joints[0] == False:
+            print("Wafflebot: move failed after second fix joints")
+            return
+            #todo error handling            
+        print(target_joints)
+        waypoints = path_planner.plan_path(self, start_joints, target_joints, ignore)
+        if waypoints == [False]:
+            print("Wafflebot: move failed after path planner")
+            return
+          
+        for waypoint in waypoints:
+            speed = max(2.0 / len(waypoints), 0.1)
+            self.arm.set_joint_positions(waypoint, speed, blocking=False)
+            sleep(speed/2)
+
+
     def big_movement(self, target: str, target_position_matrix = None): # todo: add support to convert variables to string
+
+
         """
         moves the bot to a faraway place. requires a preset waypoint in joint space
         A list of joint states are stored in assets/arm_joint_states.py
@@ -149,23 +194,22 @@ class Wafflebot:
             self.small_movement(joint_name)
     
     
-    def small_movement(self, target:str): # todo: add support to convert variables to string
+    def small_movement(self, target): # todo: add support to convert variables to string
         import_reload(arm_positions)
-        print(f"target is: {target}")
-        target = getattr(arm_positions,target)
+        if isinstance(target, str):
+            target = getattr(arm_positions,target)
+        if not isinstance (target,list):
+            print ("Wafflebot - Small movement: target position is not a valid type")
+            return False # error
+
         self.arm.capture_joint_positions() # in hopes of reminding the bot not to kill itself with its next move
-        waypoints = safety_functions.check_collisions(
-                bot=self.bot,
-                start_pose_matrix = self.arm.get_ee_pose(),
-                end_pose_matrix= target
-                )
-        
+
+        waypoints = self.arm.set_ee_pose_matrix(target)        
 
 
         for waypoint in waypoints:
             joints = self.arm.get_joint_positions()
-            
-            
+                        
             joints = self.arm.set_ee_pose_matrix(
                 waypoint,
                 execute=False,
@@ -200,7 +244,7 @@ class Wafflebot:
                 print("Small_movement failed.")
                 return
                 #todo error handling
-        
+            
             self.arm.set_joint_positions(joints)
         return
     

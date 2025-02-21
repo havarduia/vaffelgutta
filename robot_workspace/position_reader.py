@@ -54,7 +54,8 @@ def playposition(bot: Wafflebot):
             break
         
         print(f"Going to {name}")
-        bot.small_movement(name)
+        bot.move(name)
+        #bot.small_movement(name)
         
         sleep(1)
     
@@ -172,7 +173,7 @@ def make_on_press(bot):
 
 def main():
     # boot bot
-    bot =  Wafflebot(  )
+    bot =  Wafflebot( )
     bot.arm.go_to_sleep_pose()
 
     #print menu and listen for keystrokes:

@@ -18,10 +18,9 @@ def _test_collision(object1: list, object2: list)-> bool:
     z1_start    =   object1[0][2];    z2_start   =  object2[0][2]
     z1_end      =   object1[1][2];    z2_end     =  object2[1][2]
 
-    if ((x1_start > x2_end) and (x1_end < x2_start)):
-        if ((y1_start > y2_end) and (y1_end < y2_start)):
-            if ((z1_start > z2_end) and (z1_end < z2_start)):
-                return False
+    if ((x1_start > x2_end) or (x1_end < x2_start)): return False
+    if ((y1_start > y2_end) or (y1_end < y2_start)): return False
+    if ((z1_start > z2_end) or (z1_end < z2_start)): return False
     return True
 
 def read_boxes(name):
@@ -156,7 +155,7 @@ def check_collisions(bot: InterbotixManipulatorXS, pose: list, overrides: list =
     robot_boxes = read_boxes("robot")
     boxnames = inspect.getmembers(boundingboxes)
     
-    valid_boxnames = _valid_box_names_test(boxnames)
+    valid_boxnames = _valid_box_names_test(boxnames, overrides)
 #   valid_boxnames = ([name for name, obj in boxnames if not inspect.isfunction(obj) and not inspect.isclass(obj) and not name.startswith("__")])
     collisionobjects = []
     for name in valid_boxnames:

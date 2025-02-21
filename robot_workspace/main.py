@@ -5,17 +5,17 @@ from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
-from robot_workspace.assets.positions import arm_joint_states
+from robot_workspace.assets.positions import arm_joint_states, arm_positions
 from robot_workspace.assets.Wafflebot import Wafflebot
-from robot_workspace.assets.positions import arm_positions
-from robot_workspace.backend_controllers import safety_functions as safety 
 from robot_workspace.backend_controllers import robot_bounding_boxes, create_boxes
+from robot_workspace.assets.boundingboxes import boundingboxes
+from robot_workspace.backend_controllers.safety_functions import _test_collision
 from importlib import reload as import_reload
 from time import sleep
 import numpy as numphy
 from os import getcwd
 import threading
-import rclpy
+
 
 def convert_box(box):
     lower_corner = box[0]
@@ -50,14 +50,17 @@ def read_boxes():
 
 def main():
     bot = Wafflebot()
+
     bot.arm.go_to_home_pose()
-    
+    import rclpy
+    #rclpy.spin(visualizer) 
     bot.move(arm_positions.e)
+    bot.move(arm_positions.bakken)
 
     sleep(5)
+   
     bot.safe_stop()
-    
-
+ 
     
     
 # Footer:

@@ -85,10 +85,17 @@ class Wafflebot:
             target = getattr(arm_positions, target)
 
         # get a pose estimate
-        target_joints = self.arm.set_ee_pose_matrix(
+        (target_joints, success) = self.arm.set_ee_pose_matrix(
             target,
+            custom_guess=self.arm.get_joint_positions(),
             execute=False,
-            )[0]   
+            )
+
+        if not success:
+            target_joints = self.arm.set_ee_pose_matrix(
+                target,
+                execute=False,
+                )[0]   
         # fix joints to legal states           
         target_joints = safety_functions.fix_joint_limits(joints=target_joints)
 
@@ -101,7 +108,11 @@ class Wafflebot:
         for i in range(1,6):
             if abs(target_joints[i]) > numphy.pi/2:
                 target_joints[i] = 0.0
-        
+        print(target_joints[1])
+        if target_joints[1] < -(numphy.pi/3):
+            target_joints[1] =0.0
+            target_joints[0] +=numphy.pi
+
         # refine final target pose        
         target_joints = self.arm.set_ee_pose_matrix(
             target,
@@ -109,10 +120,26 @@ class Wafflebot:
             custom_guess=target_joints
             )[0]
         target_joints = safety_functions.fix_joint_limits(joints=target_joints)            
-    
+
         if target_joints[0] == False:
             print("Wafflebot: move failed after second fix joints")
             return False
+        
+        for i in range(1,6):
+            if abs(target_joints[i]) > numphy.pi/2:
+                target_joints[i] = 0.0
+        # refine final target pose        
+        target_joints = self.arm.set_ee_pose_matrix(
+            target,
+            execute=False,
+            custom_guess=target_joints
+            )[0]
+        target_joints = safety_functions.fix_joint_limits(joints=target_joints)            
+
+        if target_joints[0] == False:
+            print("Wafflebot: move failed after third fix joints")
+            return False
+
         return target_joints
 
     
@@ -151,34 +178,48 @@ class Wafflebot:
         current_pose = self.arm.get_ee_pose()
         self.arm.set_ee_pose_matrix(current_pose)
 
+
     def move(self, target, ignore = []):
         # Todo? add blocking = False?
         
         start_joints = self.arm.get_joint_positions()
 
         target_joints = self._interpret_target_command(target)
+        print(target_joints)
 
-        waypoints = path_planner.plan_path(self, start_joints, target_joints, ignore)
+        waypoints = path_planner.plan_path(self, start_joints, target_joints, ignore, [])
+    
         if not waypoints:
             print("Wafflebot: move failed after path planner")
             return
-          
-        for waypoint in waypoints:
-            speed = max(4.0 / len(waypoints), 0.005)
-            self.arm.set_joint_positions(waypoint, speed, blocking=False)
-            sleep(speed/2)
+        end_ind = len(waypoints)-1
+        end_of_trajectory = waypoints[end_ind]
+
+        self.arm.set_joint_positions(end_of_trajectory)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     # Deprecated functions
-    """
     def big_movement(self, target: str, target_position_matrix = None): # todo: add support to convert variables to string
 
-        ""
+        """
         moves the bot to a faraway place. requires a preset waypoint in joint space
         A list of joint states are stored in assets/arm_joint_states.py
         :input: joint_state_target: The joint state to go to
         :input: target_position_matrix: optional parameter to adjust waist position to point towards the given direction  
-        ""
-        
+        """
+        import_reload(arm_joint_states)
         joint_name = target # save name for future use
         target = self._interpret_target_command(target)
         
@@ -196,7 +237,7 @@ class Wafflebot:
         
         # Check the feasability of the movement 
         target = safety_functions.fix_joint_limits(target)
-        # If an error was raised, abort movement
+        # If an error was raised, abort  """movement
         if target[0] == False: 
             print("big_movement: joint positions not reachable - aborting movement")
         # Else, move.
@@ -254,4 +295,4 @@ class Wafflebot:
             
             self.arm.set_joint_positions(joints)
         return
-    """
+  

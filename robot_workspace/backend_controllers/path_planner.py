@@ -21,7 +21,7 @@ def _list_sum(list_items, values):
     # ensure list compatibility and check if the value is a single number    
     values = [values] if not isinstance(values, list) else values 
     single_item = True if len(values) ==1 else False 
-    
+ 
     count = len(list_items)
     for i in range(count):
         if single_item:
@@ -42,7 +42,7 @@ def _list_multiply(list_items, values):
         items.append(list_items[i]*values[i]) # <-- bread and butter of this whole operation chief
     return items
 
-def _calculate_waypoint_count(joints, dt = 0.1):
+def _calculate_waypoint_count(joints, dt = 1e-1):
     T = 0
     biggest_joint = 0
     joint_count = len(joints)
@@ -147,6 +147,5 @@ def plan_path(bot: InterbotixManipulatorXS, start:list, stop:list, ignore:list =
         # continue path planning from the new start point
             plan_path(bot, waypoints[len(waypoints)-1],stop,ignore,waypoints,0, timeout+1)
     
-    
-    
+  
     return waypoints

@@ -5,7 +5,7 @@ from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
-from robot_workspace.assets.positions import arm_joint_states, arm_positions
+from robot_workspace.assets.positions import joint_states, positions
 from robot_workspace.assets.Wafflebot import Wafflebot
 from robot_workspace.backend_controllers import robot_bounding_boxes, create_boxes
 from robot_workspace.assets.boundingboxes import boundingboxes
@@ -54,8 +54,8 @@ def main():
     bot.arm.go_to_home_pose()
     import rclpy
     #rclpy.spin(visualizer) 
-    bot.move(arm_positions.e)
-    bot.move(arm_positions.bakken)
+    bot.move(positions.e)
+    bot.move(positions.bakken)
 
     sleep(5)
    

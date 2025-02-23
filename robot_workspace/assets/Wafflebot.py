@@ -9,9 +9,7 @@ syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 from interbotix_common_modules.common_robot.robot import robot_startup, robot_shutdown
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from interbotix_common_modules.angle_manipulation import angle_manipulation
-from robot_workspace.assets.positions import joint_states, offsets
-
-from robot_workspace.assets.positions import positions
+from robot_workspace.assets.positions import joint_states, offsets,positions
 from robot_workspace.backend_controllers import robot_boot_manager
 from robot_workspace.backend_controllers.tf_publisher import publish_tf
 from robot_workspace.backend_controllers import safety_functions, path_planner

@@ -77,7 +77,7 @@ def insert_sticks(bot: Wafflebot):
     tool_station_origin = get_tag_from_camera("tool_station") 
     waffle_iron_origin  = get_tag_from_camera("waffle_iron")
 
-    front_of_tool_station_offset    =   numphy.matrix(getattr(offsets, "front_off_tool_station"))
+    front_of_tool_station_offset    =   numphy.matrix(getattr(offsets, "front_of_tool_station"))
     tool_station_sticks_offset      =   numphy.matrix(getattr(offsets, "tool_station_sticks"))
     front_of_waffle_iron_offset     =   numphy.matrix(getattr(offsets, "front_of_waffle_iron"))
     waffle_iron_sticks_offset       =   numphy.matrix(getattr(offsets, "waffle_sticks"))
@@ -125,10 +125,25 @@ def take_waffle_off_sticks(bot:Wafflebot):
     ]
     for target in targets:
         bot.move(target, ["sticks", "pole"])
-    
+
 def put_away_sticks(bot: Wafflebot):
-    ...
+    import_reload(tools)
+    import_reload(offsets)
+    tool_station_origin = get_tag_from_camera("tool_station") 
+
+    front_of_tool_station_offset    =   numphy.matrix(getattr(offsets, "front_of_tool_station"))
+    tool_station_sticks_offset      =   numphy.matrix(getattr(offsets, "tool_station_sticks"))
+    
+    front_of_tool_station_pos       =   tool_station_origin * front_of_tool_station_offset
+    tool_station_sticks_pos         =   tool_station_origin * tool_station_sticks_offset
+
+    bot.move(front_of_tool_station_pos, ["sticks"])
+    bot.move(tool_station_sticks_pos,   ["tool_station","sticks"])
+    bot.gripper.release()
+    bot.move(front_of_tool_station_pos, ["tool_station","sticks"])
+
 
 def take_out_and_serve_waffle(bot: Wafflebot):
     take_out_waffle(bot)
     take_waffle_off_sticks(bot)
+    put_away_sticks(bot)

@@ -9,9 +9,9 @@ syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 from interbotix_common_modules.common_robot.robot import robot_startup, robot_shutdown
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from interbotix_common_modules.angle_manipulation import angle_manipulation
-from robot_workspace.assets.positions import arm_joint_states, arm_offsets
+from robot_workspace.assets.positions import joint_states, offsets
 
-from robot_workspace.assets.positions import arm_positions
+from robot_workspace.assets.positions import positions
 from robot_workspace.backend_controllers import robot_boot_manager
 from robot_workspace.backend_controllers.tf_publisher import publish_tf
 from robot_workspace.backend_controllers import safety_functions, path_planner
@@ -77,12 +77,12 @@ class Wafflebot:
         return getattr(self.bot, name)
     
     def _interpret_target_command(self, target):
-        import_reload(arm_joint_states)
-        import_reload(arm_positions)
+        import_reload(joint_states)
+        import_reload(positions)
         if ( isinstance(target, list) ) and ( len(target) == 6 ):
                 return target
         if isinstance(target, str):
-            target = getattr(arm_positions, target)
+            target = getattr(positions, target)
 
         # get a pose estimate
         (target_joints, success) = self.arm.set_ee_pose_matrix(
@@ -219,7 +219,8 @@ class Wafflebot:
         :input: joint_state_target: The joint state to go to
         :input: target_position_matrix: optional parameter to adjust waist position to point towards the given direction  
         """
-        import_reload(arm_joint_states)
+        print("Warning: big_movement is deprecated. please use move() instead.")
+        import_reload(joint_states)
         joint_name = target # save name for future use
         target = self._interpret_target_command(target)
         
@@ -247,8 +248,9 @@ class Wafflebot:
     
     
     def small_movement(self, target): # todo: add support to convert variables to string
+        print("warning: small_movement is depreceated. please use move() instead.")
         if isinstance(target, str):
-            target = getattr(arm_positions,target)
+            target = getattr(positions,target)
         if not isinstance (target,list):
             print ("Wafflebot - Small movement: target position is not a valid type")
             return False # error

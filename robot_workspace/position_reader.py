@@ -7,8 +7,8 @@ chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
 # robot modules
-from robot_workspace.assets.positions import arm_positions
-from robot_workspace.assets.positions import arm_joint_states
+from robot_workspace.assets.positions import positions
+from robot_workspace.assets.positions import joint_states
 from robot_workspace.assets.Wafflebot import *
 # user libraries: 
 from time import sleep
@@ -28,7 +28,7 @@ def printmenu():
 
 def playposition(bot: Wafflebot): 
     # Set up arm
-    import_reload(arm_positions)
+    import_reload(positions)
     bot.bot.core.robot_torque_enable("group", "arm", True)
     bot.arm.capture_joint_positions()
     # Clear input buffer
@@ -36,7 +36,7 @@ def playposition(bot: Wafflebot):
     print("The stored positions are:")
     
     #print the stored positions.
-    members = inspect.getmembers(arm_positions)
+    members = inspect.getmembers(positions)
     valid_positions = ([name for name, obj in members if not inspect.isfunction(obj) and not inspect.isclass(obj) and not name.startswith("__")])
     print(valid_positions)
 
@@ -67,7 +67,7 @@ def playposition(bot: Wafflebot):
 
 def playjoints(bot: Wafflebot):
     # Set up arm
-    import_reload(arm_joint_states)
+    import_reload(joint_states)
     bot.bot.core.robot_torque_enable("group", "arm", True)
     bot.arm.capture_joint_positions()
   
@@ -77,7 +77,7 @@ def playjoints(bot: Wafflebot):
 
     #print the stored positions.
     print("The stored positions are:")
-    members = inspect.getmembers(arm_joint_states)
+    members = inspect.getmembers(joint_states)
     valid_positions = ([name for name, obj in members if not inspect.isfunction(obj) and not inspect.isclass(obj) and not name.startswith("__")])
     print(valid_positions)
 
@@ -93,7 +93,7 @@ def playjoints(bot: Wafflebot):
             break
         
         # Go to the given position
-        pose = getattr(arm_joint_states, name)
+        pose = getattr(joint_states, name)
         print(f"Going to {name}")
         bot.arm.set_joint_positions(pose)
         sleep(1)
@@ -131,12 +131,12 @@ def recordposition(bot: InterbotixManipulatorXS):
                     + "Write the name of your position:\n")
     if name != "":
         # write ee position
-        with open("robot_workspace/assets/positions/arm_positions.py", "a") as file:
+        with open("robot_workspace/assets/positions/positions.py", "a") as file:
             file.write(f"\n{name}=([\n")
             numphy.savetxt(file, position_mat, fmt="  [% .8f, % .8f, % .8f, % .8f],")
             file.write("  ])\n")
         # write joint state:
-        with open("robot_workspace/assets/positions/arm_joint_states.py", "a") as file:
+        with open("robot_workspace/assets/positions/joint_states.py", "a") as file:
             file.write(f"{name}=( ")
             file.write(str(position_joints))
             file.write(" )\n")

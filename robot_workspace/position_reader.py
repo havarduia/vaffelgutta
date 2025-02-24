@@ -12,7 +12,6 @@ from robot_workspace.assets.positions import joint_states
 from robot_workspace.assets.Wafflebot import *
 # user libraries: 
 from time import sleep
-from pynput import keyboard
 import numpy as numphy
 from importlib import reload as import_reload
 import inspect
@@ -55,13 +54,9 @@ def playposition(bot: Wafflebot):
         
         print(f"Going to {name}")
         bot.move(name)
-        #bot.move(name,ignore=["robot_cradle"])
-        #bot.small_movement(name)
         
         sleep(1)
-    
     # Reset
-    printmenu()
     return
 
 
@@ -99,7 +94,6 @@ def playjoints(bot: Wafflebot):
         sleep(1)
     
     # Reset before next move
-    printmenu()
     return
     
 
@@ -123,7 +117,6 @@ def recordposition(bot: InterbotixManipulatorXS):
     else:
         print("Joints are not within their limits. Try again bozo.")
         bot.core.robot_torque_enable("group", "arm", False)
-        printmenu()
         return
 
     # Get the user to name the positions
@@ -144,32 +137,10 @@ def recordposition(bot: InterbotixManipulatorXS):
         print(f'Successfully written "{name}" to arm_positions.py and arm_joint_states.py')
 
     #Reset before next move    
-    printmenu()
     return
 
 
-def make_on_press(bot):
-    # Helper function to make the robot avaliable to the keyboard listener for future calls
-    def on_press(key):
-        try:
-            if hasattr(key, 'char') and key.char:  # Check if the key has a 'char' attribute
-                if key.char == "4":
-                    printmenu()  
-                elif key.char == "5":
-                    print("\nExiting...")
-                    return False  
-                elif key.char == "1":
-                    recordposition(bot)  
-                elif key.char == "2":
-                    playposition(bot)
-                elif key.char == "3":
-                    playjoints(bot)
-        except AttributeError:
-            # Handle special keys
-            print("Keyboard listener: Caught error, no worries") # We handle it by not handling it 
-            return True  # Continue listening for other keys
-    return on_press  # Return the inner on_press function
-   
+
 
 def main():
     # boot bot
@@ -177,10 +148,21 @@ def main():
     bot.arm.go_to_sleep_pose()
     
     #print menu and listen for keystrokes:
-    printmenu()
-    on_press = make_on_press(bot)
-    with keyboard.Listener(on_press=on_press) as listener:
-        listener.join()
+    while True:
+        printmenu()
+        userinput = input()
+        if userinput == str(1):
+            recordposition(bot)
+        elif userinput == str(2):
+            playposition(bot)
+        elif userinput == str(3):
+            playjoints(bot)
+        elif userinput == str(4):
+            pass
+        elif userinput == str(5):
+            break
+        else:
+            print("invalid input, try again bozo")
 
     # close bot, close program.
     bot.safe_stop()

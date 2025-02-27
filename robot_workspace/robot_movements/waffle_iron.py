@@ -18,8 +18,8 @@ def _check_if_waffle_iron_open():
     # return false if it is closed (not open)
     return False
 
-def _get_waffle_iron_lift_offsets(movement_is_up: bool):
-    waypoint_count = 1
+def _get_waffle_iron_lift_offsets(movement_is_up: bool = True):
+    waypoint_count = 4
     waypoints = []
     char_a_ind = 97
     for i in range (waypoint_count):
@@ -29,7 +29,7 @@ def _get_waffle_iron_lift_offsets(movement_is_up: bool):
             waypoints.append(numphy.matrix(getattr(offsets, f"waffle_iron_open_{chr(char_a_ind+waypoint_count-i)}")))
     return waypoints
 
-def open_waffle_iron(bot: Wafflebot, reverse:bool):
+def open_waffle_iron(bot: Wafflebot, reverse:bool = False):
     if _check_if_waffle_iron_open():
         if not reverse:
             print("Robot movements/waffle_iron:")
@@ -43,15 +43,15 @@ def open_waffle_iron(bot: Wafflebot, reverse:bool):
     import_reload(offsets)    
     waffle_iron_origin      = get_tag_from_camera("waffle_iron")
 
-    front_of_iron_offset    = numphy.matrix( getattr(   offsets, "front_of_iron"))    
-    lift_offsets            = numphy.matrix(_get_waffle_iron_lift_offsets(movement_is_up=True))    
-    top_of_iron_offset      = numphy.matrix( getattr(   offsets, "top_of_iron"  ))
+    front_of_iron_offset    = numphy.matrix( getattr(   offsets, "front_of_waffle_iron"))    
+    lift_offsets            =               _get_waffle_iron_lift_offsets(movement_is_up=True)    
+    top_of_iron_offset      = numphy.matrix( getattr(   offsets, "top_of_waffle_iron"  ))
 
     front_of_iron_pos       =  waffle_iron_origin * front_of_iron_offset 
     lift_positions          = [waffle_iron_origin * offset for offset in lift_offsets]
     top_of_iron_pos         =  waffle_iron_origin * top_of_iron_offset
 
-    lift_positions_count = len(lift_positions)
+    lift_positions_count = len(lift_positions)-1
 
     bot.gripper.release()
     if reverse:
@@ -70,15 +70,16 @@ def open_waffle_iron(bot: Wafflebot, reverse:bool):
     
 def insert_sticks(bot: Wafflebot):
     if not _check_if_waffle_iron_open:
-        print("robot_movements/waffle_iron: waffle iron is not open. Not inserting sticks.")
-        return False
+        if False:
+            print("robot_movements/waffle_iron: waffle iron is not open. Not inserting sticks.")
+            return False
     import_reload(tools)
     import_reload(offsets)
     tool_station_origin = get_tag_from_camera("tool_station") 
     waffle_iron_origin  = get_tag_from_camera("waffle_iron")
 
     front_of_tool_station_offset    =   numphy.matrix(getattr(offsets, "front_of_tool_station"))
-    tool_station_sticks_offset      =   numphy.matrix(getattr(offsets, "tool_station_sticks"))
+    tool_station_sticks_offset      =   numphy.matrix(getattr(tools,   "tool_station_sticks"))
     front_of_waffle_iron_offset     =   numphy.matrix(getattr(offsets, "front_of_waffle_iron"))
     waffle_iron_sticks_offset       =   numphy.matrix(getattr(offsets, "waffle_sticks"))
     
@@ -115,13 +116,13 @@ def take_out_waffle(bot: Wafflebot):
     bot.move(front_of_waffle_iron_pos,  ["sticks", "waffle_iron"])
 
 def take_waffle_off_sticks(bot:Wafflebot):
-    import_reload(positions)  
+    import_reload(tools)  
     targets = [
-        numphy.matrix(getattr(positions, "pole_a")),
-        numphy.matrix(getattr(positions, "pole_b")),
-        numphy.matrix(getattr(positions, "pole_c")),
-        numphy.matrix(getattr(positions, "pole_d")),
-        numphy.matrix(getattr(positions, "pole_e")),
+        numphy.matrix(getattr(tools, "pole_a")),
+        numphy.matrix(getattr(tools, "pole_b")),
+        numphy.matrix(getattr(tools, "pole_c")),
+        numphy.matrix(getattr(tools, "pole_d")),
+        numphy.matrix(getattr(tools, "pole_e")),
     ]
     for target in targets:
         bot.move(target, ["sticks", "pole"])
@@ -132,7 +133,7 @@ def put_away_sticks(bot: Wafflebot):
     tool_station_origin = get_tag_from_camera("tool_station") 
 
     front_of_tool_station_offset    =   numphy.matrix(getattr(offsets, "front_of_tool_station"))
-    tool_station_sticks_offset      =   numphy.matrix(getattr(offsets, "tool_station_sticks"))
+    tool_station_sticks_offset      =   numphy.matrix(getattr(tools,   "tool_station_sticks"))
     
     front_of_tool_station_pos       =   tool_station_origin * front_of_tool_station_offset
     tool_station_sticks_pos         =   tool_station_origin * tool_station_sticks_offset

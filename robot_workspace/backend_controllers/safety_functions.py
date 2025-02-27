@@ -31,7 +31,7 @@ def read_boxes(name):
     boxes = []  
     for key in box_list.keys():
         boxes.append((box_list[key]))
-    return boxes
+    return (box_list.keys(), boxes)
 
 
 def _get_joint_limit_map(ind: int, bound_is_upper: bool):
@@ -143,7 +143,6 @@ def _valid_box_names_test(boxnames, banned_names = []):
         
         if not skip:
             names.append(name)
-
     return names
         
 
@@ -152,20 +151,17 @@ def check_collisions(bot: InterbotixManipulatorXS, pose: list, overrides: list =
     
     import_reload(robotboxes)
     import_reload(boundingboxes)
-    robot_boxes = read_boxes("robot")
+    robot_boxnames, robot_boxes = read_boxes("robot")
     boxnames = inspect.getmembers(boundingboxes)
     
     valid_boxnames = _valid_box_names_test(boxnames, overrides)
 #   valid_boxnames = ([name for name, obj in boxnames if not inspect.isfunction(obj) and not inspect.isclass(obj) and not name.startswith("__")])
-    collisionobjects = []
-    for name in valid_boxnames:
-        collisionobjects.append(getattr(boundingboxes,name))
-
     # Test for collision:
-    for robot_box in robot_boxes:
-        for object in collisionobjects:
-            if _test_collision(robot_box, object): 
-                return(True, robot_box, object)
+    for robot_boxname, robot_box in zip(robot_boxnames,robot_boxes):
+        for name in valid_boxnames:
+            collisionobject = getattr(boundingboxes, name)
+            if _test_collision(robot_box, collisionobject): 
+                return(True, robot_boxname, name)
     #else:
     return(False, None, None)
      

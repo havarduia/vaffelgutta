@@ -144,7 +144,7 @@ def recordposition(bot: InterbotixManipulatorXS):
 
 def main():
     # boot bot
-    bot =  Wafflebot( )
+    bot =  Wafflebot(1 )
     bot.arm.go_to_sleep_pose()
     
     #print menu and listen for keystrokes:

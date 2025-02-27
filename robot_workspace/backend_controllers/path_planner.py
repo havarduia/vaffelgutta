@@ -69,18 +69,20 @@ def plan_path(bot: InterbotixManipulatorXS, start:list, stop:list, ignore:list =
     """
     if timeout > 100:
         print("Path planner: timed out")
-        return False
+        return (None, False)
     if not waypoints == []: #Dont test obvious positions twice
         error = _eliminate_obvious_false_positions(bot, start, stop, ignore)
         if not error == None:
             print("Path planner: This path is impossible")
             print(f"Reason: {error}")
-            return [False]    
+            return (None, False)    
  
     minus_start = [-1*s for s in start]
     joint_deltas = _list_sum(stop, minus_start)
     waypoint_count = _calculate_waypoint_count(joint_deltas)
-    
+    if waypoint_count == 0:
+        return ([start], True)
+    kaboom = 0
     for dt in range(waypoint_count):
         
         current_position = _list_sum(start, _list_multiply(joint_deltas, dt/waypoint_count))
@@ -90,62 +92,59 @@ def plan_path(bot: InterbotixManipulatorXS, start:list, stop:list, ignore:list =
 
         if kaboom: 
             if failed_attempts == 0:
-                waypoints.append(start)
+                pass
+                #waypoints.append(_list_sum(start, _list_multiply(joint_deltas, 0.5)))
             break
-        waypoints.append(next_position)
     
 
     if kaboom:
         print("Kaboom!")
-        return False
+        print(f"{robot_box} collided with {object_box}")
+        
         if failed_attempts == 0:       
             
             uprighter_position =[0,-0.2,-0.2,0,0,0]
 
-            position_attempt = _list_sum(current_position,uprighter_position)
+            position_attempt = _list_sum(start,uprighter_position)
 
-            plan = plan_path(bot, current_position, position_attempt, ignore, waypoints,1, timeout+1)
-            if plan[0] == False:
-                return[False]
-            for i in range(len(plan)):
-                print(i)
-                waypoints.append(plan[i])
+            plan = plan_path(bot, start, position_attempt, ignore, waypoints,1, timeout+1)
+            if plan[1] == False:
+                return[None, False]
+            else: 
+                waypoints.append(plan[0][len(plan[0])-1])
 
         elif failed_attempts == 1:
             # preset values recorded as the arm folded in on itself
-            joint_presets =[-0.0782330259680748, -0.21168935298919678, 1.3897866010665894, -0.08283496648073196, -1.6106798648834229, 0.0] # waist irrelevant 
-
+            position_attempt =[-0.0782330259680748, -0.21168935298919678, 1.3897866010665894, -0.08283496648073196, -1.6106798648834229, 0.0] # waist irrelevant 
             waist_index = 5
-            waist_angle = current_position[waist_index] 
-            joint_presets[waist_index] = waist_angle
-            plan = plan_path(bot, current_position,joint_presets,ignore, waypoints, 2, timeout+1)
-            if plan[0] == False:
-                return [False]
-            for i in range(len(plan)):
-                waypoints.append(plan[i])
-
+            waist_angle = start[waist_index] 
+            position_attempt[waist_index] = waist_angle
+            plan = plan_path(bot, start,position_attempt,ignore, waypoints, 2, timeout+1)
+            if plan[1] == False:
+                return [None,False]
+            else: 
+                waypoints.append(plan[0][len(plan[0])-1])
         elif failed_attempts == 2:
             # preset values recorded as the arm rising up to the clouds bro
-            joint_presets = [-0.08130098134279251, -0.2991262674331665, -1.036971092224121, 0.13499031960964203, 1.372912883758545, 0.0]# waist irrelevant
+            position_attempt = [-0.08130098134279251, -0.2991262674331665, -1.036971092224121, 0.13499031960964203, 1.372912883758545, 0.0]# waist irrelevant
             waist_index = 5
-            waist_angle = current_position[waist_index]
-            joint_presets[waist_index] = waist_angle
-
-            plan = plan_path(bot,current_position,joint_presets,ignore, waypoints, 3, timeout+1)
-            if plan[0] == False:
-                return [False]
-            for i in range(len(plan)):
-                waypoints.append(plan[i])
+            waist_angle = start[waist_index]
+            position_attempt[waist_index] = waist_angle
+            plan = plan_path(bot,start,position_attempt,ignore, waypoints, 3, timeout+1)
+            if plan[1] == False:
+                return [None, False]
+            else:
+                waypoints.append(plan[0][len(plan[0])-1])
 
         else:
             #at this point you are beyond saving
-            waypoints = [False]
             print("Movement planner failed - attempts exhausted")
-            return waypoints
+            return None, False
             
-        if not waypoints[0] == False:
-        # continue path planning from the new start point
+        if waypoints[1] == True:
+            # continue path planning from the new start point
             plan_path(bot, waypoints[len(waypoints)-1],stop,ignore,waypoints,0, timeout+1)
-    
+    else:
+        waypoints.append(next_position)   
   
-    return waypoints
+    return waypoints, True

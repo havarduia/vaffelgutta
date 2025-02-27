@@ -7,7 +7,7 @@ from importlib import reload as import_reload
 import numpy as numphy
 
 
-def pick_up_lube(bot: Wafflebot, reverse:bool):
+def pick_up_lube(bot: Wafflebot, reverse:bool = 0):
     import_reload(offsets)
     import_reload(tools)
 
@@ -63,12 +63,12 @@ def apply_lube(bot:Wafflebot):
     for i in range(len(spray_offsets)):
         spray_positions[i] = waffle_iron_origin * spray_offsets[i]
     
-    bot.move(front_of_waffle_iron_pos, "waffle_iron")
+    bot.move(front_of_waffle_iron_pos, ["waffle_iron", "lube"])
     
     for i in range(len(spray_offsets)):
-        bot.move(spray_positions[i])
+        bot.move(spray_positions[i], ["waffle_iron", "lube"])
         #spray()
-    bot.move(front_of_waffle_iron_pos)
+    bot.move(front_of_waffle_iron_pos, ["waffle_iron","lube"])
 
     
 

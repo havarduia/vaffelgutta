@@ -31,7 +31,15 @@ def calculate_translation(startpos: list, endpos: list):
     y = endpos[1][3] - startpos[1][3]
     z = endpos[2][3] - startpos[2][3]
     return (x, y, z)
-    
+
+def _calculate_biggest_joint(joints):    
+    biggest_joint = 0
+    for joint in joints:
+        joint = abs(joint)
+        if joint > biggest_joint:
+            biggest_joint = joint
+    return biggest_joint
+
 
 class Wafflebot:
     #Todo: Replace bota.arm.go_to_home_pose og ....sleep_pose with error checked versions. 
@@ -50,17 +58,17 @@ class Wafflebot:
             group_name="arm",
             gripper_name="gripper",
             )
-        
+    
         # Define shorthands to call bot functions intuitively 
         self.arm = self.bot.arm
         self.gripper = self.bot.gripper
         self.core = self.bot.core
-
+        
         # start up robot
         self.arm.capture_joint_positions()
         robot_startup()
-        self.arm.capture_joint_positions()
-        
+
+
         # Monitor emergency stop
         if "Jetson.GPIO" in sysmodules: # Check if running on Jetson
             # **Start GPIO monitoring in a separate thread**
@@ -69,63 +77,73 @@ class Wafflebot:
                 daemon=True
                   )
             self.gpio_thread.start()
+
     
-    # return the methods of the child class
+    # return the methods of the child class (interbotixmanipulatorxs)
     def __getattr__(self, name):
         return getattr(self.bot, name)
-    
-    def _interpret_target_command(self, target):
-        import_reload(joint_states)
-        import_reload(positions)
-        if ( isinstance(target, list) ) and ( len(target) == 6 ):
-                return target
-        if isinstance(target, str):
-            target = getattr(positions, target)
 
-        # get a pose estimate
+    def _refine_guess(self,target):
+        # Try using current position as seed for target joints. Else retry with vanilla guesses
         (target_joints, success) = self.arm.set_ee_pose_matrix(
             target,
             custom_guess=self.arm.get_joint_positions(),
             execute=False,
             )
-
         if not success:
             target_joints = self.arm.set_ee_pose_matrix(
                 target,
                 execute=False,
                 )[0]   
-        # fix joints to legal states           
+        # clamp joints to legal states           
         target_joints = safety_functions.fix_joint_limits(joints=target_joints)
-
         # error checking
         if target_joints[0] == False:
             print("Wafflebot: move failed after first fix joints")
-            return False
-                    
-        # if joint values are "out of wack", retry with upright-er positions 
+            return [False]
+        # For positions that have made over a quarter rotation: 
+        # Might cause double rotation --> awkward position.
+        # So retry with forced upright position. Waist ([0]) is exempt this problem.
         for i in range(1,6):
             if abs(target_joints[i]) > numphy.pi/2:
-                target_joints[i] = 0.0
-        print(target_joints[1])
-        if target_joints[1] < -(numphy.pi/3):
-            target_joints[1] =0.0
-            target_joints[0] +=numphy.pi
-
-        # refine final target pose        
+                target_joints[i] = 0.0        
         target_joints = self.arm.set_ee_pose_matrix(
             target,
             execute=False,
             custom_guess=target_joints
             )[0]
         target_joints = safety_functions.fix_joint_limits(joints=target_joints)            
-
         if target_joints[0] == False:
             print("Wafflebot: move failed after second fix joints")
-            return False
-        
+            return [False]
+        # if the shoulder is bent back and the elbow is pointing up,
+        # it is likely another unnatural position that should be fixed
+        if (target_joints[1] < -(numphy.pi/6) # if shoulder is bent back 
+            and not target_joints[2] > 0.1 # and elbow is not pointing somewhat foreward
+            ):   
+            print(f"Adjusted from state:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
+            # turn around waist (joint overflow will be handled down the line)
+            target_joints[0] +=numphy.pi           
+            # reset shoulder and elbow
+            target_joints[1] = 1e-6  
+            target_joints[2] = 1e-6
+            print(f"to:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
+            adjusted = True
+        else:adjusted = False
+        # refine adjusted target pose        
+        target_joints = self.arm.set_ee_pose_matrix(
+            target,
+            execute=False,
+            custom_guess=target_joints
+            )[0]
+        target_joints = safety_functions.fix_joint_limits(joints=target_joints)            
+        if target_joints[0] == False:
+            print("Wafflebot: move failed after third fix joints")
+            return [False]
+        # since the position has changed, redo the first uprightness test.
         for i in range(1,6):
             if abs(target_joints[i]) > numphy.pi/2:
-                target_joints[i] = 0.0
+                target_joints[i] = 0.0001
         # refine final target pose        
         target_joints = self.arm.set_ee_pose_matrix(
             target,
@@ -133,13 +151,25 @@ class Wafflebot:
             custom_guess=target_joints
             )[0]
         target_joints = safety_functions.fix_joint_limits(joints=target_joints)            
-
         if target_joints[0] == False:
-            print("Wafflebot: move failed after third fix joints")
-            return False
-
+            print("Wafflebot: move failed after fourth fix joints")
+            return [False]
+        if adjusted:
+            print(f"the adjusted joints are:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
         return target_joints
 
+    
+    def _interpret_target_command(self, target):
+        import_reload(joint_states)
+        import_reload(positions)
+        if ( isinstance(target, list) ) and ( len(target) == 6 ):
+            return target
+        if isinstance(target, numphy.matrix):
+            target = target.tolist() 
+        if isinstance(target, str):
+            target = getattr(positions, target)
+        target_joints = self._refine_guess(target)
+        return target_joints
     
     def exit(self):
         robot_shutdown()  
@@ -151,7 +181,8 @@ class Wafflebot:
         self.bot.core.robot_torque_enable("group", "arm", True)
         sleep(2)
         self.arm.go_to_home_pose()
-        self.arm.go_to_sleep_pose()
+        sleep_joints =  [0.0, -1.80, 1.6, 0.0, 0.5859, 0.0]
+        self.arm.set_joint_positions(sleep_joints)
         sleep(0.5)
         self.exit()
 
@@ -162,7 +193,7 @@ class Wafflebot:
         GPIO.setmode(GPIO.BOARD)
         button_pin = 18  # Define button pin
         # Set the pin as an input
-        GPIO.setup(button_pin, GPIO.IN)#punll_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(button_pin, GPIO.IN)
               
         while True:
             pin_state = GPIO.input(button_pin)
@@ -177,23 +208,36 @@ class Wafflebot:
         self.arm.set_ee_pose_matrix(current_pose)
 
 
-    def move(self, target, ignore = []):
+    def move(self, target, ignore = [], speed_scaling: float = 1.0):
         # Todo? add blocking = False?
         
         start_joints = self.arm.get_joint_positions()
 
         target_joints = self._interpret_target_command(target)
-        print(target_joints)
 
-        waypoints = path_planner.plan_path(self, start_joints, target_joints, ignore, [])
-    
-        if not waypoints:
+        if target_joints[0] == False:
+            return False
+
+        waypoints, success = (path_planner.plan_path(self, start_joints, target_joints, ignore, []))
+
+        if not success: 
             print("Wafflebot: move failed after path planner")
-            return
-        end_ind = len(waypoints)-1
-        end_of_trajectory = waypoints[end_ind]
-
-        self.arm.set_joint_positions(end_of_trajectory)
+            return False
+        if not isinstance(waypoints, list):
+            return False
+        
+        if len(waypoints) == 1:
+            try: 
+                if len(waypoints[0]) == 1:
+                    return False
+            except TypeError:
+                print ("TypeError for testing len(waypoints[0])==1")
+        
+        speedconstant = 0.420
+        for waypoint in waypoints:
+            wp_path_length = _calculate_biggest_joint(waypoint)
+            speed = 1/(speedconstant * speed_scaling / wp_path_length) 
+            self.arm.set_joint_positions(waypoint,moving_time=speed)
 
 
 

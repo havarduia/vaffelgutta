@@ -30,7 +30,7 @@ def plot_marker_positions(rel_transforms):
 def main():
     # Instantiate the coordinate system and compute relative transformations
     coord_sys = CoordinateSystem()
-    rel_transforms = coord_sys.compute_relative_transformations()
+    rel_transforms = coord_sys.do_transformations()
     
     if rel_transforms:
         for marker_id, transform in rel_transforms.items():
@@ -38,7 +38,7 @@ def main():
         # Plot the positions in 3D
         plot_marker_positions(rel_transforms)
     else:
-        print("arker ID 0 is not detected.")
+        print("Origin is not detected.")
 
 if __name__ == "__main__":
     main()

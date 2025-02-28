@@ -27,7 +27,6 @@ class Aruco:
             raise RuntimeError("No RealSense cameras detected!")
 
     def get_connected_cameras(self):
-        """Returns a list of serial numbers for all connected cameras"""
         return [device.get_info(rs.camera_info.serial_number) for device in rs.context().devices]
 
     def detector(self):
@@ -54,43 +53,37 @@ class Aruco:
             image = self.get_frame(camera)
             corners, ids, rejected = self.aruco_detection(image)
 
-            # Draw detected markers on the frame
             if ids is not None:
                 cv2.aruco.drawDetectedMarkers(image, corners, ids)
 
-            # Estimate pose if markers detected
             transformations = []
             if ids is not None:
                 rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, marker_length, matrix, coeff)
                 for i in range(len(ids)):
-                    # Convert rotation vector to matrix
                     R, _ = cv2.Rodrigues(rvecs[i])
 
-                    angle = np.pi / 2  # 90 degrees in radians (adjust as needed)
-                    rotation_axis = [0, 0, 1] # X Y Z
-                    R_custom, _ = cv2.Rodrigues(np.array(rotation_axis) * angle)
-                    R_rotated = R @ R_custom
+                    # Correct custom rotation matrix for coordinate system adjustment
+                    R_custom = np.array([
+                        [0, -1, 0],   # New X-axis: Original -Z
+                        [0, 0, 1],    # New Y-axis: Original -X (left)
+                        [-1, 0, 0]    # New Z-axis: Original Y (up)
+                    ], dtype=np.float32)
 
-                    # Create the 4x4 transformation matrix
+                    R_rotated = R @ R_custom  # Compose rotations
+
                     T = np.eye(4)
                     T[:3, :3] = R_rotated
-                    T[:3, 3] = tvecs[i].flatten() 
+                    T[:3, 3] = tvecs[i].flatten()
 
                     transformations.append((ids[i][0], T))
-                    # Draw the axes with the rotated pose
-                    rvec_rotated, _ = cv2.Rodrigues(R_rotated)  # Convert back to vector for drawing
+                    # Draw axes with corrected rotation
+                    rvec_rotated, _ = cv2.Rodrigues(R_rotated)
                     cv2.drawFrameAxes(image, matrix, coeff, rvec_rotated, tvecs[i], 0.03)
 
             return image, transformations
 
-        # Process cameras and get images with pose data
-        results = {cam_id: process_camera(info, f"Camera {i+1}") for i, (cam_id, info) in enumerate(self.cameras.items())}
-        return results
-
-
-
-
-
+        return {cam_id: process_camera(info, f"Camera {i+1}") 
+                for i, (cam_id, info) in enumerate(self.cameras.items())}
 
 
 # This is only for debugging
@@ -98,21 +91,31 @@ def main():
     aruco = Aruco()
     
     while True:
-        pose_data = aruco.estimate_pose()
+        try:
+            pose_data = aruco.estimate_pose()
 
-        for cam_id, (image, poses) in pose_data.items():
-            if image is not None:
-                cv2.imshow(f"Camera {cam_id}", image)
+            for cam_id, (image, poses) in pose_data.items():
+                if image is not None:
+                    cv2.imshow(f"Camera {cam_id}", image)
 
-            print(f"\n--- Camera {cam_id} ---")
-            for marker_id, T in poses:
-                print(f"Marker ID: {marker_id}")
-                print(np.array2string(T, precision=4, suppress_small=True))
+                print(f"\n--- Camera {cam_id} ---")
+                for marker_id, T in poses:
+                    print(f"\nMarker ID: {marker_id}")
+                    
+                    # Extract components from transformation matrix
+                    R_rotated = T[:3, :3]
+                    tvec = T[:3, 3]
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+                    # Print coordinate system verification
+                    print("X-axis (inward):", R_rotated[:, 0])
+                    print("Y-axis (left):  ", R_rotated[:, 1])
+                    print("Z-axis (up):    ", R_rotated[:, 2])
+                    print("Translation:    ", tvec)
+        finally:
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
     cv2.destroyAllWindows()
-
-if __name__ == '__main__':
+    
+if __name__ == "__main__":
     main()

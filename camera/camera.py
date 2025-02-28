@@ -36,7 +36,6 @@ class Camera:
                 [0, intrinsics.fy, intrinsics.ppy],
                 [0, 0, 1]
             ])
-            print(self.camera_matrix)
             self.dist_coeffs = np.array(intrinsics.coeffs[:5])
 
     def stop_streaming(self):

@@ -54,31 +54,43 @@ class Aruco:
             corners, ids, rejected = self.aruco_detection(image)
 
             if ids is not None:
-                cv2.aruco.drawDetectedMarkers(image, corners, ids)
+                object_points = np.array([
+                    [-marker_length/2,  marker_length/2, 0],
+                    [ marker_length/2,  marker_length/2, 0],
+                    [ marker_length/2, -marker_length/2, 0],
+                    [-marker_length/2, -marker_length/2, 0]
+                ], dtype=np.float32)
 
-            transformations = []
-            if ids is not None:
-                rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, marker_length, matrix, coeff)
+                transformations = []
+
                 for i in range(len(ids)):
-                    R, _ = cv2.Rodrigues(rvecs[i])
-
-                    # Correct custom rotation matrix for coordinate system adjustment
+                    
+                    img_points = corners[i].reshape(-1, 2)
+                    retval, rvec, tvec = cv2.solvePnP(object_points, img_points, matrix, coeff, flags=cv2.SOLVEPNP_IPPE_SQUARE)
+                    
+                    if not retval:
+                        continue  # Retval checks if marker is valid.
+            
+                    R, _ = cv2.Rodrigues(rvec)
+            
+                    # Custom rotation correction
                     R_custom = np.array([
-                        [0, -1, 0],   # New X-axis: Original -Z
-                        [0, 0, 1],    # New Y-axis: Original -X (left)
-                        [-1, 0, 0]    # New Z-axis: Original Y (up)
+                        [0, -1, 0],   
+                        [0, 0, 1],    
+                        [-1, 0, 0]    
                     ], dtype=np.float32)
-
-                    R_rotated = R @ R_custom  # Compose rotations
-
+            
+                    R_rotated = R @ R_custom  
+            
                     T = np.eye(4)
                     T[:3, :3] = R_rotated
-                    T[:3, 3] = tvecs[i].flatten()
-
+                    T[:3, 3] = tvec.flatten()
+            
                     transformations.append((ids[i][0], T))
-                    # Draw axes with corrected rotation
+            
+                    # Draw axes
                     rvec_rotated, _ = cv2.Rodrigues(R_rotated)
-                    cv2.drawFrameAxes(image, matrix, coeff, rvec_rotated, tvecs[i], 0.03)
+                    cv2.drawFrameAxes(image, matrix, coeff, rvec_rotated, tvec, 0.03)
 
             return image, transformations
 

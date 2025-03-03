@@ -53,36 +53,3 @@ class Camera:
         self.color_frame = frame.get_color_frame()
         color_image = np.asanyarray(self.color_frame.get_data())
         return color_image
-
-
-
-
-
-
-
-
-
-
-# Just for debugging
-def main():
-    cam1_id = "031422250347"
-    cam2_id = "912112072861"
-
-    camera1 = Camera(cam1_id, 1280, 720)
-    camera2 = Camera(cam2_id, 1280, 720)
-
-    while True:
-        frame1 = camera1.get_frame()
-        frame2 = camera2.get_frame()
-        image1 = camera1.np_frames(frame1)
-        image2 = camera2.np_frames(frame2)
-        # Stack images horizontally
-        stacked = cv2.hconcat([image1, image2])
-        # Display the stacked image in one window
-        cv2.imshow('Stacked Cameras', stacked)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-    cv2.destroyAllWindows()
-
-if __name__ == '__main__':
-    main()

@@ -43,13 +43,10 @@ class Camera:
             self.pipeline.stop()
             self.isStreaming = False
 
-    def get_frame(self):
+    def get_image(self):
         if not self.isStreaming:
             return None
         frame = self.pipeline.wait_for_frames()
-        return frame
-
-    def np_frames(self, frame):
         self.color_frame = frame.get_color_frame()
-        color_image = np.asanyarray(self.color_frame.get_data())
-        return color_image
+        return np.asanyarray(self.color_frame.get_data())
+

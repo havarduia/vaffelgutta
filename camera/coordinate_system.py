@@ -90,21 +90,3 @@ class CoordinateSystem:
                     f.write("])\n\n")
         except Exception as e:
             print(f"Error saving transformations: {e}")
-            
-        
-# Ignore, only for debugging the class above
-def main():
-    camera_start = CoordinateSystem()
-    start = False
-    try:
-        while True:
-            camera_start.save_transformation()
-            time.sleep(0.1)  # Update interval (1 second)
-            if start == False:  # Print every 5 iterations
-                print("Starting camera program... ")
-                start = True
-    except KeyboardInterrupt:
-        print("\nStopping camera program... ")
-        
-if __name__ == "__main__":
-    main()

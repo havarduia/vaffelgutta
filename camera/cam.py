@@ -10,8 +10,9 @@ def main():
         print(f"Initialization error: {e}")
         return
     
-    while True:
-        for i in range(0,1000):
-            cs.save_transformation()
-            sleep(0.25)
-        break
+
+    for i in range(0,1000):
+        cs.save_transformation()
+        sleep(0.25)
+        
+    return

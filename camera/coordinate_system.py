@@ -1,16 +1,25 @@
-import numpy as np
+import numpy as numphy
 from aruco import Aruco  
+from camera import Camera
 import os
 import time
 
 class CoordinateSystem:
-    def __init__(self, marker_length=0.048, origin_offset=(0.105, 0.108, 0)):
-        self.aruco = Aruco()
+    def __init__(self, aruco_instance, marker_length=0.048, origin_offset=(0.105, 0.108, 0)):
+        self.aruco = aruco_instance  # Use the provided instance.
         self.marker_length = marker_length
         self.origin_transform = None 
-        self.origin_offset = np.array(origin_offset)
-
-    def do_transformations(self):
+        self.origin_offset = numphy.array(origin_offset)
+        
+    def update_marker(self, marker_length):
+        self.marker_length = marker_length
+        return
+    
+    def update_origin_offset(self, origin_offset: numphy.array):
+        self.origin_offset = origin_offset
+        return
+    
+    def transform_origin(self):
         results = self.aruco.estimate_pose(self.marker_length)
         relative_transformations = {}
 
@@ -21,7 +30,7 @@ class CoordinateSystem:
                 for marker_id, transform in transformations:
                     if marker_id == 0:
                         # Create offset transformation matrix
-                        offset_transform = np.eye(4)
+                        offset_transform = numphy.eye(4)
                         offset_transform[:3, 3] = self.origin_offset
                         # Apply offset to the origin marker's transform
                         self.origin_transform = transform @ offset_transform
@@ -35,13 +44,13 @@ class CoordinateSystem:
                 # Second pass to compute relative transformations
                 for marker_id, transform in transformations:
                     if marker_id != 0:
-                        relative_transform = np.linalg.inv(self.origin_transform) @ transform
+                        relative_transform = numphy.linalg.inv(self.origin_transform) @ transform
                         relative_transformations[marker_id] = relative_transform
 
         return relative_transformations
     
     def save_transformation(self):
-        current_transformations = self.do_transformations()
+        current_transformations = self.transform_origin()
         if not current_transformations:
             print("No transformations to save.")
             return

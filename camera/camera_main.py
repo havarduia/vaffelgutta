@@ -4,9 +4,8 @@ import threading
 import queue
 
 from aruco import Aruco
-from coordinate_system import CoordinateSystem
 from camera import Camera
-
+from coordinate_system import CoordinateSystem
 
 terminal_queue = queue.Queue()
 periodic_save_thread = None
@@ -97,15 +96,14 @@ def process_terminal_input(option, aruco_system, coord_sys):
 
 def main():
     global periodic_save_thread, periodic_save_stop_event
-
     try:
         aruco_system = Aruco()
     except RuntimeError as e:
         print(e)
         return
 
-    # Init the coordinate system.
-    coord_sys = CoordinateSystem()
+    # Pass the single Aruco instance to CoordinateSystem.
+    coord_sys = CoordinateSystem(aruco_system)
 
     # Start the interface in a separate daemon thread.
     terminal_thread = threading.Thread(target=terminal_interface, daemon=True)

@@ -30,7 +30,7 @@ def plot_marker_positions(rel_transforms):
 def main():
     # Instantiate the coordinate system and compute relative transformations
     coord_sys = CoordinateSystem()
-    rel_transforms = coord_sys.do_transformations()
+    rel_transforms = coord_sys.transform_origin()
     
     if rel_transforms:
         for marker_id, transform in rel_transforms.items():

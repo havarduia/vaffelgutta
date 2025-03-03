@@ -1,5 +1,5 @@
 import pyrealsense2 as rs
-import numpy as np
+import numpy as numphy
 import cv2
 from camera import Camera
 
@@ -8,7 +8,7 @@ class Aruco:
         # Define camera serial numbers and their resolutions.
         camera_configs = {
             "031422250347": (1280, 720),
-            "912112072861": (1920, 1080)
+            "912112072861": (1280, 720)
         }
 
         # Start cameras as None.
@@ -59,17 +59,17 @@ class Aruco:
             # Use the new combined method to get the color image.
             image = camera.get_image()
             corners, ids, rejected = self.aruco_detection(image)
-
+            
+            transformations = []
+            
             if ids is not None:
                 # Define object points for the marker corners.
-                object_points = np.array([
+                object_points = numphy.array([
                     [-marker_length/2,  marker_length/2, 0],
                     [ marker_length/2,  marker_length/2, 0],
                     [ marker_length/2, -marker_length/2, 0],
                     [-marker_length/2, -marker_length/2, 0]
-                ], dtype=np.float32)
-
-                transformations = []
+                ], dtype=numphy.float32)
 
                 for i in range(len(ids)):
                     img_points = corners[i].reshape(-1, 2)
@@ -81,14 +81,14 @@ class Aruco:
                     R, _ = cv2.Rodrigues(rvec)
             
                     # Custom rotation correction.
-                    R_custom = np.array([
+                    R_custom = numphy.array([
                         [0, -1, 0],
                         [0,  0, 1],
                         [-1, 0, 0]
-                    ], dtype=np.float32)
+                    ], dtype=numphy.float32)
                     R_rotated = R @ R_custom  
             
-                    T = np.eye(4)
+                    T = numphy.eye(4)
                     T[:3, :3] = R_rotated
                     T[:3, 3] = tvec.flatten()
             

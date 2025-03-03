@@ -50,11 +50,10 @@ def main():
     bot = Wafflebot(1)
 
     bot.arm.go_to_home_pose()
+
+
     bot.arm.set_single_joint_position("shoulder", -3.14/6, blocking=False)
     bot.arm.set_single_joint_position("elbow",0.3)
-    bot.safe_stop()
-    return
-    """
     robot_movements.waffle_iron.open_waffle_iron(bot) 
     robot_movements.waffle_iron.insert_sticks(bot)
 
@@ -66,17 +65,17 @@ def main():
 
     robot_movements.batter.place_cup_at_filling_station(bot)    
     sleep(2)
+
+
     robot_movements.batter.pick_up_cup_from_filling_station(bot)
     robot_movements.batter.pour_batter(bot)
     robot_movements.batter.place_cup_at_filling_station(bot, is_holding_cup=True)    
     robot_movements.waffle_iron.open_waffle_iron(bot, reverse=True)
 
     sleep(5)    
-    """
+
     robot_movements.waffle_iron.open_waffle_iron(bot)
     robot_movements.waffle_iron.take_out_and_serve_waffle(bot)
- 
- 
  
  
     bot.safe_stop()

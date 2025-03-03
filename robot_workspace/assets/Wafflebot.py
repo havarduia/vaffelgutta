@@ -14,6 +14,7 @@ from robot_workspace.backend_controllers import robot_boot_manager
 from robot_workspace.backend_controllers.tf_publisher import publish_tf
 from robot_workspace.backend_controllers import safety_functions, path_planner
 
+from rclpy import ok as rclpyok
 from time import sleep
 import argparse
 import threading
@@ -77,50 +78,42 @@ class Wafflebot:
                 daemon=True
                   )
             self.gpio_thread.start()
-
+    def __del__(self):
+        self.exit()
     
     # return the methods of the child class (interbotixmanipulatorxs)
     def __getattr__(self, name):
         return getattr(self.bot, name)
 
     def _refine_guess(self,target):
+        bot = self.bot
+        current_pose = self.arm.get_joint_positions()
         # Try using current position as seed for target joints. Else retry with vanilla guesses
-        (target_joints, success) = self.arm.set_ee_pose_matrix(
-            target,
-            custom_guess=self.arm.get_joint_positions(),
-            execute=False,
-            )
+        (target_joints, success) = path_planner.plan_matrix(bot, target, current_pose)
         if not success:
-            target_joints = self.arm.set_ee_pose_matrix(
-                target,
-                execute=False,
-                )[0]   
-        # clamp joints to legal states           
-        target_joints = safety_functions.fix_joint_limits(joints=target_joints)
+            target_joints, success = path_planner.plan_matrix(bot, target, None)
         # error checking
-        if target_joints[0] == False:
-            print("Wafflebot: move failed after first fix joints")
-            return [False]
+        if not success:
+            print("Wafflebot: move failed after first fix joints - aborting")
+            return (None, False)
         # For positions that have made over a quarter rotation: 
         # Might cause double rotation --> awkward position.
         # So retry with forced upright position. Waist ([0]) is exempt this problem.
+        prev_target = target_joints.copy()
         for i in range(1,6):
             if abs(target_joints[i]) > numphy.pi/2:
                 target_joints[i] = 0.0        
-        target_joints = self.arm.set_ee_pose_matrix(
-            target,
-            execute=False,
-            custom_guess=target_joints
-            )[0]
-        target_joints = safety_functions.fix_joint_limits(joints=target_joints)            
-        if target_joints[0] == False:
-            print("Wafflebot: move failed after second fix joints")
-            return [False]
+        target_joints, success = path_planner.plan_matrix(bot, target, target_joints) 
+        if not success:
+            print("Wafflebot: move failed after second fix joints - using previous guess")
+            target_joints = prev_target
         # if the shoulder is bent back and the elbow is pointing up,
         # it is likely another unnatural position that should be fixed
-        if (target_joints[1] < -(numphy.pi/6) # if shoulder is bent back 
-            and not target_joints[2] > 0.1 # and elbow is not pointing somewhat foreward
-            ):   
+        prev_target = target_joints.copy()
+        if (
+        target_joints[1] < -(numphy.pi/6)   # if shoulder is bent back 
+        and not target_joints[2] > 0.1      # and elbow is not pointing somewhat foreward
+        ):   
             print(f"Adjusted from state:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
             # turn around waist (joint overflow will be handled down the line)
             target_joints[0] +=numphy.pi           
@@ -129,34 +122,26 @@ class Wafflebot:
             target_joints[2] = 1e-6
             print(f"to:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
             adjusted = True
-        else:adjusted = False
+        else:
+            adjusted = False
         # refine adjusted target pose        
-        target_joints = self.arm.set_ee_pose_matrix(
-            target,
-            execute=False,
-            custom_guess=target_joints
-            )[0]
-        target_joints = safety_functions.fix_joint_limits(joints=target_joints)            
-        if target_joints[0] == False:
-            print("Wafflebot: move failed after third fix joints")
-            return [False]
+        target_joints, success = path_planner.plan_matrix(bot, target, target_joints) 
+        if not success:
+            print("Wafflebot: move failed after third fix joints - using previous guess")
+            target_joints = prev_target
         # since the position has changed, redo the first uprightness test.
+        prev_target = target_joints.copy()
         for i in range(1,6):
             if abs(target_joints[i]) > numphy.pi/2:
                 target_joints[i] = 0.0001
-        # refine final target pose        
-        target_joints = self.arm.set_ee_pose_matrix(
-            target,
-            execute=False,
-            custom_guess=target_joints
-            )[0]
-        target_joints = safety_functions.fix_joint_limits(joints=target_joints)            
-        if target_joints[0] == False:
-            print("Wafflebot: move failed after fourth fix joints")
-            return [False]
+        # refine final target pose
+        target_joints, success = path_planner.plan_matrix(bot, target, target_joints)        
+        if not success:
+            print("Wafflebot: move failed after fourth fix joints - using previous guess")
+            target_joints = prev_target
         if adjusted:
             print(f"the adjusted joints are:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
-        return target_joints
+        return target_joints, True
 
     
     def _interpret_target_command(self, target):
@@ -172,8 +157,9 @@ class Wafflebot:
         return target_joints
     
     def exit(self):
-        robot_shutdown()  
-        robot_boot_manager.robot_close()
+        if rclpyok():
+            robot_shutdown()  
+            robot_boot_manager.robot_close()
     
     
     def safe_stop(self, slow = False):
@@ -213,11 +199,11 @@ class Wafflebot:
         
         start_joints = self.arm.get_joint_positions()
 
-        target_joints = self._interpret_target_command(target)
+        target_joints, success = self._interpret_target_command(target)
 
-        if target_joints[0] == False:
-            return False
-
+        if not success:
+            print("Wafflebot/move(): \nEnd pose not found. Cannot plan movement.")
+            return False    
         waypoints, success = (path_planner.plan_path(self, start_joints, target_joints, ignore, []))
 
         if not success: 
@@ -233,7 +219,7 @@ class Wafflebot:
             except TypeError:
                 print ("TypeError for testing len(waypoints[0])==1")
         
-        speedconstant = 0.420
+        speedconstant = 0.666
         for waypoint in waypoints:
             wp_path_length = _calculate_biggest_joint(waypoint)
             speed = 1/(speedconstant * speed_scaling / wp_path_length) 

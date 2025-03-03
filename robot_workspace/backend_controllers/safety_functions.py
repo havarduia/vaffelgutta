@@ -21,6 +21,7 @@ def _test_collision(object1: list, object2: list)-> bool:
     if ((x1_start > x2_end) or (x1_end < x2_start)): return False
     if ((y1_start > y2_end) or (y1_end < y2_start)): return False
     if ((z1_start > z2_end) or (z1_end < z2_start)): return False
+    #else:
     return True
 
 def read_boxes(name):
@@ -49,7 +50,7 @@ def _get_joint_limit_map(ind: int, bound_is_upper: bool):
     -180, # wrist rotate
     ])
 
-    joint_limit_map_upper =numphy.array([
+    joint_limit_map_upper = numphy.array([
     180, #waist
     101, #shoulder
     92, #elbow            
@@ -62,25 +63,18 @@ def _get_joint_limit_map(ind: int, bound_is_upper: bool):
     joint_limit_map_upper = numphy.deg2rad(joint_limit_map_upper)
     return joint_limit_map_upper[ind] if bound_is_upper else joint_limit_map_lower[ind]
 
-def _adjust_joint_bound(joint, ind: int):
-    
-    lower_bound = _get_joint_limit_map(ind = ind, bound_is_upper=False)
-    upper_bound = _get_joint_limit_map(ind = ind,bound_is_upper=True)
-    
+def _adjust_joint_bound(joint: float, ind: int):
+        
     adjusted = False
     #test lower bound
-    while joint < lower_bound:
-        print(f"l. bound = {lower_bound}")
-        print(f"curr. joint = {joint}")
-        print(f"adjusting joint {ind} UP")
+    while joint < -numphy.pi:
+        print(f"adjusting joint {ind} UP from {joint}")
         joint += numphy.pi*2
         adjusted = True
 
     #test upper bound
-    while joint > upper_bound:
-        print(f"curr. joint = {joint}")
-        print(f"u. bound = {upper_bound}")
-        print(f"adjusting joint {ind} DOWN")
+    while joint > numphy.pi:
+        print(f"adjusting joint {ind} DOWN from {joint}")
         joint -= numphy.pi*2  
         adjusted = True
     
@@ -155,7 +149,6 @@ def check_collisions(bot: InterbotixManipulatorXS, pose: list, overrides: list =
     boxnames = inspect.getmembers(boundingboxes)
     
     valid_boxnames = _valid_box_names_test(boxnames, overrides)
-#   valid_boxnames = ([name for name, obj in boxnames if not inspect.isfunction(obj) and not inspect.isclass(obj) and not name.startswith("__")])
     # Test for collision:
     for robot_boxname, robot_box in zip(robot_boxnames,robot_boxes):
         for name in valid_boxnames:

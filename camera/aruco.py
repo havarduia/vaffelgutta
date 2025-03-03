@@ -5,28 +5,37 @@ from camera import Camera
 
 class Aruco:
     def __init__(self):
-        # Camera serial numbers
-        self.cameras = {
-            "031422250347": {"obj": None, "resolution": (1280, 720)},
-            "912112072861": {"obj": None, "resolution": (1920, 1080)}
+        
+        # Define camera serial numbers and their resolutions.
+        camera_configs = {
+            "031422250347": (1280, 720),
+            "912112072861": (1920, 1080)
         }
 
-        # Get list of connected cameras
-        connected_cameras = self.get_connected_cameras()
+        # Start cameras as None.
+        self.cameras = {}
 
-        # Initialize cameras if connected
-        for cam_id, info in self.cameras.items():
-            if cam_id in connected_cameras:
-                info["obj"] = Camera(cam_id, *info["resolution"])
-                info["matrix"] = info["obj"].camera_matrix
-                info["coeffs"] = info["obj"].dist_coeffs
+        # Get the list of connected cameras from get_connected_cameras under.
+        connected_serials = self.get_connected_cameras()
+
+        # Try to initialize it if it's connected.
+        for serial, resolution in camera_configs.items():
+            if serial in connected_serials:
+                cam = Camera(serial, *resolution)
+                self.cameras[serial] = {
+                    "obj": cam,
+                    "matrix": cam.camera_matrix,
+                    "coeffs": cam.dist_coeffs,
+                }
             else:
-                info["matrix"] = info["coeffs"] = None
+                self.cameras[serial] = {"obj": None, "matrix": None, "coeffs": None}
 
+        # Raise an error.
         if not any(info["obj"] for info in self.cameras.values()):
             raise RuntimeError("No RealSense cameras detected!")
 
     def get_connected_cameras(self):
+        # Return a list of connected cameras.
         return [device.get_info(rs.camera_info.serial_number) for device in rs.context().devices]
 
     def detector(self):

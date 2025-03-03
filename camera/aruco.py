@@ -102,38 +102,3 @@ class Aruco:
 
         return {cam_id: process_camera(info, f"Camera {i+1}") 
                 for i, (cam_id, info) in enumerate(self.cameras.items())}
-
-
-# This is only for debugging.
-def main():
-    aruco = Aruco()
-    
-    while True:
-        try:
-            pose_data = aruco.estimate_pose()
-
-            for cam_id, (image, poses) in pose_data.items():
-                if image is not None:
-                    cv2.imshow(f"Camera {cam_id}", image)
-
-                print(f"\n--- Camera {cam_id} ---")
-                for marker_id, T in poses:
-                    print(f"\nMarker ID: {marker_id}")
-                    
-                    # Extract components from the transformation matrix.
-                    R_rotated = T[:3, :3]
-                    tvec = T[:3, 3]
-
-                    # Print coordinate system verification.
-                    print("X-axis (inward):", R_rotated[:, 0])
-                    print("Y-axis (left):  ", R_rotated[:, 1])
-                    print("Z-axis (up):    ", R_rotated[:, 2])
-                    print("Translation:    ", tvec)
-        finally:
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
-    cv2.destroyAllWindows()
-    
-if __name__ == "__main__":
-    main()

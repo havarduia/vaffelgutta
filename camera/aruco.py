@@ -5,7 +5,6 @@ from camera import Camera
 
 class Aruco:
     def __init__(self):
-        
         # Define camera serial numbers and their resolutions.
         camera_configs = {
             "031422250347": (1280, 720),
@@ -15,10 +14,10 @@ class Aruco:
         # Start cameras as None.
         self.cameras = {}
 
-        # Get the list of connected cameras from get_connected_cameras under.
+        # Get the list of connected cameras.
         connected_serials = self.get_connected_cameras()
 
-        # Try to initialize it if it's connected.
+        # Try to initialize each camera if it's connected.
         for serial, resolution in camera_configs.items():
             if serial in connected_serials:
                 cam = Camera(serial, *resolution)
@@ -30,24 +29,22 @@ class Aruco:
             else:
                 self.cameras[serial] = {"obj": None, "matrix": None, "coeffs": None}
 
-        # Raise an error.
+        # Raise an error if no cameras were detected.
         if not any(info["obj"] for info in self.cameras.values()):
             raise RuntimeError("No RealSense cameras detected!")
 
     def get_connected_cameras(self):
-        # Return a list of connected cameras.
+        # Return a list of connected camera serial numbers.
         return [device.get_info(rs.camera_info.serial_number) for device in rs.context().devices]
 
     def detector(self):
+        # Initialize and return the ArUco detector.
         aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
         parameters = cv2.aruco.DetectorParameters()
         return cv2.aruco.ArucoDetector(aruco_dict, parameters)
 
-    def get_frame(self, camera):
-        frame = camera.get_frame()
-        return camera.np_frames(frame)
-
     def aruco_detection(self, image):
+        # Convert image to grayscale and detect markers.
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         aruco_detector = self.detector()
         corners, ids, rejected = aruco_detector.detectMarkers(gray)
@@ -59,10 +56,12 @@ class Aruco:
             if camera is None:
                 return None, []
 
-            image = self.get_frame(camera)
+            # Use the new combined method to get the color image.
+            image = camera.get_image()
             corners, ids, rejected = self.aruco_detection(image)
 
             if ids is not None:
+                # Define object points for the marker corners.
                 object_points = np.array([
                     [-marker_length/2,  marker_length/2, 0],
                     [ marker_length/2,  marker_length/2, 0],
@@ -73,22 +72,20 @@ class Aruco:
                 transformations = []
 
                 for i in range(len(ids)):
-                    
                     img_points = corners[i].reshape(-1, 2)
-                    retval, rvec, tvec = cv2.solvePnP(object_points, img_points, matrix, coeff, flags=cv2.SOLVEPNP_IPPE_SQUARE)
-                    
+                    retval, rvec, tvec = cv2.solvePnP(object_points, img_points, matrix, coeff,
+                                                      flags=cv2.SOLVEPNP_IPPE_SQUARE)
                     if not retval:
-                        continue  # Retval checks if marker is valid.
+                        continue  # Skip if marker detection failed.
             
                     R, _ = cv2.Rodrigues(rvec)
             
-                    # Custom rotation correction
+                    # Custom rotation correction.
                     R_custom = np.array([
-                        [0, -1, 0],   
-                        [0, 0, 1],    
-                        [-1, 0, 0]    
+                        [0, -1, 0],
+                        [0,  0, 1],
+                        [-1, 0, 0]
                     ], dtype=np.float32)
-            
                     R_rotated = R @ R_custom  
             
                     T = np.eye(4)
@@ -97,7 +94,7 @@ class Aruco:
             
                     transformations.append((ids[i][0], T))
             
-                    # Draw axes
+                    # Draw axes on the image.
                     rvec_rotated, _ = cv2.Rodrigues(R_rotated)
                     cv2.drawFrameAxes(image, matrix, coeff, rvec_rotated, tvec, 0.03)
 
@@ -107,7 +104,7 @@ class Aruco:
                 for i, (cam_id, info) in enumerate(self.cameras.items())}
 
 
-# This is only for debugging
+# This is only for debugging.
 def main():
     aruco = Aruco()
     
@@ -123,11 +120,11 @@ def main():
                 for marker_id, T in poses:
                     print(f"\nMarker ID: {marker_id}")
                     
-                    # Extract components from transformation matrix
+                    # Extract components from the transformation matrix.
                     R_rotated = T[:3, :3]
                     tvec = T[:3, 3]
 
-                    # Print coordinate system verification
+                    # Print coordinate system verification.
                     print("X-axis (inward):", R_rotated[:, 0])
                     print("Y-axis (left):  ", R_rotated[:, 1])
                     print("Z-axis (up):    ", R_rotated[:, 2])

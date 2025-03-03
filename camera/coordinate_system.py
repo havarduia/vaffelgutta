@@ -1,6 +1,6 @@
-import numpy as numphy
-from aruco import Aruco  
-from camera import Camera
+import numpy as numphy # <3
+from camera.aruco import Aruco  
+from camera.camera import Camera
 import os
 import time
 

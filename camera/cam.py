@@ -1,5 +1,5 @@
-from aruco import Aruco
-from coordinate_system import CoordinateSystem
+from camera.aruco import Aruco
+from camera.coordinate_system import CoordinateSystem
 from time import sleep
 def main():
     try:

@@ -8,19 +8,22 @@ from threading import Thread
 from robot_workspace.assets.Wafflebot import Wafflebot
 from time import sleep
 from robot_workspace.assets.positions import camera_readings
-import camera.camera_interface
+from camera import cam
 from importlib import reload as import_reload
 
 def get_aruco_pose():
-    import_reload(camera_readings)
-    return getattr(camera_readings, "tag_25")
-
-
+    try:
+        import_reload(camera_readings)
+        return getattr(camera_readings, "tag_25")
+    except AttributeError:
+        print("tag 25 not found")
+        return False
+    
 def main():
     # Init robot
     bot = Wafflebot(use_real_robot=False)    
     bot.arm.go_to_home_pose()
-    camerathread = Thread(target=camera.camera_interface.main, args=(), daemon=True)
+    camerathread = Thread(target=cam.main, args=(), daemon=True)
     camerathread.start()
     # Put your code here:
     running = True

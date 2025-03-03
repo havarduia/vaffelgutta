@@ -1,7 +1,7 @@
 import pyrealsense2 as rs
 import numpy as numphy
 import cv2
-from camera import Camera
+from camera.camera import Camera
 
 class Aruco:
     def __init__(self):

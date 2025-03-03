@@ -1,8 +1,22 @@
 from robot_workspace.backend_controllers.robot_bounding_boxes import update_robot_bounding_box
-from robot_workspace.backend_controllers.safety_functions import check_collisions
+from robot_workspace.backend_controllers.safety_functions import check_collisions, fix_joint_limits
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from importlib import reload as import_reload
 import numpy as numphy
+
+def plan_matrix(bot: InterbotixManipulatorXS, target: list, guess: list = None):
+    
+    joint_targets, success = bot.arm.set_ee_pose_matrix(
+        T_sd=target,
+        custom_guess= guess,
+        execute=False
+    )
+    joint_targets = fix_joint_limits(joint_targets)
+    if joint_targets[0] == False:
+        success = False
+
+    return (joint_targets, success)
+
 
 def _eliminate_obvious_false_positions(bot, start, stop, ignore: list):    
     """
@@ -53,7 +67,15 @@ def _calculate_waypoint_count(joints, dt = 1e-1):
         T+=1
     return T
 
-def plan_path(bot: InterbotixManipulatorXS, start:list, stop:list, ignore:list = [], waypoints:list = [], failed_attempts:int = 0, timeout = 0)->list:
+def plan_path(
+        bot: InterbotixManipulatorXS,
+        start:list,
+        stop:list,
+        ignore:list = [],
+        waypoints:list = [],
+        failed_attempts:int = 0,
+        timeout = 0
+        )->list:
     """
     plans a movement between a start pose and an end pose.
     may recursively call itself to append waypoints to a partially planned path.    

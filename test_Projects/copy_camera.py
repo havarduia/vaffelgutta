@@ -29,7 +29,8 @@ def main():
     while running:
         i+=1
         pose = get_apriltag_pose()
-        if i == 700: running = False
+        bot.move(pose)
+        if i == 2000: running = False
         sleep(0.1)
     # Close bot, close program:
     bot.safe_stop()

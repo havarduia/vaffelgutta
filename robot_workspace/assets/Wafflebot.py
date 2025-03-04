@@ -85,16 +85,18 @@ class Wafflebot:
     def __getattr__(self, name):
         return getattr(self.bot, name)
 
-    def _refine_guess(self,target):
+    def _refine_guess(self,target, debug_print: bool = False):
         bot = self.bot
+        self.arm.capture_joint_positions()
         current_pose = self.arm.get_joint_positions()
         # Try using current position as seed for target joints. Else retry with vanilla guesses
         (target_joints, success) = path_planner.plan_matrix(bot, target, current_pose)
         if not success:
-            target_joints, success = path_planner.plan_matrix(bot, target, None)
+            target_joints, success = path_planner.plan_matrix(bot, target)
         # error checking
         if not success:
-            print("Wafflebot: move failed after first fix joints - aborting")
+            if debug_print:
+                print("Wafflebot: move failed after first fix joints - aborting")
             return (None, False)
         # For positions that have made over a quarter rotation: 
         # Might cause double rotation --> awkward position.
@@ -105,29 +107,33 @@ class Wafflebot:
                 target_joints[i] = 0.0        
         target_joints, success = path_planner.plan_matrix(bot, target, target_joints) 
         if not success:
-            print("Wafflebot: move failed after second fix joints - using previous guess")
+            if debug_print:
+                print("Wafflebot: move failed after second fix joints - using previous guess")
             target_joints = prev_target
         # if the shoulder is bent back and the elbow is pointing up,
         # it is likely another unnatural position that should be fixed
         prev_target = target_joints.copy()
         if (
-        target_joints[1] < -(numphy.pi/6)   # if shoulder is bent back 
-        and not target_joints[2] > 0.1      # and elbow is not pointing somewhat foreward
+            target_joints[1] < -(numphy.pi/6)   # if shoulder is bent back 
+            and not target_joints[2] > 0.1      # and elbow is not pointing somewhat foreward
         ):   
-            print(f"Adjusted from state:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
+            if debug_print:
+                print(f"Adjusted from state:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
             # turn around waist (joint overflow will be handled down the line)
             target_joints[0] +=numphy.pi           
             # reset shoulder and elbow
             target_joints[1] = 1e-6  
             target_joints[2] = 1e-6
-            print(f"to:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
+            if debug_print:
+                print(f"to:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
             adjusted = True
         else:
             adjusted = False
         # refine adjusted target pose        
         target_joints, success = path_planner.plan_matrix(bot, target, target_joints) 
         if not success:
-            print("Wafflebot: move failed after third fix joints - using previous guess")
+            if debug_print:
+                print("Wafflebot: move failed after third fix joints - using previous guess")
             target_joints = prev_target
         # since the position has changed, redo the first uprightness test.
         prev_target = target_joints.copy()
@@ -137,10 +143,12 @@ class Wafflebot:
         # refine final target pose
         target_joints, success = path_planner.plan_matrix(bot, target, target_joints)        
         if not success:
-            print("Wafflebot: move failed after fourth fix joints - using previous guess")
+            if debug_print:
+                print("Wafflebot: move failed after fourth fix joints - using previous guess")
             target_joints = prev_target
         if adjusted:
-            print(f"the adjusted joints are:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
+            if debug_print:
+                print(f"the adjusted joints are:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
         return target_joints, True
 
     
@@ -194,20 +202,26 @@ class Wafflebot:
         self.arm.set_ee_pose_matrix(current_pose)
 
 
-    def move(self, target, ignore = [], speed_scaling: float = 1.0):
+    def move(self,
+            target, 
+            ignore = [],
+            speed_scaling: float = 1.0, 
+            blocking: bool = True, 
+            debug_print: bool = False
+            ) -> None:
         # Todo? add blocking = False?
-        
         start_joints = self.arm.get_joint_positions()
-
         target_joints, success = self._interpret_target_command(target)
 
         if not success:
-            print("Wafflebot/move(): \nEnd pose not found. Cannot plan movement.")
+            if debug_print:
+                print("Wafflebot: \nEnd pose not found. Cannot plan movement.")
             return False    
         waypoints, success = (path_planner.plan_path(self, start_joints, target_joints, ignore, []))
 
         if not success: 
-            print("Wafflebot: move failed after path planner")
+            if debug_print:
+                print("Wafflebot: move failed after path planner")
             return False
         if not isinstance(waypoints, list):
             return False
@@ -217,14 +231,23 @@ class Wafflebot:
                 if len(waypoints[0]) == 1:
                     return False
             except TypeError:
-                print ("TypeError for testing len(waypoints[0])==1")
+                if debug_print:
+                    print ("TypeError for testing len(waypoints[0])==1")
         
-        speedconstant = 0.666
+        speedconstant = 0.42066638
+        prev_waypoint = start_joints
+        from robot_workspace.backend_controllers.path_planner import _list_sum, _list_multiply
         for waypoint in waypoints:
-            wp_path_length = _calculate_biggest_joint(waypoint)
-            speed = 1/(speedconstant * speed_scaling / wp_path_length) 
-            self.arm.set_joint_positions(waypoint,moving_time=speed)
 
+            joint_travel_distance =_list_sum(waypoint, _list_multiply(prev_waypoint,-1)) 
+            wp_path_length = max(_calculate_biggest_joint(joint_travel_distance), 1e-8)
+            speed = (speedconstant * speed_scaling / wp_path_length) 
+            min_move_time = 0.5
+            move_time = max(1.0/speed, min_move_time)
+            self.arm.set_joint_positions(waypoint,moving_time=move_time,blocking=False)
+            prev_waypoint = waypoint
+            if blocking:
+                sleep(move_time)
 
 
 

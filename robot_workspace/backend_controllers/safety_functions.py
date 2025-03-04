@@ -63,23 +63,26 @@ def _get_joint_limit_map(ind: int, bound_is_upper: bool):
     joint_limit_map_upper = numphy.deg2rad(joint_limit_map_upper)
     return joint_limit_map_upper[ind] if bound_is_upper else joint_limit_map_lower[ind]
 
-def _adjust_joint_bound(joint: float, ind: int):
+def _adjust_joint_bound(joint: float, ind: int, debug_print: bool = False):
         
     adjusted = False
     #test lower bound
     while joint < -numphy.pi:
-        print(f"adjusting joint {ind} UP from {joint}")
+        if debug_print:
+            print(f"adjusting joint {ind} UP from {joint}")
         joint += numphy.pi*2
         adjusted = True
 
     #test upper bound
     while joint > numphy.pi:
-        print(f"adjusting joint {ind} DOWN from {joint}")
+        if debug_print:
+            print(f"adjusting joint {ind} DOWN from {joint}")
         joint -= numphy.pi*2  
         adjusted = True
     
     if adjusted:
-        print ("final joint state for joint " + str(ind) +": "
+        if debug_print:
+            print ("final joint state for joint " + str(ind) +": "
             + str(_get_joint_limit_map(ind=ind, bound_is_upper=False))+
               " < " + str(joint) + " < "
                 + str(_get_joint_limit_map(ind=ind, bound_is_upper=True))
@@ -90,18 +93,19 @@ def _adjust_joint_bound(joint: float, ind: int):
 
 
 
-def _fix_single_joint(joint: float, ind: int):    
+def _fix_single_joint(joint: float, ind: int, debug_print:bool = False):    
     lower_bound = _get_joint_limit_map(ind = ind, bound_is_upper=False)
     upper_bound = _get_joint_limit_map(ind = ind,bound_is_upper=True)
     
-    joint = _adjust_joint_bound(joint=joint, ind=ind)     
+    joint = _adjust_joint_bound(joint=joint, ind=ind)
     
     # Return error if adjusted joint is out of bounds  
     if (joint < lower_bound
         or joint > upper_bound):
-        print("Safety_functions: Joint fixer returned an invalid value.")
-        print(f"expected: {lower_bound} < joint < {upper_bound}")
-        print(f"got: {joint}")
+        if debug_print:
+            print("Safety_functions: Joint fixer returned an invalid value.")
+            print(f"expected: {lower_bound} < joint < {upper_bound}")
+            print(f"got: {joint}")
         return False
     if joint == 0: joint = 1e-6 # reserve 0.0 for error messaging
     

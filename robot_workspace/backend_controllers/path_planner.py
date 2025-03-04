@@ -74,7 +74,8 @@ def plan_path(
         ignore:list = [],
         waypoints:list = [],
         failed_attempts:int = 0,
-        timeout = 0
+        timeout: int = 0,
+        debug_print: bool = False
         )->list:
     """
     plans a movement between a start pose and an end pose.
@@ -90,13 +91,15 @@ def plan_path(
     [False] if failure 
     """
     if timeout > 100:
-        print("Path planner: timed out")
+        if debug_print:
+            print("Path planner: timed out")
         return (None, False)
     if not waypoints == []: #Dont test obvious positions twice
         error = _eliminate_obvious_false_positions(bot, start, stop, ignore)
         if not error == None:
-            print("Path planner: This path is impossible")
-            print(f"Reason: {error}")
+            if debug_print:
+                print("Path planner: This path is impossible")
+                print(f"Reason: {error}")
             return (None, False)    
  
     minus_start = [-1*s for s in start]
@@ -120,8 +123,9 @@ def plan_path(
     
 
     if kaboom:
-        print("Kaboom!")
-        print(f"{robot_box} collided with {object_box}")
+        if debug_print:
+            print("Kaboom!")
+            print(f"{robot_box} collided with {object_box}")
         
         if failed_attempts == 0:       
             
@@ -160,7 +164,8 @@ def plan_path(
 
         else:
             #at this point you are beyond saving
-            print("Movement planner failed - attempts exhausted")
+            if debug_print:
+                print("Movement planner failed - attempts exhausted")
             return None, False
             
         if waypoints[1] == True:

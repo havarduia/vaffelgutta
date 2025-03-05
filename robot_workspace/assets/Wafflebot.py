@@ -153,7 +153,7 @@ class Wafflebot:
 
     
     def _interpret_target_command(self, target):
-        imports = (joint_states,positions,recordings,tools)
+        imports = (positions,recordings,tools)
         for imp in imports:
             import_reload(imp)
         if ( isinstance(target, list) ) and ( len(target) == 6 ):

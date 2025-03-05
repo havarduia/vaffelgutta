@@ -5,30 +5,19 @@ from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
-import robot_boot_manager
 from time import sleep
-
-from interbotix_common_modules.common_robot.robot import robot_shutdown, robot_startup
-from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
+from robot_workspace.assets.Wafflebot import Wafflebot
 
 def main():
     # Init robot
-    robot_boot_manager.robot_launch(use_real_robot=True)
-    
-    bot = InterbotixManipulatorXS(
-        robot_model='vx300s',
-        group_name='arm',
-        gripper_name='gripper',
-        accel_time=0.05
-    )
-    robot_startup()
+    bot = Wafflebot()
     # Not required but recommended:
     bot.arm.go_to_home_pose()
 
     # Put your code here:
-
-    """"
+    """
     Some hints:
+    edit: bot.move() is the new go to movement command - uses a pose matrix.
     1) use bot.arm.__________ to use most commands.
     (Notable exception: bot.gripper is used to acces the... you know.)
     2) bot.arm.set_ee_cartesian_trajectory(____=____) allows a given movement in x,y,z,pitch,yaw,roll.
@@ -37,36 +26,20 @@ def main():
     4) bot.arm.go_to_home_pose() and bot.arm.go_to_sleep_pose() are the only built in movements.
     5) See the other scripts for examples of movement.
     """
-    bot.gripper.set_pressure(1.0)
-    for i in range(10):
-        bot.gripper.grasp(3)
-        bot.gripper.release(3)
-    sleep(2)
-    
-
-
-
-
-
-
-
-
-
+    from robot_workspace.assets.positions import recordings    
+    bot.gripper.release()
+    bot.gripper.grasp()
+    try:
+        speed = 1.0
+        while True:
+            bot.move(recordings.square_a,speed_scaling=speed)
+            bot.move(recordings.square_b,speed_scaling=speed)
+            bot.move(recordings.square_c,speed_scaling=speed)
+            bot.move(recordings.square_d,speed_scaling=speed)
+    except KeyboardInterrupt:
 
     # Close bot, close program:
-
-    # Make sure robot is stable
-    bot.core.robot_torque_enable("group", "arm", True)
-    bot.arm.capture_joint_positions()
-    sleep(3) #Delay to give time to gtfo
-    # Go home 
-    bot.arm.go_to_home_pose()
-    bot.arm.go_to_sleep_pose()
-    sleep(1)
-    # Shut down bot safely
-    robot_shutdown()
-    robot_boot_manager.robot_close()
-
+        bot.safe_stop()
 # Footer:
 def handle_error(signum, frame):raise KeyboardInterrupt
 if __name__ == '__main__':

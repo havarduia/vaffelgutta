@@ -9,7 +9,7 @@ syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 from interbotix_common_modules.common_robot.robot import robot_startup, robot_shutdown
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from interbotix_common_modules.angle_manipulation import angle_manipulation
-from robot_workspace.assets.positions import joint_states, offsets,positions
+from robot_workspace.assets.positions import joint_states, offsets, positions, recordings, tools
 from robot_workspace.backend_controllers import robot_boot_manager
 from robot_workspace.backend_controllers.tf_publisher import publish_tf
 from robot_workspace.backend_controllers import safety_functions, path_planner
@@ -153,14 +153,20 @@ class Wafflebot:
 
     
     def _interpret_target_command(self, target):
-        import_reload(joint_states)
-        import_reload(positions)
+        imports = (joint_states,positions,recordings,tools)
+        for imp in imports:
+            import_reload(imp)
         if ( isinstance(target, list) ) and ( len(target) == 6 ):
             return target
         if isinstance(target, numphy.matrix):
             target = target.tolist() 
         if isinstance(target, str):
-            target = getattr(positions, target)
+            for imp in imports:
+                try:
+                    target = getattr(imp, target)
+                    break
+                except AttributeError:
+                    continue
         target_joints = self._refine_guess(target)
         return target_joints
     
@@ -340,7 +346,6 @@ class Wafflebot:
                 )[0]
             joints = safety_functions.fix_joint_limits(joints=joints)            
 
-        
             if joints[0] == False:
                 print("Small_movement failed.")
                 return

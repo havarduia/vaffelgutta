@@ -7,7 +7,7 @@ chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
 # robot modules
-from robot_workspace.assets.positions import positions
+from robot_workspace.assets.positions import recordings
 from robot_workspace.assets.positions import joint_states
 from robot_workspace.assets.Wafflebot import *
 # user libraries: 
@@ -27,7 +27,7 @@ def printmenu():
 
 def playposition(bot: Wafflebot): 
     # Set up arm
-    import_reload(positions)
+    import_reload(recordings)
     bot.bot.core.robot_torque_enable("group", "arm", True)
     bot.arm.capture_joint_positions()
     # Clear input buffer
@@ -35,7 +35,7 @@ def playposition(bot: Wafflebot):
     print("The stored positions are:")
     
     #print the stored positions.
-    members = inspect.getmembers(positions)
+    members = inspect.getmembers(recordings)
     valid_positions = ([name for name, obj in members if not inspect.isfunction(obj) and not inspect.isclass(obj) and not name.startswith("__")])
     print(valid_positions)
 
@@ -56,7 +56,7 @@ def playposition(bot: Wafflebot):
         bot.move(name)
         
         sleep(1)
-    # Reset
+
     return
 
 
@@ -93,7 +93,6 @@ def playjoints(bot: Wafflebot):
         bot.arm.set_joint_positions(pose)
         sleep(1)
     
-    # Reset before next move
     return
     
 
@@ -124,7 +123,7 @@ def recordposition(bot: InterbotixManipulatorXS):
                     + "Write the name of your position:\n")
     if name != "":
         # write ee position
-        with open("robot_workspace/assets/positions/positions.py", "a") as file:
+        with open("robot_workspace/assets/positions/recordings.py", "a") as file:
             file.write(f"\n{name}=([\n")
             numphy.savetxt(file, position_mat, fmt="  [% .8f, % .8f, % .8f, % .8f],")
             file.write("  ])\n")
@@ -134,7 +133,7 @@ def recordposition(bot: InterbotixManipulatorXS):
             file.write(str(position_joints))
             file.write(" )\n")
 
-        print(f'Successfully written "{name}" to arm_positions.py and arm_joint_states.py')
+        print(f'Successfully written "{name}" to recordings.py and joint_states.py')
 
     #Reset before next move    
     return
@@ -144,9 +143,8 @@ def recordposition(bot: InterbotixManipulatorXS):
 
 def main():
     # boot bot
-    bot =  Wafflebot( )
+    bot =  Wafflebot()
     bot.arm.go_to_sleep_pose()
-    
     #print menu and listen for keystrokes:
     while True:
         printmenu()

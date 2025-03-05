@@ -47,7 +47,7 @@ def read_boxes():
     return boxes
 
 def main():
-    bot = Wafflebot(1)
+    bot = Wafflebot()
 
     bot.arm.go_to_home_pose()
 
@@ -56,7 +56,6 @@ def main():
     bot.arm.set_single_joint_position("elbow",0.3)
     robot_movements.waffle_iron.open_waffle_iron(bot) 
     robot_movements.waffle_iron.insert_sticks(bot)
-
     robot_movements.lubrication.pick_up_lube(bot)
     robot_movements.lubrication.apply_lube(bot)
     robot_movements.lubrication.pick_up_lube(bot, reverse=True)

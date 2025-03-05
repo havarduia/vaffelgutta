@@ -8,7 +8,6 @@ from threading import Thread
 from robot_workspace.assets.Wafflebot import Wafflebot
 from time import sleep
 from robot_workspace.assets.positions import camera_readings
-from camera import cam
 from importlib import reload as import_reload
 
 def get_aruco_pose():
@@ -23,8 +22,6 @@ def main():
     # Init robot
     bot = Wafflebot(use_real_robot=False)    
     bot.arm.go_to_home_pose()
-    camerathread = Thread(target=cam.main, args=(), daemon=True)
-    camerathread.start()
     # Put your code here:
     running = True
     i = 1

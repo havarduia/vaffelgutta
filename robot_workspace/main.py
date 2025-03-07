@@ -51,8 +51,6 @@ def main():
     bot.arm.go_to_home_pose()
 
 
-    bot.arm.set_single_joint_position("shoulder", -3.14/6, blocking=False)
-    bot.arm.set_single_joint_position("elbow",0.3)
     robot_movements.waffle_iron.open_waffle_iron(bot) 
     robot_movements.waffle_iron.insert_sticks(bot)
     robot_movements.lubrication.pick_up_lube(bot)

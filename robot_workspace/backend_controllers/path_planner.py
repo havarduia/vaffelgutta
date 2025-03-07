@@ -1,7 +1,5 @@
-from robot_workspace.backend_controllers.robot_bounding_boxes import update_robot_bounding_box
 from robot_workspace.backend_controllers.safety_functions import check_collisions, fix_joint_limits
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
-from importlib import reload as import_reload
 import numpy as numphy
 
 def calculate_biggest_joint(joints):    
@@ -119,15 +117,12 @@ def plan_path(
     kaboom = 0
     for dt in range(waypoint_count):
         
-        current_position = _list_sum(start, _list_multiply(joint_deltas, dt/waypoint_count))
+        #current_position = _list_sum(start, _list_multiply(joint_deltas, dt/waypoint_count))
         next_position = _list_sum(start, _list_multiply(joint_deltas,((dt+1)/waypoint_count)))
         
-        (kaboom, robot_box, object_box) = check_collisions(bot, next_position)
+        (kaboom, robot_box, object_box) = check_collisions(next_position)
 
         if kaboom: 
-            if failed_attempts == 0:
-                pass
-                #waypoints.append(_list_sum(start, _list_multiply(joint_deltas, 0.5)))
             break
     
 

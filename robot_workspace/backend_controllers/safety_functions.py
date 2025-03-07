@@ -1,11 +1,8 @@
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
-import numpy as numphy
-from importlib import reload as import_reload
-from robot_workspace.assets.boundingboxes import robot as robotboxes
-from robot_workspace.assets.boundingboxes import boundingboxes
 from robot_workspace.backend_controllers.robot_bounding_boxes import update_robot_bounding_box
+from robot_workspace.backend_controllers.file_manipulation import Jsonreader
+import numpy as numphy
 from os import getcwd
-import inspect
 
 def _test_collision(object1: list, object2: list)-> bool:
     """
@@ -91,8 +88,6 @@ def _adjust_joint_bound(joint: float, ind: int, debug_print: bool = False):
     
     return joint
 
-
-
 def _fix_single_joint(joint: float, ind: int, debug_print:bool = False):    
     lower_bound = _get_joint_limit_map(ind = ind, bound_is_upper=False)
     upper_bound = _get_joint_limit_map(ind = ind,bound_is_upper=True)
@@ -129,36 +124,20 @@ def fix_joint_limits(joints: list)->list:
     
     return joints 
 
-def _valid_box_names_test(boxnames, banned_names = []):
-    names = []
-    for name, obj in boxnames:
-        skip = False
-        if name.startswith("__"):   skip = True
-        if inspect.isfunction(obj): skip = True 
-        if inspect.isclass(obj):    skip = True
-        for banned_name in banned_names:
-            if name == banned_name: skip = True; break # dont continue checking if a banned name has been found 
-        
-        if not skip:
-            names.append(name)
-    return names
-        
-
-def check_collisions(bot: InterbotixManipulatorXS, pose: list, overrides: list = []):
+def check_collisions(pose: list, overrides: list = []):
     update_robot_bounding_box(pose)
-    
-    import_reload(robotboxes)
-    import_reload(boundingboxes)
-    robot_boxnames, robot_boxes = read_boxes("robot")
-    boxnames = inspect.getmembers(boundingboxes)
-    
-    valid_boxnames = _valid_box_names_test(boxnames, overrides)
+
+    reader = Jsonreader("robot_workspace/assets/boundingboxes/")
+    robotboxes = reader.read("robot")
+    boundingboxes = reader.read("boundingboxes")
+
     # Test for collision:
-    for robot_boxname, robot_box in zip(robot_boxnames,robot_boxes):
-        for name in valid_boxnames:
-            collisionobject = getattr(boundingboxes, name)
-            if _test_collision(robot_box, collisionobject): 
-                return(True, robot_boxname, name)
-    #else:
+    for object_boxname, object_box in zip(boundingboxes.keys(),boundingboxes.values()):
+        if object_boxname in overrides: 
+            continue
+        for robot_boxname, robot_box in zip(robotboxes.keys(), robotboxes.values()):
+            if _test_collision(robot_box, object_box): 
+                return(True, robot_boxname, object_boxname)
+    #if not collision:
     return(False, None, None)
      

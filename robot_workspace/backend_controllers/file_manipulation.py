@@ -1,5 +1,3 @@
-import json
-
 # verify proper working directory
 from os import getcwd, getenv
 username = (getenv("USERNAME"))
@@ -8,6 +6,7 @@ assert getcwd()==f"/home/{username}/git/vaffelgutta", (
                     +"the current directory is\n"
                     +getcwd())
     
+import json
 
 class Jsonreader:
     def __init__(self, 

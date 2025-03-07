@@ -151,8 +151,8 @@ class Wafflebot:
             if self.debug_print:
                 print("Wafflebot: Unsupported command type.")
             return (None, False)
-        target_joints = self._refine_guess(target)
-        return (target_joints, True)
+        target_joints, success = self._refine_guess(target)
+        return (target_joints, success)
     
     def exit(self):
         if rclpyok():

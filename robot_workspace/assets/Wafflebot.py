@@ -139,8 +139,8 @@ class Wafflebot:
                 if self.debug_print:
                     print("Wafflebot: tried to interpret name without file input")
                 return (None, False)
-            jsonreader = file_manipulation.Jsonreader(file)
-            positions = jsonreader.read()
+            jsonreader = file_manipulation.Jsonreader()
+            positions = jsonreader.read(file)
             try: 
                 return (positions[target]["matrix"], True)
             except KeyError:

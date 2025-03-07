@@ -39,12 +39,12 @@ def print_stored_positions(data: dict) -> None:
             keylist = ""
     print(keylist+"\n")
 
-def playposition(bot: Wafflebot, write_type: Literal["joints", "matrix"]): 
+def playposition(bot: Wafflebot, data_type: Literal["joints", "matrix"]): 
     # Set up arm
-    jsonreader = Jsonreader("recordings") 
     bot.bot.core.robot_torque_enable("group", "arm", True)
     bot.arm.capture_joint_positions()
-    data = jsonreader.read()
+    jsonreader = Jsonreader() 
+    data = jsonreader.read("recordings")
     print_stored_positions(data)
     
     # Ask for a name 
@@ -60,10 +60,10 @@ def playposition(bot: Wafflebot, write_type: Literal["joints", "matrix"]):
             sleep(1)
             break
         print(f"Going to {name}")
-        position = data[name][write_type]
-        if write_type == "matrix":
+        position = data[name][data_type]
+        if data_type == "matrix":
             bot.move(position,file="recordings")
-        else:
+        elif data_type == "joints":
             bot.arm.set_joint_positions(position)
         sleep(1)
     return    
@@ -93,8 +93,8 @@ def recordposition(bot: InterbotixManipulatorXS):
                 + "Press enter to cancel recording\n")
     if name != "":
         # write ee position
-        jsonreader = Jsonreader("recordings")
-        data = jsonreader.read()
+        jsonreader = Jsonreader()
+        data = jsonreader.read("recordings")
         data.update(
             {
             f"{name}":{
@@ -102,16 +102,16 @@ def recordposition(bot: InterbotixManipulatorXS):
                 "joints": position_joints
                 }},
         )
-        jsonreader.write(data)
+        jsonreader.write("recordings", data)
         print(f'Successfully written "{name}" to recordings.')
     #Reset before next move    
     return
 
 def pop_item()->None:
-    reader = Jsonreader("recordings")
+    reader = Jsonreader()
     key = input("Tell me what position to remove, little boy: ")
-    if reader.pop(key):
-        print("Popped "+key)
+    if reader.pop("recordings",key):
+        print(f"Popped {key}")
     return
 
 

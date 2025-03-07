@@ -1,57 +1,84 @@
 import json
-import numpy as numphy
 
 # verify proper working directory
 from os import getcwd, getenv
 username = (getenv("USERNAME"))
-if not getcwd()==f"/home/{username}/git/vaffelgutta":
-    raise RuntimeError(
-                       "run your script from the git/vaffelgutta/ directory instead.\n"
-                       +"the current directory is\n"
-                       +getcwd()
-                       )
-
-def _get_filepath(filename: str, name_is_full_file_path:bool)->str:
-    if name_is_full_file_path:
-        return filename
-    else:
-        return f"robot_workspace/assets/positions/{filename}.json"
-
-
-def read_json(filename: str, name_is_full_file_path: bool = False)->dict:
-    """TODO write documentation"""    
-    filepath = _get_filepath(filename, name_is_full_file_path)
-    try:
-        with open(filepath, "r+") as file:
-            if file.read() == "":
-                file.seek(0)
-                file.write("{}")
-            file.seek(0)
-            return json.load(file)
-    except FileNotFoundError:
-        print(f'file_manipulation: File \"{filename}\" not found.')
-        return False
+assert getcwd()==f"/home/{username}/git/vaffelgutta", (
+                    "run your script from the git/vaffelgutta/ directory instead.\n"
+                    +"the current directory is\n"
+                    +getcwd())
     
-def write_json(data: dict, filename: str, name_is_full_file_path:bool = False) -> None:
-    """TODO write documentation"""
-    all_data = read_json(filename, name_is_full_file_path)
-    all_data.update(data)
-    filepath = _get_filepath(filename, name_is_full_file_path)
-    with open(filepath, "w") as file:
-        json.dump(all_data, file, indent=4)
-    return
 
-def pop_json(key: str, filename: str, name_is_full_file_path:bool = False)-> None:
-    """todo write documentation"""
-    data = read_json(filename, name_is_full_file_path)
-    try:
-        if not data: raise KeyError
-        data.pop(key)
-        filepath = _get_filepath(filename, name_is_full_file_path)
-        with open(filepath,"w") as file:
-            json.dump(data, file, indent=4)
-    except KeyError:
-        print(f"Key \"{key}\" not found in \"{filename}\". No action taken.")
-    return
+class Jsonreader:
+    def __init__(self, 
+            directory_path: str = "robot_workspace/assets/position_data/"
+        ):
+        self.directory_path = directory_path
+        return
 
+    def update_filedirectory(self, directory: str):
+        """### sets the file directory for reading.
+        
+        :param directory: full path of the direcory to change to. Starting at vaffelgutta/.
+        """
+        self.directory_path  = directory
 
+    def read(self, filename: str)->dict | None:
+        """reads the specified file contents as .json"""    
+        try:
+            with open((self.directory_path+filename+".json"), "r+") as file:
+                if file.read() == "":
+                    file.seek(0)
+                    file.write("{}")
+                file.seek(0)
+                return json.load(file)
+        except FileNotFoundError:
+            print(f"""file manipulation:
+                 \rfile \"{filename}.json\" not found in \"{self.directory_path}\". 
+                \rNo action taken.""")
+            return None
+        
+    def write(self, filename: str, data: dict) -> None:
+        """
+        ### Writes data to a .json file.
+        
+        :param file: The file to write to
+
+        :param data: Dictionary containing the data to be stored. Can be nested dict.
+        """
+        all_data = self.read(filename)
+        try:
+            all_data.update(data)
+        except AttributeError:
+            return None
+        with open((self.directory_path+filename+".json"), "w") as file:
+            try:
+                json.dump(all_data, file, indent=4)
+            except FileNotFoundError:
+                print(f"""file manipulation:
+                  \rfile \"{filename}.json\" not found in \"{self.directory_path}\". 
+                  \rNo action taken.""")
+        return None
+
+    def pop(self, filename: str, key: str)-> bool:
+        """
+        ### Pops a key from the given file
+        
+        :param file: the name of the file to change
+        
+        :param key: the key to pop
+        """
+        data = self.read(filename)
+        try:
+            if not data: raise KeyError
+            data.pop(key)
+            with open((self.directory_path+filename+".json"),"w") as file:
+                json.dump(data, file, indent=4)
+            return True
+        except KeyError:
+            print(f"""file manipulation:
+                  \rKey \"{key}\" not found in \"{self.directory_path}/{filename}.json\". 
+                  \rNo action taken.""")
+            return False
+        
+    

@@ -4,6 +4,15 @@ from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from importlib import reload as import_reload
 import numpy as numphy
 
+def calculate_biggest_joint(joints):    
+    biggest_joint = 0
+    for joint in joints:
+        joint = abs(joint)
+        if joint > biggest_joint:
+            biggest_joint = joint
+    return biggest_joint
+
+
 def plan_matrix(bot: InterbotixManipulatorXS, target: list, guess: list = None):
     
     joint_targets, success = bot.arm.set_ee_pose_matrix(

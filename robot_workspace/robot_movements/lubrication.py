@@ -1,4 +1,5 @@
-from robot_workspace.assets.positions import offsets, tools
+
+from robot_workspace.backend_controllers.file_manipulation import Jsonreader
 from robot_workspace.assets.Wafflebot import Wafflebot
 from robot_workspace.robot_movements.waffle_iron import _check_if_waffle_iron_open
 from robot_workspace.backend_controllers.camera_interface import get_tag_from_camera
@@ -8,17 +9,18 @@ import numpy as numphy
 
 
 def pick_up_lube(bot: Wafflebot, reverse:bool = 0):
-    import_reload(offsets)
-    import_reload(tools)
+    reader = Jsonreader()
+    offsets = reader.read("offsets")
+    static_objects = reader.read("static_objects")
 
     if reverse:
-        lube_origin = getattr(tools, "lube_toolstation")
+        lube_origin = static_objects["lube_toolstation"]
     else:
         lube_origin = get_tag_from_camera("lube")
 
     # todo call update_offsets() or sumn
-    lube_prep_offset = numphy.matrix(getattr(offsets, "lube_prep")) 
-    lube_grab_offset = numphy.matrix(getattr(offsets, "lube_grab"))
+    lube_prep_offset = numphy.matrix(offsets["lube_prep"])
+    lube_grab_offset = numphy.matrix(offsets["lube_grab"])
     
     lube_prep_pos = lube_origin * lube_prep_offset
 
@@ -46,15 +48,18 @@ def apply_lube(bot:Wafflebot):
     if not _check_if_waffle_iron_open():
         print("robot_movements/lubrication: waffle iron is not open. aborting movement.")
         return False
-    import_reload(offsets)
+    reader = Jsonreader()
+    offsets = reader.read("offsets")
+    static_objects = reader.read("static_objects") 
     
+    # Todo change to static objects
     waffle_iron_origin = get_tag_from_camera("waffle_iron")
-    front_of_waffle_iron_offset = numphy.matrix(getattr(offsets,"front_of_waffle_iron"))
+    front_of_waffle_iron_offset = numphy.matrix(offsets["front_of_waffle_iron"])
     spray_offsets = [
-         numphy.matrix(getattr(offsets, "spray_a")),
-         numphy.matrix(getattr(offsets, "spray_b")),
-         numphy.matrix(getattr(offsets, "spray_c")),
-         numphy.matrix(getattr(offsets, "spray_d")),
+         numphy.matrix(offsets["spray_a"]),
+         numphy.matrix(offsets["spray_b"]),
+         numphy.matrix(offsets["spray_c"]),
+         numphy.matrix(offsets["spray_d"]),
     ]
 
     front_of_waffle_iron_pos = waffle_iron_origin * front_of_waffle_iron_offset

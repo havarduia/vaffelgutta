@@ -7,38 +7,46 @@ chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
 # robot modules
-from robot_workspace.assets.positions import recordings
-from robot_workspace.assets.positions import joint_states
 from robot_workspace.assets.Wafflebot import *
+from robot_workspace.backend_controllers.file_manipulation import Jsonreader
 # user libraries: 
 from time import sleep
+from typing import Literal
 import numpy as numphy
-from importlib import reload as import_reload
-import inspect
+import json
+
 
 def printmenu():
     print("\nPress 1 to record position\n"
           +"Press 2 to play back saved position\n"
           +"Press 3 to play back saved position using joint method\n"
-          +"Press 4 to show this message again\n"
+          +"Press 4 to remove a position\n"
           +"Press 5 to quit")
-    return
+    return  
 
+def print_stored_positions(data: dict) -> None: 
+    """print the stored positions."""
+    print("The stored positions are:")
+    keys = data.keys()
+    keys = sorted(keys)
+    keylist = ""
+    line_length = 50
+    tab = "    "
+    for key in keys:
+        keylist = keylist + key + tab 
+        if len(keylist) > line_length:
+            print(keylist)
+            keylist = ""
+    print(keylist+"\n")
 
-def playposition(bot: Wafflebot): 
+def playposition(bot: Wafflebot, write_type: Literal["joints", "matrix"]): 
     # Set up arm
-    import_reload(recordings)
+    jsonreader = Jsonreader("recordings") 
     bot.bot.core.robot_torque_enable("group", "arm", True)
     bot.arm.capture_joint_positions()
-    # Clear input buffer
-    input("\nPress enter to continue")
-    print("The stored positions are:")
+    data = jsonreader.read()
+    print_stored_positions(data)
     
-    #print the stored positions.
-    members = inspect.getmembers(recordings)
-    valid_positions = ([name for name, obj in members if not inspect.isfunction(obj) and not inspect.isclass(obj) and not name.startswith("__")])
-    print(valid_positions)
-
     # Ask for a name 
     names = input("Enter the name of the position(s) you want to go to,\n"
                   +"separated by a comma (,):\n")
@@ -47,60 +55,23 @@ def playposition(bot: Wafflebot):
     # Get name and check if it is in name list
     for name in names:
         name = name.strip() # remove whitespace
-        if name not in valid_positions:
+        if name not in data.keys():
             print(f"position {name} not found in position list")
             sleep(1)
             break
-        
         print(f"Going to {name}")
-        bot.move(name)
-        
+        position = data[name][write_type]
+        if write_type == "matrix":
+            bot.move(position,file="recordings")
+        else:
+            bot.arm.set_joint_positions(position)
         sleep(1)
-
-    return
-
-
-def playjoints(bot: Wafflebot):
-    # Set up arm
-    import_reload(joint_states)
-    bot.bot.core.robot_torque_enable("group", "arm", True)
-    bot.arm.capture_joint_positions()
-  
-    
-    #Clear input buffer
-    input("\nPress enter to continue")
-
-    #print the stored positions.
-    print("The stored positions are:")
-    members = inspect.getmembers(joint_states)
-    valid_positions = ([name for name, obj in members if not inspect.isfunction(obj) and not inspect.isclass(obj) and not name.startswith("__")])
-    print(valid_positions)
-
-    #Ask for a position and see that it is valid
-    names = input("Enter the name of the position(s) you want to go to,\n"
-                  +"separated by a comma (,):\n")
-    names = names.split(",")
-    for name in names:
-        name = name.strip() # remove whitespace
-        if name not in valid_positions:
-            print(f"position {name} not found in position list")
-            sleep(1)
-            break
-        
-        # Go to the given position
-        pose = getattr(joint_states, name)
-        print(f"Going to {name}")
-        bot.arm.set_joint_positions(pose)
-        sleep(1)
-    
-    return
-    
+    return    
 
 def recordposition(bot: InterbotixManipulatorXS):
     # detorque arm
     bot.core.robot_torque_enable("group", "arm", False)
-    sleep(0.25)
-    
+    sleep(0.25)    
     # wait for input before retorquing
     input("\nPress enter to record") 
     bot.core.robot_torque_enable("group", "arm", True)
@@ -117,28 +88,31 @@ def recordposition(bot: InterbotixManipulatorXS):
         print("Joints are not within their limits. Try again bozo.")
         bot.core.robot_torque_enable("group", "arm", False)
         return
-
     # Get the user to name the positions
-    name = input("Press enter to cancel recording\n"
-                    + "Write the name of your position:\n")
+    name = input("Write the name of your position:\n"
+                + "Press enter to cancel recording\n")
     if name != "":
         # write ee position
-        with open("robot_workspace/assets/positions/recordings.py", "a") as file:
-            file.write(f"\n{name}=([\n")
-            numphy.savetxt(file, position_mat, fmt="  [% .8f, % .8f, % .8f, % .8f],")
-            file.write("  ])\n")
-        # write joint state:
-        with open("robot_workspace/assets/positions/joint_states.py", "a") as file:
-            file.write(f"{name}=( ")
-            file.write(str(position_joints))
-            file.write(" )\n")
-
-        print(f'Successfully written "{name}" to recordings.py and joint_states.py')
-
+        jsonreader = Jsonreader("recordings")
+        data = jsonreader.read()
+        data.update(
+            {
+            f"{name}":{
+                "matrix": position_mat.tolist(),
+                "joints": position_joints
+                }},
+        )
+        jsonreader.write(data)
+        print(f'Successfully written "{name}" to recordings.')
     #Reset before next move    
     return
 
-
+def pop_item()->None:
+    reader = Jsonreader("recordings")
+    key = input("Tell me what position to remove, little boy: ")
+    if reader.pop(key):
+        print("Popped "+key)
+    return
 
 
 def main():
@@ -152,11 +126,11 @@ def main():
         if userinput == str(1):
             recordposition(bot)
         elif userinput == str(2):
-            playposition(bot)
+            playposition(bot, "matrix")
         elif userinput == str(3):
-            playjoints(bot)
+            playposition(bot, "joints")
         elif userinput == str(4):
-            pass
+            pop_item()
         elif userinput == str(5):
             break
         else:

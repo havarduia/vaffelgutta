@@ -5,7 +5,6 @@ from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
-from robot_workspace.assets.positions import joint_states, positions
 from robot_workspace.assets.Wafflebot import Wafflebot
 from robot_workspace import robot_movements
 

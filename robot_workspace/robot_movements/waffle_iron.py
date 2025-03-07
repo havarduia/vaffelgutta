@@ -5,7 +5,7 @@ from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 from robot_workspace.assets.Wafflebot import Wafflebot
-from robot_workspace.assets.positions import offsets, tools, positions
+from robot_workspace.backend_controllers.file_manipulation import Jsonreader
 from robot_workspace.backend_controllers.camera_interface import get_tag_from_camera
 from importlib import reload as import_reload
 import numpy as numphy
@@ -22,11 +22,13 @@ def _get_waffle_iron_lift_offsets(movement_is_up: bool = True):
     waypoint_count = 4
     waypoints = []
     char_a_ind = 97
+    reader = Jsonreader()
+    offsets = reader.read("offsets")
     for i in range (waypoint_count):
         if movement_is_up:
-            waypoints.append(numphy.matrix(getattr(offsets, f"waffle_iron_open_{chr(char_a_ind+i)}")))
+            waypoints.append(numphy.matrix(offsets[f"waffle_iron_open_{chr(char_a_ind+i)}"]))
         else:
-            waypoints.append(numphy.matrix(getattr(offsets, f"waffle_iron_open_{chr(char_a_ind+waypoint_count-i)}")))
+            waypoints.append(numphy.matrix(offsets[f"waffle_iron_open_{chr(char_a_ind+waypoint_count-i)}"]))
     return waypoints
 
 def open_waffle_iron(bot: Wafflebot, reverse:bool = False):
@@ -40,16 +42,17 @@ def open_waffle_iron(bot: Wafflebot, reverse:bool = False):
         print("Waffle iron already closed. Not closing iron.")
         return False
 
-    import_reload(offsets)    
+    reader = Jsonreader()
+    offsets = reader.read("offsets")
     waffle_iron_origin      = get_tag_from_camera("waffle_iron")
 
-    front_of_iron_offset    = numphy.matrix( getattr(   offsets, "front_of_waffle_iron"))    
-    lift_offsets            =               _get_waffle_iron_lift_offsets(movement_is_up=True)    
-    top_of_iron_offset      = numphy.matrix( getattr(   offsets, "top_of_waffle_iron"  ))
+    front_of_iron_offset    = numphy.matrix(offsets["front_of_waffle_iron"]) 
+    top_of_iron_offset      = numphy.matrix(offsets["top_of_waffle_iron"])
+    lift_offsets            =_get_waffle_iron_lift_offsets(movement_is_up=True)    
 
     front_of_iron_pos       =  waffle_iron_origin * front_of_iron_offset 
-    lift_positions          = [waffle_iron_origin * offset for offset in lift_offsets]
     top_of_iron_pos         =  waffle_iron_origin * top_of_iron_offset
+    lift_positions          = [waffle_iron_origin * offset for offset in lift_offsets]
 
     lift_positions_count = len(lift_positions)-1
 
@@ -70,18 +73,20 @@ def open_waffle_iron(bot: Wafflebot, reverse:bool = False):
     
 def insert_sticks(bot: Wafflebot):
     if not _check_if_waffle_iron_open:
-        if False:
-            print("robot_movements/waffle_iron: waffle iron is not open. Not inserting sticks.")
-            return False
-    import_reload(tools)
-    import_reload(offsets)
+        print("robot_movements/waffle_iron: waffle iron is not open. Not inserting sticks.")
+        return False
+    
+    reader = Jsonreader()
+    offsets         = reader.read("offsets")
+    static_objects  = reader.read("static_objects")
+
     tool_station_origin = get_tag_from_camera("tool_station") 
     waffle_iron_origin  = get_tag_from_camera("waffle_iron")
 
-    front_of_tool_station_offset    =   numphy.matrix(getattr(offsets, "front_of_tool_station"))
-    tool_station_sticks_offset      =   numphy.matrix(getattr(tools,   "tool_station_sticks"))
-    front_of_waffle_iron_offset     =   numphy.matrix(getattr(offsets, "front_of_waffle_iron"))
-    waffle_iron_sticks_offset       =   numphy.matrix(getattr(offsets, "waffle_sticks"))
+    front_of_tool_station_offset    =   numphy.matrix(offsets["front_of_tool_station"])
+    tool_station_sticks_offset      =   numphy.matrix(static_objects[  "tool_station_sticks"])
+    front_of_waffle_iron_offset     =   numphy.matrix(offsets["front_of_waffle_iron"])
+    waffle_iron_sticks_offset       =   numphy.matrix(offsets["waffle_sticks"])
     
     front_of_tool_station_pos       =   tool_station_origin * front_of_tool_station_offset
     tool_station_sticks_pos         =   tool_station_origin * tool_station_sticks_offset
@@ -99,12 +104,12 @@ def insert_sticks(bot: Wafflebot):
     bot.move(front_of_waffle_iron_pos,  ["sticks", "waffle_iron"])
 
 def take_out_waffle(bot: Wafflebot):
-    import_reload(tools)
-    import_reload(offsets)
+    reader  = Jsonreader()
+    offsets = reader.read("offsets")
     
     waffle_iron_origin  = get_tag_from_camera("waffle_iron")
-    front_of_waffle_iron_offset     =   numphy.matrix(getattr(offsets, "front_of_waffle_iron"))
-    waffle_iron_sticks_offset       =   numphy.matrix(getattr(offsets, "waffle_sticks"))
+    front_of_waffle_iron_offset     =   numphy.matrix(offsets["front_of_waffle_iron"])
+    waffle_iron_sticks_offset       =   numphy.matrix(offsets["waffle_sticks"])
 
     front_of_waffle_iron_pos        =   waffle_iron_origin  * front_of_waffle_iron_offset 
     waffle_iron_sticks_pos          =   waffle_iron_origin  * waffle_iron_sticks_offset
@@ -116,24 +121,27 @@ def take_out_waffle(bot: Wafflebot):
     bot.move(front_of_waffle_iron_pos,  ["sticks", "waffle_iron"])
 
 def take_waffle_off_sticks(bot:Wafflebot):
-    import_reload(tools)  
+    reader = Jsonreader()
+    static_objects = reader.read("static_objects")
     targets = [
-        numphy.matrix(getattr(tools, "pole_a")),
-        numphy.matrix(getattr(tools, "pole_b")),
-        numphy.matrix(getattr(tools, "pole_c")),
-        numphy.matrix(getattr(tools, "pole_d")),
-        numphy.matrix(getattr(tools, "pole_e")),
+        numphy.matrix(static_objects["pole_a"]),
+        numphy.matrix(static_objects["pole_b"]),
+        numphy.matrix(static_objects["pole_c"]),
+        numphy.matrix(static_objects["pole_d"]),
+        numphy.matrix(static_objects["pole_e"]),
     ]
     for target in targets:
         bot.move(target, ["sticks", "pole"])
 
 def put_away_sticks(bot: Wafflebot):
-    import_reload(tools)
-    import_reload(offsets)
+    reader = Jsonreader()
+    offsets         = reader.read("offsets")
+    static_objects  = reader.read("static_objects")
+    
     tool_station_origin = get_tag_from_camera("tool_station") 
 
-    front_of_tool_station_offset    =   numphy.matrix(getattr(offsets, "front_of_tool_station"))
-    tool_station_sticks_offset      =   numphy.matrix(getattr(tools,   "tool_station_sticks"))
+    front_of_tool_station_offset    =   numphy.matrix(offsets["front_of_tool_station"])
+    tool_station_sticks_offset      =   numphy.matrix(static_objects["tool_station_sticks"])
     
     front_of_tool_station_pos       =   tool_station_origin * front_of_tool_station_offset
     tool_station_sticks_pos         =   tool_station_origin * tool_station_sticks_offset

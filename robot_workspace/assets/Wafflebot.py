@@ -2,17 +2,18 @@
 from os import chdir
 from os import path as ospath 
 from sys import path as syspath
-
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
+###
+from sys import modules as sysmodules
+# Check if running on Jetson
+if "Jetson.GPIO" in sysmodules:
+    import Jetson.GPIO as GPIO
 
 from interbotix_common_modules.common_robot.robot import robot_startup, robot_shutdown
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
-from interbotix_common_modules.angle_manipulation import angle_manipulation
-from robot_workspace.assets.positions import joint_states, offsets, positions, recordings, tools
 from robot_workspace.backend_controllers import robot_boot_manager
-from robot_workspace.backend_controllers.tf_publisher import publish_tf
-from robot_workspace.backend_controllers import safety_functions, path_planner
+from robot_workspace.backend_controllers import safety_functions, path_planner, file_manipulation
 
 from rclpy import ok as rclpyok
 from time import sleep
@@ -20,72 +21,46 @@ import argparse
 import threading
 import numpy as numphy
 from importlib import reload as import_reload
+from robot_workspace.backend_controllers.tf_publisher import publish_tf
 
-from sys import modules as sysmodules
-if "Jetson.GPIO" in sysmodules: # Check if running on Jetson
-    import Jetson.GPIO as GPIO
-
-
-def calculate_translation(startpos: list, endpos: list):
-    """Calculate the translation of two 4x4 matrices"""
-    x = endpos[0][3] - startpos[0][3]
-    y = endpos[1][3] - startpos[1][3]
-    z = endpos[2][3] - startpos[2][3]
-    return (x, y, z)
-
-def _calculate_biggest_joint(joints):    
-    biggest_joint = 0
-    for joint in joints:
-        joint = abs(joint)
-        if joint > biggest_joint:
-            biggest_joint = joint
-    return biggest_joint
-
+def read_input_args():
+    parser = argparse.ArgumentParser(description="Runs a wafflebot")
+    parser.add_argument("-r", required=False, type=int, default=0, help="1 to use real robot, 0 to simulate")
+    args = parser.parse_args() 
+    return bool(args.r)
 
 class Wafflebot:
-    #Todo: Replace bota.arm.go_to_home_pose og ....sleep_pose with error checked versions. 
-    def __init__(self, use_real_robot = False):
+    def __init__(self, use_real_robot : bool = False, debug_print: bool = False):
         # Include launch arguments 
-        parser = argparse.ArgumentParser(description="Runs a wafflebot")
-        parser.add_argument("-r", required=False, type=int, default=0, help="1 to use real robot, 0 to simulate")
-        args = parser.parse_args()
-        self.use_real_robot = bool(args.r)
-
-        if use_real_robot == True: self.use_real_robot = True # Override launch option if program specifies real bot
-
-        robot_boot_manager.robot_launch(use_real_robot=self.use_real_robot)
+        use_real_robot = use_real_robot or read_input_args()
+        # Initialize robot:
+        robot_boot_manager.robot_launch(use_real_robot)
         self.bot = InterbotixManipulatorXS(
             robot_model= "vx300s",
             group_name="arm",
             gripper_name="gripper",
             )
-    
-        # Define shorthands to call bot functions intuitively 
-        self.arm = self.bot.arm
-        self.gripper = self.bot.gripper
-        self.core = self.bot.core
-        
-        # start up robot
-        self.arm.capture_joint_positions()
         robot_startup()
+        # Keep a look out for the emergency stop
+        self.run_emergency_stop_monitor()
+        # Set print level:
+        self.debug_print = debug_print
+        # Define shorthands to call bot functions intuitively 
+        self.arm        = self.bot.arm
+        self.gripper    = self.bot.gripper
+        self.core       = self.bot.core
 
-
-        # Monitor emergency stop
-        if "Jetson.GPIO" in sysmodules: # Check if running on Jetson
-            # **Start GPIO monitoring in a separate thread**
-            self.gpio_thread = threading.Thread(
-                target=self.monitor_gpio,
-                daemon=True
-                  )
-            self.gpio_thread.start()
-    def __del__(self):
-        self.exit()
-    
     # return the methods of the child class (interbotixmanipulatorxs)
     def __getattr__(self, name):
         return getattr(self.bot, name)
 
-    def _refine_guess(self,target, debug_print: bool = False):
+    def __del__(self):
+        self.exit()
+    
+    def _refine_guess(self,target):
+        """
+        Refines the guessed position into a position that is hopefully less awward for the arm to reach.
+        """
         bot = self.bot
         self.arm.capture_joint_positions()
         current_pose = self.arm.get_joint_positions()
@@ -95,7 +70,7 @@ class Wafflebot:
             target_joints, success = path_planner.plan_matrix(bot, target)
         # error checking
         if not success:
-            if debug_print:
+            if self.debug_print:
                 print("Wafflebot: move failed after first fix joints - aborting")
             return (None, False)
         # For positions that have made over a quarter rotation: 
@@ -107,7 +82,7 @@ class Wafflebot:
                 target_joints[i] = 0.0        
         target_joints, success = path_planner.plan_matrix(bot, target, target_joints) 
         if not success:
-            if debug_print:
+            if self.debug_print:
                 print("Wafflebot: move failed after second fix joints - using previous guess")
             target_joints = prev_target
         # if the shoulder is bent back and the elbow is pointing up,
@@ -117,14 +92,14 @@ class Wafflebot:
             target_joints[1] < -(numphy.pi/6)   # if shoulder is bent back 
             and not target_joints[2] > 0.1      # and elbow is not pointing somewhat foreward
         ):   
-            if debug_print:
+            if self.debug_print:
                 print(f"Adjusted from state:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
             # turn around waist (joint overflow will be handled down the line)
             target_joints[0] +=numphy.pi           
             # reset shoulder and elbow
             target_joints[1] = 1e-6  
             target_joints[2] = 1e-6
-            if debug_print:
+            if self.debug_print:
                 print(f"to:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
             adjusted = True
         else:
@@ -132,7 +107,7 @@ class Wafflebot:
         # refine adjusted target pose        
         target_joints, success = path_planner.plan_matrix(bot, target, target_joints) 
         if not success:
-            if debug_print:
+            if self.debug_print:
                 print("Wafflebot: move failed after third fix joints - using previous guess")
             target_joints = prev_target
         # since the position has changed, redo the first uprightness test.
@@ -143,38 +118,46 @@ class Wafflebot:
         # refine final target pose
         target_joints, success = path_planner.plan_matrix(bot, target, target_joints)        
         if not success:
-            if debug_print:
+            if self.debug_print:
                 print("Wafflebot: move failed after fourth fix joints - using previous guess")
             target_joints = prev_target
         if adjusted:
-            if debug_print:
+            if self.debug_print:
                 print(f"the adjusted joints are:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
         return target_joints, True
-
     
-    def _interpret_target_command(self, target):
-        imports = (positions,recordings,tools)
-        for imp in imports:
-            import_reload(imp)
-        if ( isinstance(target, list) ) and ( len(target) == 6 ):
-            return target
-        if isinstance(target, numphy.matrix):
+    def _interpret_target_command(self,
+                                target: any,
+                                file: str = "None",
+                                ) -> tuple[list[float] | None, bool]:
+        if (isinstance(target, list)) and (len(target) == 6):
+            return (target, True)
+        elif isinstance(target, numphy.matrix):
             target = target.tolist() 
-        if isinstance(target, str):
-            for imp in imports:
-                try:
-                    target = getattr(imp, target)
-                    break
-                except AttributeError:
-                    continue
+        elif isinstance(target, str):
+            if file.lower() == "none":
+                if self.debug_print:
+                    print("Wafflebot: tried to interpret name without file input")
+                return (None, False)
+            jsonreader = file_manipulation.Jsonreader(file)
+            positions = jsonreader.read()
+            try: 
+                return (positions[target]["matrix"], True)
+            except KeyError:
+                if self.debug_print:
+                    print(f"{target} not in {file}")
+                return(None, False)
+        else:
+            if self.debug_print:
+                print("Wafflebot: Unsupported command type.")
+            return (None, False)
         target_joints = self._refine_guess(target)
-        return target_joints
+        return (target_joints, True)
     
     def exit(self):
         if rclpyok():
             robot_shutdown()  
-            robot_boot_manager.robot_close()
-    
+            robot_boot_manager.robot_close()    
     
     def safe_stop(self, slow = False):
         self.arm.set_trajectory_time(moving_time=(8.0 if slow else 2.0)) # reset moving time if changed elsewhere
@@ -185,9 +168,70 @@ class Wafflebot:
         self.arm.set_joint_positions(sleep_joints)
         sleep(0.5)
         self.exit()
+    
+    def cancel_movement(self):
+        current_pose = self.arm.get_ee_pose()
+        self.arm.set_ee_pose_matrix(current_pose)
+
+    def move(self,
+            target, 
+            ignore: list[str] = [],
+            blocking: bool = True, 
+            file: str = "None",
+            speed_scaling: float = 1.0, 
+            ) -> None:
+        # Todo? add blocking = False?
+        start_joints = self.arm.get_joint_positions()
+        target_joints, success = self._interpret_target_command(target, file)
+
+        if not success:
+            if self.debug_print:
+                print("Wafflebot:\Could not plan movement.")
+            return False    
+        waypoints, success = (path_planner.plan_path(self, start_joints, target_joints, ignore, []))
+
+        if not success: 
+            if self.debug_print:
+                print("Wafflebot: move failed after path planner")
+            return False
+        if not isinstance(waypoints, list):
+            return False
+        
+        if len(waypoints) == 1:
+            try: 
+                if len(waypoints[0]) == 1:
+                    return False
+            except TypeError:
+                if self.debug_print:
+                    print ("TypeError for testing len(waypoints[0])==1")
+        
+        speedconstant = 0.42066638
+        prev_waypoint = start_joints
+        from robot_workspace.backend_controllers.path_planner import _list_sum, _list_multiply
+        for waypoint in waypoints:
+
+            joint_travel_distance =_list_sum(waypoint, _list_multiply(prev_waypoint,-1)) 
+            wp_path_length = max(path_planner.calculate_biggest_joint(joint_travel_distance), 1e-8)
+            speed = (speedconstant * speed_scaling / wp_path_length) 
+            min_move_time = 0.314159265
+            move_time = max(1.0/speed, min_move_time)
+            self.arm.set_joint_positions(waypoint,moving_time=move_time,blocking=False)
+            prev_waypoint = waypoint
+            if blocking:
+                # todo make interruptible. (e. stop etc)
+                sleep(move_time)
 
 
-    def monitor_gpio(self):
+
+    def run_emergency_stop_monitor(self):
+        if "Jetson.GPIO" in sysmodules: # Check if running on Jetson
+            # **Start GPIO monitoring in a separate thread**
+            self.gpio_thread = threading.Thread(
+                target=self.monitor_emergency_stop, daemon=True)
+            self.gpio_thread.start()
+        return
+    
+    def monitor_emergency_stop(self):
         """ Function to monitor GPIO button in a separate thread. """
         # Set the GPIO mode
         GPIO.setmode(GPIO.BOARD)
@@ -202,58 +246,6 @@ class Wafflebot:
                 break
             sleep(0.1)  # Prevent CPU overuse
     
-    
-    def cancel_movement(self):
-        current_pose = self.arm.get_ee_pose()
-        self.arm.set_ee_pose_matrix(current_pose)
-
-
-    def move(self,
-            target, 
-            ignore = [],
-            speed_scaling: float = 1.0, 
-            blocking: bool = True, 
-            debug_print: bool = False
-            ) -> None:
-        # Todo? add blocking = False?
-        start_joints = self.arm.get_joint_positions()
-        target_joints, success = self._interpret_target_command(target)
-
-        if not success:
-            if debug_print:
-                print("Wafflebot: \nEnd pose not found. Cannot plan movement.")
-            return False    
-        waypoints, success = (path_planner.plan_path(self, start_joints, target_joints, ignore, []))
-
-        if not success: 
-            if debug_print:
-                print("Wafflebot: move failed after path planner")
-            return False
-        if not isinstance(waypoints, list):
-            return False
-        
-        if len(waypoints) == 1:
-            try: 
-                if len(waypoints[0]) == 1:
-                    return False
-            except TypeError:
-                if debug_print:
-                    print ("TypeError for testing len(waypoints[0])==1")
-        
-        speedconstant = 0.42066638
-        prev_waypoint = start_joints
-        from robot_workspace.backend_controllers.path_planner import _list_sum, _list_multiply
-        for waypoint in waypoints:
-
-            joint_travel_distance =_list_sum(waypoint, _list_multiply(prev_waypoint,-1)) 
-            wp_path_length = max(_calculate_biggest_joint(joint_travel_distance), 1e-8)
-            speed = (speedconstant * speed_scaling / wp_path_length) 
-            min_move_time = 0.5
-            move_time = max(1.0/speed, min_move_time)
-            self.arm.set_joint_positions(waypoint,moving_time=move_time,blocking=False)
-            prev_waypoint = waypoint
-            if blocking:
-                sleep(move_time)
 
 
 
@@ -266,7 +258,7 @@ class Wafflebot:
 
 
 
-
+    '''
     # Deprecated functions
     def big_movement(self, target: str, target_position_matrix = None): # todo: add support to convert variables to string
 
@@ -353,4 +345,4 @@ class Wafflebot:
             
             self.arm.set_joint_positions(joints)
         return
-  
+    '''

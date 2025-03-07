@@ -10,7 +10,7 @@ import json
 
 class Jsonreader:
     def __init__(self, 
-            directory_path: str = "robot_workspace/assets/position_data/"
+            directory_path: str = "robot/assets/position_data/"
         ):
         self.directory_path = directory_path
         return

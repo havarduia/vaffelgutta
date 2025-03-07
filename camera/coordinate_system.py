@@ -60,7 +60,7 @@ class CoordinateSystem:
             for marker_id, transform in current_transformations.items()
         }
         
-        file_dir = os.path.expanduser("~/git/vaffelgutta/robot_workspace/assets/positions")
+        file_dir = os.path.expanduser("~/git/vaffelgutta/robot/assets/positions")
         file_path = os.path.join(file_dir, "camera_readings.py")
         os.makedirs(file_dir, exist_ok=True)
         

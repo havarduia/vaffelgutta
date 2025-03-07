@@ -3,7 +3,7 @@ from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 import numpy as numphy
 from os import getcwd
 
-from robot_workspace.backend_controllers.file_manipulation import Jsonreader
+from robot.backend_controllers.file_manipulation import Jsonreader
 
 def _bb_from_endpoints(minimum, maximum):
     (xm,ym,zm) = minimum
@@ -344,8 +344,8 @@ def update_robot_bounding_box(
    
     "save positions"
     path = getcwd()
-    path +="/robot_workspace/assets/boundingboxes/robot.py"
+    path +="/robot/assets/boundingboxes/robot.py"
     with open(path, "w") as file:
-        reader = Jsonreader("robot_workspace/assets/boundingboxes/")
+        reader = Jsonreader("robot/assets/boundingboxes/")
         reader.write("robot",bounding_boxes)
          

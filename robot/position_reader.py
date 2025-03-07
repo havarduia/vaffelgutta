@@ -7,8 +7,8 @@ chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
 # robot modules
-from robot_workspace.assets.Wafflebot import *
-from robot_workspace.backend_controllers.file_manipulation import Jsonreader
+from robot.assets.Wafflebot import *
+from robot.backend_controllers.file_manipulation import Jsonreader
 # user libraries: 
 from time import sleep
 from typing import Literal
@@ -109,9 +109,10 @@ def recordposition(bot: InterbotixManipulatorXS):
 
 def pop_item()->None:
     reader = Jsonreader()
+    print_stored_positions(reader.read("recordings"))
     key = input("Tell me what position to remove, little boy: ")
     if reader.pop("recordings",key):
-        print(f"Popped {key}")
+        print(f"Thanos snapped {key}. Perfectly balanced, as all things should be.")
     return
 
 
@@ -148,5 +149,5 @@ if __name__ == '__main__':
         main()
     # if error detected, run the error handler
     except (KeyboardInterrupt, Exception) as error_program_closed_message:
-        with open("robot_workspace/backend_controllers/errorhandling.py") as errorhandler: exec(errorhandler.read())
+        with open("robot/backend_controllers/errorhandling.py") as errorhandler: exec(errorhandler.read())
     

@@ -6,7 +6,7 @@ chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
 from time import sleep
-from robot_workspace.assets.Wafflebot import Wafflebot
+from robot.assets.Wafflebot import Wafflebot
 
 def main():
     # Init robot
@@ -26,7 +26,7 @@ def main():
     4) bot.arm.go_to_home_pose() and bot.arm.go_to_sleep_pose() are the only built in movements.
     5) See the other scripts for examples of movement.
     """
-    from robot_workspace.assets.positions import recordings    
+    from robot.assets.positions import recordings    
     bot.gripper.release()
     bot.gripper.grasp()
     try:
@@ -48,5 +48,5 @@ if __name__ == '__main__':
         main()
     # if error detected, run the error handler
     except (KeyboardInterrupt, Exception) as error_program_closed_message:
-        with open("robot_workspace/backend_controllers/errorhandling.py") as errorhandler: exec(errorhandler.read())
+        with open("robot/backend_controllers/errorhandling.py") as errorhandler: exec(errorhandler.read())
     

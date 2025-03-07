@@ -1,6 +1,6 @@
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
-from robot_workspace.backend_controllers.robot_bounding_boxes import update_robot_bounding_box
-from robot_workspace.backend_controllers.file_manipulation import Jsonreader
+from robot.backend_controllers.robot_bounding_boxes import update_robot_bounding_box
+from robot.backend_controllers.file_manipulation import Jsonreader
 import numpy as numphy
 from os import getcwd
 
@@ -23,7 +23,7 @@ def _test_collision(object1: list, object2: list)-> bool:
 
 def read_boxes(name):
     path = getcwd()
-    path += f"/robot_workspace/assets/boundingboxes/{name}.py"
+    path += f"/robot/assets/boundingboxes/{name}.py"
     with open(path,"r") as file:
         box_list: dict = eval(file.read(), {"np":numphy})
     boxes = []  
@@ -127,7 +127,7 @@ def fix_joint_limits(joints: list)->list:
 def check_collisions(pose: list, overrides: list = []):
     update_robot_bounding_box(pose)
 
-    reader = Jsonreader("robot_workspace/assets/boundingboxes/")
+    reader = Jsonreader("robot/assets/boundingboxes/")
     robotboxes = reader.read("robot")
     boundingboxes = reader.read("boundingboxes")
 

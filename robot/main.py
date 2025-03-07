@@ -5,8 +5,8 @@ from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
-from robot_workspace.assets.Wafflebot import Wafflebot
-from robot_workspace import robot_movements
+from robot.assets.Wafflebot import Wafflebot
+from robot import robot_movements
 
 from importlib import reload as import_reload
 from time import sleep
@@ -37,7 +37,7 @@ def convert_box(box):
     
 def read_boxes():
     path = getcwd()
-    path += "/robot_workspace/assets/boundingboxes/robot.py"
+    path += "/robot/assets/boundingboxes/robot.py"
     with open(path,"r") as file:
         box_list: dict = eval(file.read(), {"np":numphy})
     boxes = []  
@@ -86,5 +86,5 @@ if __name__ == '__main__':
         main()
     # if error detected, run the error handler
     except (KeyboardInterrupt, Exception) as error_program_closed_message:
-        with open("robot_workspace/backend_controllers/errorhandling.py") as errorhandler: 
+        with open("robot/backend_controllers/errorhandling.py") as errorhandler: 
             exec(errorhandler.read())

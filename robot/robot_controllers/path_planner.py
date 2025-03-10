@@ -1,4 +1,4 @@
-from robot.backend_controllers.robot_controllers.safety_functions import check_collisions, fix_joint_limits
+from robot.robot_controllers.safety_functions import check_collisions, fix_joint_limits
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 import numpy as numphy
 

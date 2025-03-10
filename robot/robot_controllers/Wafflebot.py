@@ -1,32 +1,22 @@
-# Change the working directory to the base directory
-from os import chdir
-from os import path as ospath 
-from sys import path as syspath
-
-from robot.backend_controllers.robot_controllers import path_planner, safety_functions
-chdir(ospath.expanduser("~/git/vaffelgutta"))
-syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
-###
+# Import only if if running on Jetson
 from sys import modules as sysmodules
-# Check if running on Jetson
 if "Jetson.GPIO" in sysmodules:
     import Jetson.GPIO as GPIO
 
 from interbotix_common_modules.common_robot.robot import robot_startup, robot_shutdown
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
-from robot.backend_controllers.robot_controllers import robot_boot_manager
-from robot.tools import file_manipulation
 
+from robot.robot_controllers import robot_boot_manager, path_planner, safety_functions
+from robot.tools.file_manipulation import Jsonreader
+
+from argparse import ArgumentParser
+from threading import Thread
 from rclpy import ok as rclpyok
 from time import sleep
-import argparse
-import threading
 import numpy as numphy
-from importlib import reload as import_reload
-from robot.backend_controllers.visualizers.tf_publisher import publish_tf
 
 def read_input_args():
-    parser = argparse.ArgumentParser(description="Runs a wafflebot")
+    parser = ArgumentParser(description="Runs a wafflebot")
     parser.add_argument("-r", required=False, type=int, default=0, help="1 to use real robot, 0 to simulate")
     args = parser.parse_args() 
     return bool(args.r)
@@ -141,8 +131,7 @@ class Wafflebot:
                 if self.debug_print:
                     print("Wafflebot: tried to interpret name without file input")
                 return (None, False)
-            jsonreader = file_manipulation.Jsonreader()
-            positions = jsonreader.read(file)
+            positions = Jsonreader().read(file)
             try: 
                 return (positions[target]["matrix"], True)
             except KeyError:
@@ -209,7 +198,7 @@ class Wafflebot:
         
         speedconstant = 0.42066638
         prev_waypoint = start_joints
-        from robot.backend_controllers.robot_controllers.path_planner import _list_sum, _list_multiply
+        from robot.robot_controllers.path_planner import _list_sum, _list_multiply
         for waypoint in waypoints:
 
             joint_travel_distance =_list_sum(waypoint, _list_multiply(prev_waypoint,-1)) 
@@ -228,7 +217,7 @@ class Wafflebot:
     def run_emergency_stop_monitor(self):
         if "Jetson.GPIO" in sysmodules: # Check if running on Jetson
             # **Start GPIO monitoring in a separate thread**
-            self.gpio_thread = threading.Thread(
+            self.gpio_thread = Thread(
                 target=self.monitor_emergency_stop, daemon=True)
             self.gpio_thread.start()
         return

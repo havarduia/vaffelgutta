@@ -1,4 +1,4 @@
-from os import killpg, getpgid, setpgrp, kill
+from os import killpg, getpgid, setpgrp
 from subprocess import Popen 
 from signal import SIGTERM
 from time import sleep
@@ -30,5 +30,3 @@ def robot_close():
       print("Boot manager: Process killed") 
     except NameError:
        print("Boot manager: PID not found")
-    finally: 
-       print("Boot manager: Robot close finished")

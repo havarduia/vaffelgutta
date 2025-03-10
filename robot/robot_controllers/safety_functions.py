@@ -1,5 +1,5 @@
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
-from robot.backend_controllers.robot_controllers.robot_bounding_boxes import update_robot_bounding_box
+from robot.robot_controllers.robot_bounding_boxes import update_robot_bounding_box
 from robot.tools.file_manipulation import Jsonreader
 import numpy as numphy
 from os import getcwd

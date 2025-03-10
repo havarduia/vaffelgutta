@@ -1,13 +1,6 @@
-# Change the working directory to the base directory
-from os import chdir
-from os import path as ospath 
-from sys import path as syspath
-chdir(ospath.expanduser("~/git/vaffelgutta"))
-syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
-from robot.backend_controllers.robot_controllers.Wafflebot import Wafflebot
+from robot.robot_controllers.Wafflebot import Wafflebot
 from robot.tools.file_manipulation import Jsonreader
 from robot.tools.camera_interface import get_tag_from_camera
-from importlib import reload as import_reload
 import numpy as numphy
 
 

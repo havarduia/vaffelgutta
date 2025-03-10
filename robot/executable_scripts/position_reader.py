@@ -1,19 +1,15 @@
-# Change the working directory to the base directory
-from os import chdir
-from os import path as ospath 
-from sys import path as syspath
-
-chdir(ospath.expanduser("~/git/vaffelgutta"))
-syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
-
+# set working directory:
+from common.directory_fixer import fix_directiory
+fix_directiory()
+###
 # robot modules
-from robot.backend_controllers.robot_controllers.Wafflebot import *
+from robot.robot_controllers.Wafflebot import *
 from robot.tools.file_manipulation import Jsonreader
+from robot.executable_scripts.common.errorhandling import handle_error
 # user libraries: 
 from time import sleep
 from typing import Literal
 import numpy as numphy
-import json
 
 
 def printmenu():
@@ -142,12 +138,9 @@ def main():
     return
 
 # Footer:
-def handle_error(signum, frame):raise KeyboardInterrupt
 if __name__ == '__main__':
-    from signal import signal, SIGINT; signal(SIGINT, handle_error)
     try:
         main()
     # if error detected, run the error handler
     except (KeyboardInterrupt, Exception) as error_program_closed_message:
-        with open("robot/backend_controllers/errorhandling.py") as errorhandler: exec(errorhandler.read())
-    
+        handle_error(error_program_closed_message)

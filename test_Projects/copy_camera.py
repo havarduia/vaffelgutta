@@ -5,7 +5,7 @@ from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 from threading import Thread
-from robot.assets.Wafflebot import Wafflebot
+from robot.backend_controllers.robot_controllers.Wafflebot import Wafflebot
 from time import sleep
 from robot.assets.positions import camera_readings
 from importlib import reload as import_reload

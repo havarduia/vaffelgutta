@@ -1,7 +1,7 @@
 
 from robot.tools.file_manipulation import Jsonreader
-from robot.backend_controllers.robot_controllers.Wafflebot import Wafflebot
-from robot.movements.waffle_iron import _check_if_waffle_iron_open
+from robot.robot_controllers.Wafflebot import Wafflebot
+from robot.robot_controllers.movements.waffle_iron import _check_if_waffle_iron_open
 from robot.tools.camera_interface import get_tag_from_camera
 from importlib import reload as import_reload
 

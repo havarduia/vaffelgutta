@@ -4,9 +4,9 @@ from os import path as ospath
 from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
-from robot.assets.Wafflebot import Wafflebot
-from robot.backend_controllers.file_manipulation import Jsonreader
-from robot.backend_controllers.camera_interface import get_tag_from_camera
+from robot.backend_controllers.robot_controllers.Wafflebot import Wafflebot
+from robot.tools.file_manipulation import Jsonreader
+from robot.tools.camera_interface import get_tag_from_camera
 from importlib import reload as import_reload
 import numpy as numphy
 

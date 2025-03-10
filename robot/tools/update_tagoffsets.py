@@ -5,8 +5,8 @@ from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
-from robot.backend_controllers import camera_interface
-from robot.backend_controllers.file_manipulation import Jsonreader
+from robot.tools import camera_interface
+from robot.tools.file_manipulation import Jsonreader
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 import numpy as numphy
 

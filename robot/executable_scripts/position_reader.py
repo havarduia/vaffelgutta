@@ -7,8 +7,8 @@ chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
 # robot modules
-from robot.assets.Wafflebot import *
-from robot.backend_controllers.file_manipulation import Jsonreader
+from robot.backend_controllers.robot_controllers.Wafflebot import *
+from robot.tools.file_manipulation import Jsonreader
 # user libraries: 
 from time import sleep
 from typing import Literal

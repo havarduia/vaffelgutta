@@ -5,7 +5,7 @@ from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
-from robot.assets.Wafflebot import Wafflebot
+from robot.backend_controllers.robot_controllers.Wafflebot import Wafflebot
 from robot import movements
 
 from importlib import reload as import_reload
@@ -49,6 +49,7 @@ def main():
     bot = Wafflebot()
 
     bot.arm.go_to_home_pose()
+
 
     movements.waffle_iron.open_waffle_iron(bot) 
     movements.waffle_iron.insert_sticks(bot)

@@ -3,7 +3,7 @@ from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 import numpy as numphy
 from os import getcwd
 
-from robot.backend_controllers.file_manipulation import Jsonreader
+from robot.tools.file_manipulation import Jsonreader
 
 def _bb_from_endpoints(minimum, maximum):
     (xm,ym,zm) = minimum

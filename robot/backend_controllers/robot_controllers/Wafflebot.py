@@ -2,6 +2,8 @@
 from os import chdir
 from os import path as ospath 
 from sys import path as syspath
+
+from robot.backend_controllers.robot_controllers import path_planner, safety_functions
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 ###
@@ -12,8 +14,8 @@ if "Jetson.GPIO" in sysmodules:
 
 from interbotix_common_modules.common_robot.robot import robot_startup, robot_shutdown
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
-from robot.backend_controllers import robot_boot_manager
-from robot.backend_controllers import safety_functions, path_planner, file_manipulation
+from robot.backend_controllers.robot_controllers import robot_boot_manager
+from robot.tools import file_manipulation
 
 from rclpy import ok as rclpyok
 from time import sleep
@@ -21,7 +23,7 @@ import argparse
 import threading
 import numpy as numphy
 from importlib import reload as import_reload
-from robot.backend_controllers.tf_publisher import publish_tf
+from robot.backend_controllers.visualizers.tf_publisher import publish_tf
 
 def read_input_args():
     parser = argparse.ArgumentParser(description="Runs a wafflebot")
@@ -207,7 +209,7 @@ class Wafflebot:
         
         speedconstant = 0.42066638
         prev_waypoint = start_joints
-        from robot.backend_controllers.path_planner import _list_sum, _list_multiply
+        from robot.backend_controllers.robot_controllers.path_planner import _list_sum, _list_multiply
         for waypoint in waypoints:
 
             joint_travel_distance =_list_sum(waypoint, _list_multiply(prev_waypoint,-1)) 

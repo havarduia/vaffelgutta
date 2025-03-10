@@ -5,9 +5,9 @@ from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 from threading import Thread
-from robot_workspace.assets.Wafflebot import Wafflebot
+from robot.assets.Wafflebot import Wafflebot
 from time import sleep
-from robot_workspace.assets.positions import camera_readings
+from robot.assets.positions import camera_readings
 from importlib import reload as import_reload
 
 def get_aruco_pose():
@@ -39,4 +39,4 @@ if __name__ == '__main__':
         main()
     # if error detected, run the error handler
     except (KeyboardInterrupt, Exception) as error_program_closed_message:
-        with open("robot_workspace/backend_controllers/errorhandling.py") as errorhandler: exec(errorhandler.read())
+        with open("robot/backend_controllers/errorhandling.py") as errorhandler: exec(errorhandler.read())

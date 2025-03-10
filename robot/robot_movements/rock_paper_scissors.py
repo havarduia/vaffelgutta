@@ -1,5 +1,5 @@
 from time import sleep
-from robot_workspace.assets.Wafflebot import Wafflebot
+from robot.assets.Wafflebot import Wafflebot
 from random import randint
 
 def throw_rock(bot: Wafflebot):

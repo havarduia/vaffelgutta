@@ -1,8 +1,8 @@
 
-from robot_workspace.backend_controllers.file_manipulation import Jsonreader
-from robot_workspace.assets.Wafflebot import Wafflebot
-from robot_workspace.robot_movements.waffle_iron import _check_if_waffle_iron_open
-from robot_workspace.backend_controllers.camera_interface import get_tag_from_camera
+from robot.backend_controllers.file_manipulation import Jsonreader
+from robot.assets.Wafflebot import Wafflebot
+from robot.robot_movements.waffle_iron import _check_if_waffle_iron_open
+from robot.backend_controllers.camera_interface import get_tag_from_camera
 from importlib import reload as import_reload
 
 import numpy as numphy

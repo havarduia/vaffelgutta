@@ -6,7 +6,7 @@ chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
 from robot.assets.Wafflebot import Wafflebot
-from robot import robot_movements
+from robot import movements
 
 from importlib import reload as import_reload
 from time import sleep
@@ -50,28 +50,27 @@ def main():
 
     bot.arm.go_to_home_pose()
 
-
-    robot_movements.waffle_iron.open_waffle_iron(bot) 
-    robot_movements.waffle_iron.insert_sticks(bot)
-    robot_movements.lubrication.pick_up_lube(bot)
-    robot_movements.lubrication.apply_lube(bot)
-    robot_movements.lubrication.pick_up_lube(bot, reverse=True)
+    movements.waffle_iron.open_waffle_iron(bot) 
+    movements.waffle_iron.insert_sticks(bot)
+    movements.lubrication.pick_up_lube(bot)
+    movements.lubrication.apply_lube(bot)
+    movements.lubrication.pick_up_lube(bot, reverse=True)
 
     sleep(3)
 
-    robot_movements.batter.place_cup_at_filling_station(bot)    
+    movements.batter.place_cup_at_filling_station(bot)    
     sleep(2)
 
 
-    robot_movements.batter.pick_up_cup_from_filling_station(bot)
-    robot_movements.batter.pour_batter(bot)
-    robot_movements.batter.place_cup_at_filling_station(bot, is_holding_cup=True)    
-    robot_movements.waffle_iron.open_waffle_iron(bot, reverse=True)
+    movements.batter.pick_up_cup_from_filling_station(bot)
+    movements.batter.pour_batter(bot)
+    movements.batter.place_cup_at_filling_station(bot, is_holding_cup=True)    
+    movements.waffle_iron.open_waffle_iron(bot, reverse=True)
 
     sleep(5)    
 
-    robot_movements.waffle_iron.open_waffle_iron(bot)
-    robot_movements.waffle_iron.take_out_and_serve_waffle(bot)
+    movements.waffle_iron.open_waffle_iron(bot)
+    movements.waffle_iron.take_out_and_serve_waffle(bot)
  
  
     bot.safe_stop()

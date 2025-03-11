@@ -6,7 +6,7 @@ chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
 from time import sleep
-from robot.backend_controllers.robot_controllers.Wafflebot import Wafflebot
+from robot.robot_controllers.Wafflebot import Wafflebot
 
 def main():
     # Init robot
@@ -26,21 +26,34 @@ def main():
     4) bot.arm.go_to_home_pose() and bot.arm.go_to_sleep_pose() are the only built in movements.
     5) See the other scripts for examples of movement.
     """
-    from robot.assets.positions import recordings    
-    bot.gripper.release()
-    bot.gripper.grasp()
-    try:
-        speed = 1.0
-        while True:
-            bot.move(recordings.square_a,speed_scaling=speed)
-            bot.move(recordings.square_b,speed_scaling=speed)
-            bot.move(recordings.square_c,speed_scaling=speed)
-            bot.move(recordings.square_d,speed_scaling=speed)
-    except KeyboardInterrupt:
 
-    # Close bot, close program:
-        bot.safe_stop()
-# Footer:
+    from robot.tools.visualizers.tf_publisher import TFPublisher, publish_tf
+
+    pose = [
+        [-0.5, 0.0, -0.9, 0.3],
+        [0.7, 0.6, 0.4, 0.1],
+        [-0.5, 0.8, -0.3, 0.5],
+        [0.0,0.0,0.0,1.0]
+    ]
+
+    pose =[[-0.5,  0.3, -0.8, -0.1],
+ [ 0.5,  0.7,  0.5,  0.2],
+ [-0.7,  0.6, -0.2,  0.2],
+ [ 0.0,   0.0,   0.0,   1.0 ]]
+    pub = TFPublisher()
+    pub2 = TFPublisher()
+    pub.broadcast_transform(pose)
+    bot.arm.set_ee_pose_matrix(pose, blocking=False)
+    print(bot.arm.get_ee_pose_command())
+    pub2.broadcast_transform(bot.arm.get_ee_pose_command())
+    sleep(15)
+    bot.arm.go_to_home_pose()
+
+    sleep(20)
+
+
+    # Footer:
+    bot.safe_stop()
 def handle_error(signum, frame):raise KeyboardInterrupt
 if __name__ == '__main__':
     from signal import signal, SIGINT; signal(SIGINT, handle_error)

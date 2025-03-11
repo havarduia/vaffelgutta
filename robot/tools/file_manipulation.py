@@ -80,4 +80,6 @@ class Jsonreader:
                   \rNo action taken.""")
             return False
         
+if __name__ == "__main__":
+    reader = Jsonreader()
     

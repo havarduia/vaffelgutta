@@ -3,7 +3,10 @@ from os import chdir
 from os import path as ospath 
 from sys import path as syspath
 
+    
+
 def fix_directiory() -> None:
+    
     repo_name = "vaffelgutta/"
     path_to_repo = __file__
     
@@ -12,6 +15,7 @@ def fix_directiory() -> None:
 
     chdir(path_to_repo)
     syspath.append(ospath.abspath(path_to_repo))
+    
 
 if __name__ == "__main__":
     fix_directiory()

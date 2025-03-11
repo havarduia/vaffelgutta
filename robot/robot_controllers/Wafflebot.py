@@ -9,6 +9,8 @@ from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from robot.robot_controllers import robot_boot_manager, path_planner, safety_functions
 from robot.tools.file_manipulation import Jsonreader
 
+from robot.tools.visualizers.tf_publisher import TFPublisher
+
 from argparse import ArgumentParser
 from threading import Thread
 from rclpy import ok as rclpyok
@@ -171,6 +173,12 @@ class Wafflebot:
             file: str = "None",
             speed_scaling: float = 1.0, 
             ) -> None:
+        deleteme = TFPublisher()
+        try:
+            target2 = target.tolist()
+            deleteme.broadcast_transform(list(target2))
+        except:
+            pass
         # Todo? add blocking = False?
         start_joints = self.arm.get_joint_positions()
         target_joints, success = self._interpret_target_command(target, file)

@@ -6,6 +6,7 @@ from time import sleep
 numphy.set_printoptions(suppress=True, precision=4)
 from print import print_blue
 from print import print_error
+from robot.tools.file_manipulation import Jsonreader
 class InstanceRegistry:
     _instances = {}
 
@@ -223,7 +224,9 @@ class CoordinateSystem:
                 [xy, yy, zy, ty+bias_y+offset_y],
                 [xz, yz, zz, tz+bias_z+offset_z],
                 [0,  0,  0,  1]
-            ])
+            ]).tolist()
+
+
             
             tags[tag_id] = origin_to_tag  # Store result
 
@@ -237,7 +240,8 @@ def initalize_system():
 
 def main():
     camera, aruco, coord_sys = initalize_system()
-    
+    reader = Jsonreader()    
+
     while True:
         # Update pose estimation
         coord_sys.transformations = aruco.estimate_pose()   
@@ -247,7 +251,12 @@ def main():
         os.system('clear')
         for tag, T in tags.items():
             print(f"Tag ID: {tag} Transformation: \n{T}\n")
-        sleep(0.5)
+        data = tags.items()
+        reader.write("camera_readings",data)        
+
+        print(tags.items())
+        sleep(5)
+        
         
 if __name__ == '__main__':
     main()

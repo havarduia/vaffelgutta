@@ -197,6 +197,7 @@ class CoordinateSystem:
         bias_z = 0
         
         for tag_id, transformation in self.transformations.items():
+            tag_id = int(tag_id)
             if tag_id == origin_id:
                 continue
             
@@ -250,12 +251,21 @@ def main():
         
         os.system('clear')
         for tag, T in tags.items():
-            print(f"Tag ID: {tag} Transformation: \n{T}\n")
-        data = tags.items()
-        reader.write("camera_readings",data)        
+            
+            pass
+            #print(f"Tag ID: {tag} Transformation: \n{T}\n")
 
-        print(tags.items())
-        sleep(5)
+        allowed_tagids = ["8","25", "28"]
+        
+        reader.write("camera_readings",tags)        
+        data = reader.read("camera_readings")
+        for key in data.keys():
+            if not key in allowed_tagids:
+                reader.pop("camera_readings",key)
+                print(f"removed hallucinated tag, id: {key}")
+
+                
+        sleep(1)
         
         
 if __name__ == '__main__':

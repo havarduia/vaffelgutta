@@ -1,5 +1,6 @@
 # verify proper working directory
 from os import getcwd, getenv
+from os import path as os_path
 username = (getenv("USERNAME"))
 assert getcwd()==f"/home/{username}/git/vaffelgutta", (
                     "run your script from the git/vaffelgutta/ directory instead.\n"
@@ -58,7 +59,15 @@ class Jsonreader:
                   \rfile \"{filename}.json\" not found in \"{self.directory_path}\". 
                   \rNo action taken.""")
         return None
-
+    def clear(self, filename: str) -> None:
+        filepath = self.directory_path + filename + ".json"
+        if os_path.exists(filepath):
+            with open(filepath, "w") as file:
+                file.write("{}")
+        else:
+            print(f"file {filename} not found")
+        return None
+        
     def pop(self, filename: str, key: str)-> bool:
         """
         ### Pops a key from the given file

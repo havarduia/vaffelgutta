@@ -233,16 +233,15 @@ class CoordinateSystem:
 
         return tags
     
-    def init_tags(self, *tags: str | int):
+    def init_tags(self, tags: str | int):
         all_tags=[]
         for tag in tags:
             all_tags.append(str(tag))
         return all_tags
     
     def save_to_json(self, *allowed_tags: str | int):
-
         reader = Jsonreader()
-        self.transformations = Aruco.estimate_pose()
+        self.transformations = self.aruco.estimate_pose()
         tags = self.transformation_origin_to_tag(0, 0.5, 0.5, 0.5)
 
         for id in tags.keys():
@@ -251,12 +250,12 @@ class CoordinateSystem:
         allowed_tags = self.init_tags(allowed_tags)
         reader.write("camera_readings",tags)        
         data = reader.read("camera_readings")
-        
+
         for key in data.keys():
-            if not key in str(allowed_tags):
-                reader.pop("camera_readings",key)
+            if not key in allowed_tags:
                 print(f"removed hallucinated tag, id: {key}")    
-        
+                reader.pop("camera_readings",key)
+
 def initalize_system():
     camera = Camera("031422250347", 1280, 720)
     aruco = Aruco()
@@ -268,7 +267,7 @@ def main():
 
     while True:
         # Update pose estimation
-        coord_sys.save_to_json(25)       
+        coord_sys.save_to_json(25, 28)       
         
 if __name__ == '__main__':
     main()

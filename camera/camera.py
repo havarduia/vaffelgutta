@@ -232,7 +232,31 @@ class CoordinateSystem:
             tags[tag_id] = origin_to_tag  # Store result
 
         return tags
+    
+    def init_tags(self, *tags: str | int):
+        all_tags=[]
+        for tag in tags:
+            all_tags.append(str(tag))
+        return all_tags
+    
+    def save_to_json(self, *allowed_tags: str | int):
 
+        reader = Jsonreader()
+        self.transformations = Aruco.estimate_pose()
+        tags = self.transformation_origin_to_tag(0, 0.5, 0.5, 0.5)
+
+        for id in tags.keys():
+            id = str(id)
+
+        allowed_tags = self.init_tags(allowed_tags)
+        reader.write("camera_readings",tags)        
+        data = reader.read("camera_readings")
+        
+        for key in data.keys():
+            if not key in str(allowed_tags):
+                reader.pop("camera_readings",key)
+                print(f"removed hallucinated tag, id: {key}")    
+        
 def initalize_system():
     camera = Camera("031422250347", 1280, 720)
     aruco = Aruco()
@@ -240,33 +264,11 @@ def initalize_system():
     return camera, aruco, coord_sys
 
 def main():
-    camera, aruco, coord_sys = initalize_system()
-    reader = Jsonreader()    
+    camera, aruco, coord_sys = initalize_system()   
 
     while True:
         # Update pose estimation
-        coord_sys.transformations = aruco.estimate_pose()   
-        
-        tags = coord_sys.transformation_origin_to_tag()
-        
-        os.system('clear')
-        for tag, T in tags.items():
-            
-            pass
-            #print(f"Tag ID: {tag} Transformation: \n{T}\n")
-
-        allowed_tagids = ["8","25", "28"]
-        
-        reader.write("camera_readings",tags)        
-        data = reader.read("camera_readings")
-        for key in data.keys():
-            if not key in allowed_tagids:
-                reader.pop("camera_readings",key)
-                print(f"removed hallucinated tag, id: {key}")
-
-                
-        sleep(1)
-        
+        coord_sys.save_to_json(25)       
         
 if __name__ == '__main__':
     main()

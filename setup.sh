@@ -5,7 +5,6 @@ sudo apt-get upgrade -y
 sudo apt install python3 -y
 pip install -r requirements.txt
 # set python path
-then
 if echo "$USER" | grep -q "vaffelgutta" 
     then
     validinput=0
@@ -52,7 +51,6 @@ cmake ../ -DFORCE_RSUSB_BACKEND=true -DBUILD_PYTHON_BINDINGS:bool=true -DPYTHON_
 make -j$(nproc)
 sudo make install -j$(nproc)
 
-then
 # install interbotix library
 cd 
 # neccesary files for moveit and gazebo respectively

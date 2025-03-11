@@ -4,17 +4,8 @@ import numpy as numphy
 import os
 from time import sleep
 numphy.set_printoptions(suppress=True, precision=4)
-
-def print_blue(message):
-    BLUE = "\033[94m"   # ANSI code for bright blue text
-    RESET = "\033[0m"   # ANSI code to reset the text color to default
-    print(f"{BLUE}{message}{RESET}")
-
-def print_error(message):
-    RED = "\033[91m"   # ANSI code for bright red text
-    RESET = "\033[0m"  # ANSI code to reset text color to default
-    print(f"{RED}{message}{RESET}")
-
+from print import print_blue
+from print import print_error
 class InstanceRegistry:
     _instances = {}
 
@@ -28,19 +19,7 @@ class InstanceRegistry:
 
 class Camera:
     def __init__(self, camera_id, x, y):
-        """   
-        self.rotation_matrix = numphy.array(
-                                [
-                                    [0, -1, 0],
-                                    [0, 0, -1],
-                                    [1, 0, 0]
-                                ])
-         
-        
-            [[1, 0, 0],
-            [0, 0,-1],
-            [0, 1, 0]])
-        """
+
         self.isStreaming = False
         self.pipeline = rs.pipeline()
         self.config = rs.config()
@@ -133,7 +112,6 @@ class Aruco:
             ids = ids.flatten()
         return corners, ids
     
-    """
     def R_corrected(self, R):
         R = numphy.matrix(R)
         mult = numphy.matrix([
@@ -143,30 +121,17 @@ class Aruco:
             ])
         R =  mult*R
         return R
-    """
-       
+        
     def get_homo_matrix(self, rvec,tvec):
         R, _ = cv2.Rodrigues(rvec)
         T = numphy.eye(4, dtype=R.dtype)
         T[:3, :3] = R
-        #R = self.R_corrected(R)
+        R = self.R_corrected(R)
         T[:3, 3] = tvec.flatten()
         return T
 
-    def chesse_rotation(self, R):
-        chesse_R = numphy.identity(3)
-        return chesse_R
     def estimate_pose(self, marker_length=0.048):
-        """_summary_
-        
-        Finds the pose of all markers and returns them as dict{id : homo matrix}
 
-        Args:
-            marker_length (float, optional): _description_. Defaults to 0.048.
-
-        Returns:
-            _type_: _description_
-        """
         camera_matrix, distcoeffs = self.camera.get_calibration()
         corners, ids= self._aruco_detection()
         
@@ -191,16 +156,21 @@ class Aruco:
             #rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corner, marker_length, camera_matrix, distcoeffs)
             
             T = self.get_homo_matrix(rvec, tvec)
-
-            cv2.drawFrameAxes(self.camera.get_image(), camera_matrix, distcoeffs, rvec, tvec, marker_length * 0.5, 3)
+          
             #R = numphy.matrix(T)[:3, :3]
             #R = 
             transformations[tag_id] = T
-        
+            
+            
         return transformations
+    
+    def rolling_average(arr, window_size=5):
+        # This returns an array of rolling averages for each valid window position.
+        return numphy.convolve(arr, numphy.ones(window_size)/window_size, mode='valid')
+
 class CoordinateSystem:
     
-    def __init__(self, marker_length=0.048, origin_id=0):
+    def __init__(self, marker_length=0.048, origin_id=28):
         
         # Fetch the Aruco instance from the registry.
         self.aruco = InstanceRegistry.get("Aruco")
@@ -208,56 +178,76 @@ class CoordinateSystem:
             raise Exception("\033[91mAruco instance not found. Ensure Aruco is initialized after Camera.\033[0m")
         
         self.marker_length = marker_length
+        self.origin_id = origin_id
         self.transformations = self.aruco.estimate_pose(self.marker_length)
    
-    def transformation_origin_to_tag(self, origin_id):
+    def transformation_origin_to_tag(self, origin_id=0, offset_x=0, offset_y=0, offset_z=0):
+        
         if origin_id not in self.transformations:
             print_error(f"Error: Marker {origin_id} not detected! 👺")
-            return {}
-
-        origin_inv = numphy.linalg.inv(self.transformations[origin_id])
-        tags = {}
-
+            return {}  
+        
+        origin = self.transformations[origin_id]
+        origin_inv = numphy.linalg.inv(origin)
+        tags = {}  # Dictionary to store transformations
+        
+        bias_x = 0 # Makes the matrix computed closer to the actual value in real life
+        bias_y = 0
+        bias_z = 0
+        
         for tag_id, transformation in self.transformations.items():
             if tag_id == origin_id:
                 continue
-
+            
             origin_to_tag = numphy.dot(origin_inv, transformation)
             
-            reordered_matrix = numphy.array([
-                [origin_to_tag[1, 1], -origin_to_tag[0, 1], origin_to_tag[2, 1], origin_to_tag[1, 3]],
-                [origin_to_tag[1, 0],  origin_to_tag[0, 0], origin_to_tag[2, 0], -origin_to_tag[0, 3]],
-                [-origin_to_tag[0, 2], origin_to_tag[1, 2], origin_to_tag[2, 2], origin_to_tag[2, 3]],
-                [0, 0, 0, 1]
+            # Reorder the transformation matrix elements
+            xx = origin_to_tag[1][1]
+            xy = -origin_to_tag[0][1]
+            xz = origin_to_tag[2][1]
+            
+            yx = -origin_to_tag[1][0]
+            yy = origin_to_tag[0][0]
+            yz = -origin_to_tag[2][0]
+            
+            zx = origin_to_tag[1][2]
+            zy = -origin_to_tag[0][2]
+            zz = origin_to_tag[2][2]
+            
+            tx = origin_to_tag[1][3]
+            ty = -origin_to_tag[0][3]
+            tz = origin_to_tag[2][3]
+            
+            origin_to_tag = numphy.array([
+                [xx, yx, zx, tx+bias_x+offset_x],
+                [xy, yy, zy, ty+bias_y+offset_y],
+                [xz, yz, zz, tz+bias_z+offset_z],
+                [0,  0,  0,  1]
             ])
-
-            tags[tag_id] = reordered_matrix
+            
+            tags[tag_id] = origin_to_tag  # Store result
 
         return tags
-                
+
 def initalize_system():
-    camera = Camera("912112072861", 1920, 1080)
+    camera = Camera("031422250347", 1280, 720)
     aruco = Aruco()
-    coord_sys = CoordinateSystem()
+    coord_sys = CoordinateSystem(marker_length=0.048,origin_id=0)
     return camera, aruco, coord_sys
 
 def main():
     camera, aruco, coord_sys = initalize_system()
-
+    
     while True:
         # Update pose estimation
-        coord_sys.transformations = aruco.estimate_pose()
+        coord_sys.transformations = aruco.estimate_pose()   
         
-        tags = coord_sys.transformation_origin_to_tag(0)
+        tags = coord_sys.transformation_origin_to_tag()
         
         os.system('clear')
         for tag, T in tags.items():
-            
-            print(f"ID:{tag} \n{T}\n")
-            
-        sleep(0.05)    
-
+            print(f"Tag ID: {tag} Transformation: \n{T}\n")
+        sleep(0.5)
+        
 if __name__ == '__main__':
     main()
-
-       

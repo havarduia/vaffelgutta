@@ -1,14 +1,21 @@
-
-from robot.tools.file_manipulation import Jsonreader
 from robot.robot_controllers.Wafflebot import Wafflebot
 from robot.robot_controllers.movements.waffle_iron import _check_if_waffle_iron_open
 from robot.tools.camera_interface import get_tag_from_camera
-from importlib import reload as import_reload
+from robot.tools.file_manipulation import Jsonreader
 
 import numpy as numphy
 
 
-def pick_up_lube(bot: Wafflebot, reverse:bool = 0):
+def pick_up_lube(bot: Wafflebot, reverse: bool = False)-> bool:
+    """
+    picks up the lube from the tool station OR 
+    places the lube back in the tool station.
+
+    :param reverse: True to put down lube, 
+    false to pick up lube.
+
+    :returns bool: True if movement success, False if movement failed. 
+    """
     reader = Jsonreader()
     offsets = reader.read("offsets")
     static_objects = reader.read("static_objects")
@@ -43,14 +50,19 @@ def pick_up_lube(bot: Wafflebot, reverse:bool = 0):
         bot.gripper.grasp()    
     bot.move(lube_prep_pos, ["lube"])
 
+def spray_lube(bot:Wafflebot) -> bool:
+    """
+    sprays the lube into the waffle iron. 
 
-def apply_lube(bot:Wafflebot):
+    :returns bool: True if movement success, False if movement failed. 
+    """
+    """
     if not _check_if_waffle_iron_open():
         print("robot_movements/lubrication: waffle iron is not open. aborting movement.")
         return False
+    """
     reader = Jsonreader()
     offsets = reader.read("offsets")
-    static_objects = reader.read("static_objects") 
     
     # Todo change to static objects
     waffle_iron_origin = get_tag_from_camera("waffle_iron")

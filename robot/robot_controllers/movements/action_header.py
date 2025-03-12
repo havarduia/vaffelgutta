@@ -82,9 +82,22 @@ class Actions:
     def pour_batter(self):
         batter.pour_batter(self.bot)
 
-    
-        
-
+    def get_actions(self)->list[str]:
+        """returns all the possible actions that have been implemented"""
+        blacklist = ["bot", "get_actions"]
+        methods = dir(self)
+        valid_methods = []
+        for method in methods:
+            if not method.startswith("__"):
+                valid_methods.append(method)
+        [valid_methods.remove(name) for name in blacklist]
+        valid_methods.sort()
+        return valid_methods 
 
 if __name__ == "__main__":
     from robot.robot_controllers.Wafflebot import Wafflebot
+    b = Wafflebot()
+    a = Actions(b)
+    from robot.tools.file_manipulation import table_print
+    table_print(a.get_actions())
+    b.safe_stop()

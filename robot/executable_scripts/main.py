@@ -2,7 +2,7 @@
 from common.directory_fixer import fix_directiory
 fix_directiory()
 ###
-from robot.executable_scripts.common.errorhandling import handle_error
+from robot.tools.errorhandling import handle_error
 from robot.robot_controllers.Wafflebot import Wafflebot
 from robot.robot_controllers import movements
 
@@ -17,7 +17,7 @@ def main():
     movements.waffle_iron.open_waffle_iron(bot) 
     movements.waffle_iron.insert_sticks(bot)
     movements.lubrication.pick_up_lube(bot)
-    movements.lubrication.apply_lube(bot)
+    movements.lubrication.spray_lube(bot)
     movements.lubrication.pick_up_lube(bot, reverse=True)
 
     sleep(3)
@@ -34,7 +34,7 @@ def main():
     sleep(5)    
 
     movements.waffle_iron.open_waffle_iron(bot)
-    movements.waffle_iron.take_out_and_serve_waffle(bot)
+    movements.waffle_iron.serve_waffle(bot)
  
  
     bot.safe_stop()

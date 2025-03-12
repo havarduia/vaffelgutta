@@ -4,8 +4,8 @@ fix_directiory()
 ###
 # robot modules
 from robot.robot_controllers.Wafflebot import *
-from robot.tools.file_manipulation import Jsonreader
-from robot.executable_scripts.common.errorhandling import handle_error
+from robot.tools.file_manipulation import Jsonreader, table_print
+from robot.tools.errorhandling import handle_error
 # user libraries: 
 from time import sleep
 from typing import Literal
@@ -24,16 +24,8 @@ def print_stored_positions(data: dict) -> None:
     """print the stored positions."""
     print("The stored positions are:")
     keys = data.keys()
-    keys = sorted(keys)
-    keylist = ""
-    line_length = 50
-    tab = "    "
-    for key in keys:
-        keylist = keylist + key + tab 
-        if len(keylist) > line_length:
-            print(keylist)
-            keylist = ""
-    print(keylist+"\n")
+    keys = sorted(keys) # also converts to list[str] as a bonus
+    table_print(keys, skip_sort=True)
 
 def playposition(bot: Wafflebot, data_type: Literal["joints", "matrix"]): 
     # Set up arm

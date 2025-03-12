@@ -88,7 +88,47 @@ class Jsonreader:
                   \rKey \"{key}\" not found in \"{self.directory_path}/{filename}.json\". 
                   \rNo action taken.""")
             return False
-        
+
+def format_word(word: str, wordlength: int):
+    return f"{f'{word}': ^{wordlength}}"
+
+def print_line(line_items: list[str], wordlength: int):
+    """helper function to print a single line of a table"""
+    line = ""
+    if isinstance(line_items, str):
+        line_items = [line_items]
+    for word in line_items:
+        formatted_word = format_word(word, wordlength-1)+"|"
+        line+=(formatted_word)
+    print(f"|{line}")
+
+def table_print(text_items: list[str], words_per_line: int = 3, skip_sort: bool = False):
+    """function to print a list of items as a pretty princess table"""
+    if not skip_sort:
+        text_items.sort()
+    line_length: int = 70
+    word_length = int(line_length/words_per_line)
+    line = []
+    big_words = []
+    print("-"*(line_length))
+    for word in text_items:
+        if len(word) > word_length:
+            big_words.append(word)
+        else:
+            line.append(word)
+            if len(line) == words_per_line:
+                print_line(line, word_length)
+                line = []
+    if len(line) != 0:
+        for i in range(words_per_line-len(line)):
+            line.append("")
+        print_line(line, word_length)
+    for word in big_words:
+        print("-"*line_length)
+        print_line(word, word_length*words_per_line)
+    print("-"*(line_length))
+
 if __name__ == "__main__":
+
     reader = Jsonreader()
     

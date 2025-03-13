@@ -1,5 +1,7 @@
 import json
 from os import path as os_path
+from robot.executable_scripts.common import directory_fixer
+directory_fixer.fix_directiory()
 class Jsonreader:
     def __init__(self, 
             directory_path: str = "robot/assets/position_data/"
@@ -103,7 +105,7 @@ def table_print(text_items: list[str], words_per_line: int = 3, skip_sort: bool 
     big_words = []
     print("-"*(line_length))
     for word in text_items:
-        if len(word) > word_length:
+        if len(word) >= word_length:
             big_words.append(word)
         else:
             line.append(word)

@@ -1,11 +1,13 @@
 # robot modules
 from robot.robot_controllers.Wafflebot import *
-from robot.tools.file_manipulation import Jsonreader
-from robot.executable_scripts.common.errorhandling import handle_error
+from robot.tools.file_manipulation import Jsonreader, table_print
+from robot.tools.errorhandling import handle_error
+from robot.tools.update_tagoffsets import create_offset_matrix
 # user libraries: 
 from time import sleep
 from typing import Literal
 import numpy as numphy
+
 
 
 def printmenu():
@@ -20,16 +22,8 @@ def print_stored_positions(data: dict) -> None:
     """print the stored positions."""
     print("The stored positions are:")
     keys = data.keys()
-    keys = sorted(keys)
-    keylist = ""
-    line_length = 50
-    tab = "    "
-    for key in keys:
-        keylist = keylist + key + tab 
-        if len(keylist) > line_length:
-            print(keylist)
-            keylist = ""
-    print(keylist+"\n")
+    keys = sorted(keys) # also converts to list[str] as a bonus
+    table_print(keys, skip_sort=True)
 
 def playposition(bot: Wafflebot, data_type: Literal["joints", "matrix"]): 
     # Set up arm
@@ -75,7 +69,7 @@ def recordposition(bot: InterbotixManipulatorXS):
     
     # Test for valid position
     if bot.arm._check_joint_limits(position_joints):
-        position_mat = bot.arm.get_ee_pose()
+        position_mat = bot.arm.get_ee_pose().tolist()
     else:
         print("Joints are not within their limits. Try again bozo.")
         bot.core.robot_torque_enable("group", "arm", False)
@@ -90,14 +84,13 @@ def recordposition(bot: InterbotixManipulatorXS):
         data.update(
             {
             f"{name}":{
-                "matrix": position_mat.tolist(),
+                "matrix": position_mat,
                 "joints": position_joints
                 }},
         )
         jsonreader.write("recordings", data)
         print(f'Successfully written "{name}" to recordings.')
-    #Reset before next move    
-    return
+    return name
 
 def pop_item()->None:
     reader = Jsonreader()
@@ -107,6 +100,25 @@ def pop_item()->None:
         print(f"Thanos snapped {key}. Perfectly balanced, as all things should be.")
     return
 
+def record_offset(bot:Wafflebot):
+    name = recordposition(bot)
+
+    # Run update camera here
+
+    reader = Jsonreader()
+    robot_postions = reader.read("recordings")
+    tags = reader.read("camera_readings")
+
+    robot_position = robot_postions[name]["matrix"]
+
+    tagid = input("Input the tag id: ")
+    tag = tags[tagid]
+
+    offset = create_offset_matrix(robot_position, tag)
+    data = {name: offset}
+    reader.write("offsets", data)     
+    print("successfully recorded offset.")
+    return None
 
 def main():
     # boot bot
@@ -126,6 +138,9 @@ def main():
             pop_item()
         elif userinput == str(5):
             break
+        elif userinput == str(9):
+            print("You used a secret input, you sneaky rascal!")
+            record_offset(bot)
         else:
             print("invalid input, try again bozo")
 

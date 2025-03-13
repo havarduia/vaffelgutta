@@ -4,7 +4,7 @@ from robot.tools.camera_interface import get_tag_from_camera
 import numpy as numphy
 
 
-def _check_if_waffle_iron_open():
+def _check_if_waffle_iron_open()->bool:
 
     # Todo add in camera checks  
     # Return True if iron is open,
@@ -24,7 +24,10 @@ def _get_waffle_iron_lift_offsets(movement_is_up: bool = True):
             waypoints.append(numphy.matrix(offsets[f"waffle_iron_open_{chr(char_a_ind+waypoint_count-i)}"]))
     return waypoints
 
-def open_waffle_iron(bot: Wafflebot, reverse:bool = False):
+def open_waffle_iron(bot: Wafflebot, reverse:bool = False) -> bool:
+    """Opens the waffle iron"""
+    
+    """
     if _check_if_waffle_iron_open():
         if not reverse:
             print("Robot movements/waffle_iron:")
@@ -34,7 +37,7 @@ def open_waffle_iron(bot: Wafflebot, reverse:bool = False):
         print("Robot movements/waffle_iron:")
         print("Waffle iron already closed. Not closing iron.")
         return False
-
+    """
     reader = Jsonreader()
     offsets = reader.read("offsets")
     waffle_iron_origin      = get_tag_from_camera("waffle_iron")
@@ -63,8 +66,9 @@ def open_waffle_iron(bot: Wafflebot, reverse:bool = False):
         bot.move(front_of_iron_pos, ["waffle_iron", "sticks"])
     else:
         bot.move(top_of_iron_pos,   ["waffle_iron"])
-    
-def insert_sticks(bot: Wafflebot):
+    return True
+
+def insert_sticks(bot: Wafflebot) -> bool:
     if not _check_if_waffle_iron_open:
         print("robot_movements/waffle_iron: waffle iron is not open. Not inserting sticks.")
         return False
@@ -77,7 +81,7 @@ def insert_sticks(bot: Wafflebot):
     waffle_iron_origin  = get_tag_from_camera("waffle_iron")
 
     front_of_tool_station_offset    =   numphy.matrix(offsets["front_of_tool_station"])
-    tool_station_sticks_offset      =   numphy.matrix(static_objects[  "tool_station_sticks"])
+    tool_station_sticks_offset      =   numphy.matrix(static_objects["tool_station_sticks"])
     front_of_waffle_iron_offset     =   numphy.matrix(offsets["front_of_waffle_iron"])
     waffle_iron_sticks_offset       =   numphy.matrix(offsets["waffle_sticks"])
     
@@ -95,8 +99,9 @@ def insert_sticks(bot: Wafflebot):
     bot.move(waffle_iron_sticks_pos,    ["sticks", "waffle_iron"])
     bot.gripper.release()
     bot.move(front_of_waffle_iron_pos,  ["sticks", "waffle_iron"])
+    return True
 
-def take_out_waffle(bot: Wafflebot):
+def take_out_waffle(bot: Wafflebot) -> bool:
     reader  = Jsonreader()
     offsets = reader.read("offsets")
     
@@ -112,6 +117,7 @@ def take_out_waffle(bot: Wafflebot):
     bot.move(waffle_iron_sticks_pos,    ["sticks", "waffle_iron"])
     bot.gripper.grasp()
     bot.move(front_of_waffle_iron_pos,  ["sticks", "waffle_iron"])
+    return True
 
 def take_waffle_off_sticks(bot:Wafflebot):
     reader = Jsonreader()
@@ -126,7 +132,7 @@ def take_waffle_off_sticks(bot:Wafflebot):
     for target in targets:
         bot.move(target, ["sticks", "pole"])
 
-def put_away_sticks(bot: Wafflebot):
+def put_away_sticks(bot: Wafflebot) -> bool:
     reader = Jsonreader()
     offsets         = reader.read("offsets")
     static_objects  = reader.read("static_objects")
@@ -143,9 +149,9 @@ def put_away_sticks(bot: Wafflebot):
     bot.move(tool_station_sticks_pos,   ["tool_station","sticks"])
     bot.gripper.release()
     bot.move(front_of_tool_station_pos, ["tool_station","sticks"])
+    return True
 
-
-def take_out_and_serve_waffle(bot: Wafflebot):
+def serve_waffle(bot: Wafflebot):
     take_out_waffle(bot)
     take_waffle_off_sticks(bot)
     put_away_sticks(bot)

@@ -1,12 +1,15 @@
 import pyrealsense2 as rs
 import cv2
 import numpy as numphy
+import yaml
 import os
 from time import sleep
 numphy.set_printoptions(suppress=True, precision=4)
 from print import print_blue
 from print import print_error
 from robot.tools.file_manipulation import Jsonreader
+from filtering import smooth_data as smooth
+from camera_config_loader import ConfigLoader as ConfigLoader
 class InstanceRegistry:
     _instances = {}
 
@@ -19,13 +22,18 @@ class InstanceRegistry:
         return cls._instances.get(key)
 
 class Camera:
-    def __init__(self, camera_id, x, y):
+    def __init__(self, config_loader):
 
         self.isStreaming = False
         self.pipeline = rs.pipeline()
         self.config = rs.config()
+        
+        camera_id = config_loader.get("camera_id")
+        resolution = config_loader.get("resolution", [1280, 720])
+        fps = config_loader.get("fps", 30)
+        
         self.config.enable_device(camera_id)
-        self.config.enable_stream(rs.stream.color, x, y, rs.format.bgr8, 30)
+        self.config.enable_stream(rs.stream.color, resolution[0], resolution[1], rs.format.bgr8, fps)
         self.color_frame = None
         self.intrinsics = None
         self.camera_matrix = None
@@ -60,9 +68,9 @@ class Camera:
         if self.isStreaming:
             self.pipeline.stop()
             self.isStreaming = False
-
+            
     def get_image(self):
-        # A basic implementation to retrieve an image.
+        
         frames = self.pipeline.wait_for_frames()
         color_frame = frames.get_color_frame()
         if not color_frame:
@@ -131,7 +139,7 @@ class Aruco:
         T[:3, 3] = tvec.flatten()
         return T
 
-    def estimate_pose(self, marker_length=0.048):
+    def estimate_pose(self, marker_length):
 
         camera_matrix, distcoeffs = self.camera.get_calibration()
         corners, ids= self._aruco_detection()
@@ -140,10 +148,12 @@ class Aruco:
             print_error("Marker not detected! 👺")
             return {}  # Return empty dictionary
         
-        transformations = {}        
+        transformations = {}   
+        raw_poses = []     
         for tag_id, corner in zip(ids, corners):
+            
             objectPoints, imagePoints = self.get_points(marker_length, corner)
-
+             
             success, rvec, tvec = cv2.solvePnP(objectPoints,
                                                imagePoints,
                                                camera_matrix,
@@ -155,34 +165,39 @@ class Aruco:
               continue
            
             #rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corner, marker_length, camera_matrix, distcoeffs)
+            raw_poses.append((tag_id, rvec, tvec))
+        
+        if raw_poses:
+            tag_ids, rvecs, tvecs = zip(*raw_poses)
+            rvecs = smooth(numphy.array(rvecs))
+            tvecs = smooth(numphy.array(tvecs))
             
-            T = self.get_homo_matrix(rvec, tvec)
-          
-            #R = numphy.matrix(T)[:3, :3]
-            #R = 
-            transformations[tag_id] = T
-            
-            
-        return transformations
-    
-    def rolling_average(arr, window_size=5):
-        # This returns an array of rolling averages for each valid window position.
-        return numphy.convolve(arr, numphy.ones(window_size)/window_size, mode='valid')
-
+            for tag_id, rvec, tvec in zip(tag_ids, rvecs, tvecs):
+                T = self.get_homo_matrix(rvec,tvec)
+                transformations[tag_id] = T
+        return transformations 
 class CoordinateSystem:
     
-    def __init__(self, marker_length=0.048, origin_id=28):
+    def __init__(self, config_loader):
         
         # Fetch the Aruco instance from the registry.
         self.aruco = InstanceRegistry.get("Aruco")
         if self.aruco is None:
             raise Exception("\033[91mAruco instance not found. Ensure Aruco is initialized after Camera.\033[0m")
         
-        self.marker_length = marker_length
-        self.origin_id = origin_id
+        self.marker_length = config_loader.get("marker_length", 0.048)
+        self.origin_id = config_loader.get("origin_id", 0)
         self.transformations = self.aruco.estimate_pose(self.marker_length)
-   
-    def transformation_origin_to_tag(self, origin_id=0, offset_x=0, offset_y=0, offset_z=0):
+        
+    def transformation_origin_to_tag(self, config_loader):
+        
+        origin_id = config_loader.get("origin_id", 0)
+        offset_x = config_loader.get("offset_x", 0)
+        offset_y = config_loader.get("offset_y", 0)
+        offset_z = config_loader.get("offset_z", 0)
+        bias_x = config_loader.get("bias_x", 0)
+        bias_y = config_loader.get("bias_y", 0)
+        bias_z = config_loader.get("bias_z", 0)
         
         if origin_id not in self.transformations:
             print_error(f"Error: Marker {origin_id} not detected! 👺")
@@ -192,9 +207,7 @@ class CoordinateSystem:
         origin_inv = numphy.linalg.inv(origin)
         tags = {}  # Dictionary to store transformations
         
-        bias_x = 0 # Makes the matrix computed closer to the actual value in real life
-        bias_y = 0
-        bias_z = 0
+
         
         for tag_id, transformation in self.transformations.items():
             tag_id = int(tag_id)
@@ -226,22 +239,21 @@ class CoordinateSystem:
                 [xz, yz, zz, tz+bias_z+offset_z],
                 [0,  0,  0,  1]
             ]).tolist()
-
-
             
             tags[tag_id] = origin_to_tag  # Store result
 
         return tags
     
-    def init_tags(self, tags: str | int):
+    def init_tags(self, *tags: str | int):
         all_tags=[]
         for tag in tags:
             all_tags.append(str(tag))
         return all_tags
     
     def save_to_json(self, *allowed_tags: str | int):
+
         reader = Jsonreader()
-        self.transformations = self.aruco.estimate_pose()
+        self.transformations = Aruco.estimate_pose()
         tags = self.transformation_origin_to_tag(0, 0.5, 0.5, 0.5)
 
         for id in tags.keys():
@@ -250,16 +262,17 @@ class CoordinateSystem:
         allowed_tags = self.init_tags(allowed_tags)
         reader.write("camera_readings",tags)        
         data = reader.read("camera_readings")
-
+        
         for key in data.keys():
-            if not key in allowed_tags:
-                print(f"removed hallucinated tag, id: {key}")    
+            if not key in str(allowed_tags):
                 reader.pop("camera_readings",key)
-
+                print(f"removed hallucinated tag, id: {key}")    
+        
 def initalize_system():
-    camera = Camera("031422250347", 1280, 720)
+    config_loader = ConfigLoader()
+    camera = Camera(config_loader)
     aruco = Aruco()
-    coord_sys = CoordinateSystem(marker_length=0.048,origin_id=0)
+    coord_sys = CoordinateSystem(config_loader)
     return camera, aruco, coord_sys
 
 def main():
@@ -267,7 +280,7 @@ def main():
 
     while True:
         # Update pose estimation
-        coord_sys.save_to_json(25, 28)       
+        coord_sys.save_to_json(25)       
         
 if __name__ == '__main__':
     main()

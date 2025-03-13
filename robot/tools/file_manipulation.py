@@ -40,8 +40,11 @@ class Jsonreader:
         :param data: Dictionary containing the data to be stored. Can be nested dict.
         """
         all_data = self.read(filename)
+        updated_data = {}
+        for key, value in data.items():
+            updated_data.update({str(key):value})
         try:
-            all_data.update(data)
+            all_data.update(updated_data)
         except AttributeError:
             return None
         with open((self.directory_path+filename+".json"), "w") as file:
@@ -52,6 +55,7 @@ class Jsonreader:
                   \rfile \"{filename}.json\" not found in \"{self.directory_path}\". 
                   \rNo action taken.""")
         return None
+    
     def clear(self, filename: str) -> None:
         filepath = self.directory_path + filename + ".json"
         if os_path.exists(filepath):
@@ -124,4 +128,5 @@ def table_print(text_items: list[str], words_per_line: int = 3, skip_sort: bool 
 if __name__ == "__main__":
 
     reader = Jsonreader()
-    
+    reader.write("test",{25: [2,4], "25": [2,5]})
+    reader.read("test")

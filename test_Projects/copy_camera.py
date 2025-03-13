@@ -5,32 +5,32 @@ from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 from threading import Thread
-from robot.backend_controllers.robot_controllers.Wafflebot import Wafflebot
+from robot.robot_controllers.Wafflebot import Wafflebot
+from robot.executable_scripts.common.errorhandling import handle_error
 from time import sleep
-from robot.assets.positions import camera_readings
-from importlib import reload as import_reload
+from robot.tools.file_manipulation import Jsonreader
+from robot.tools.visualizers.tf_publisher import TFPublisher
+def get_aruco_pose(id: str):
+    reader = Jsonreader()
+    tags = reader.read("camera_readings")        
+    return tags.get(id)
 
-def get_aruco_pose():
-    try:
-        import_reload(camera_readings)
-        return getattr(camera_readings, "tag_25")
-    except AttributeError:
-        print("tag 25 not found")
-        return False
-    
+
 def main():
     # Init robot
     bot = Wafflebot(use_real_robot=False)    
     bot.arm.go_to_home_pose()
+    pub = TFPublisher()
     # Put your code here:
     running = True
-    i = 1
     while running:
-        i+=1
-        pose = get_aruco_pose()
-        bot.move(pose)
-        if i == 2000: running = False
-        sleep(0.1)
+        try:
+            pose = get_aruco_pose("25")
+            pub.broadcast_transform(pose)
+            bot.move(pose)
+            sleep(0.1)
+        except KeyboardInterrupt:
+            running = False
     # Close bot, close program:
     bot.safe_stop()
 
@@ -39,4 +39,4 @@ if __name__ == '__main__':
         main()
     # if error detected, run the error handler
     except (KeyboardInterrupt, Exception) as error_program_closed_message:
-        with open("robot/backend_controllers/errorhandling.py") as errorhandler: exec(errorhandler.read())
+        handle_error(error_program_closed_message)

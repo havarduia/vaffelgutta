@@ -1,14 +1,5 @@
-# verify proper working directory
-from os import getcwd, getenv
-from os import path as os_path
-username = (getenv("USERNAME"))
-assert getcwd()==f"/home/{username}/git/vaffelgutta", (
-                    "run your script from the git/vaffelgutta/ directory instead.\n"
-                    +"the current directory is\n"
-                    +getcwd())
-    
 import json
-
+from os import path as os_path
 class Jsonreader:
     def __init__(self, 
             directory_path: str = "robot/assets/position_data/"

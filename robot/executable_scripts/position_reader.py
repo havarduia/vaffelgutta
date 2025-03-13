@@ -1,7 +1,3 @@
-# set working directory:
-from common.directory_fixer import fix_directiory
-fix_directiory()
-###
 # robot modules
 from robot.robot_controllers.Wafflebot import *
 from robot.tools.file_manipulation import Jsonreader

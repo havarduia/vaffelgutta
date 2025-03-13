@@ -1,7 +1,3 @@
-# set working directory:
-from common.directory_fixer import fix_directiory
-fix_directiory()
-###
 from robot.executable_scripts.common.errorhandling import handle_error
 from robot.robot_controllers.Wafflebot import Wafflebot
 from robot.robot_controllers import movements

@@ -43,7 +43,7 @@ def main():
         try:
             choice = int(choice)
         except ValueError:
-            print("That was not a number😡")
+            print("That was not a number😡") # 😡
         match choice:
             case 1:
                 do_an_action(bot)

@@ -22,7 +22,7 @@ def do_an_action(bot: Wafflebot):
         try:
             eval(action_as_function)
         except TypeError:
-            print("This function takes arguments. Please input True/False:")
+            print("This function takes arguments. Please input True/False:") # Gjorde "do all waffle" og denne printa.
             arguments = input("Input: ")
             if arguments.lower() == "false":
                 arguments = False
@@ -32,7 +32,7 @@ def do_an_action(bot: Wafflebot):
             eval(action_as_function)
     else:
         print(f"No action {user_action}.\n" +
-              "Maybe try something more Real™️ next time.")
+              "Maybe try something more Real™️ next time.") # Realsense moment -Håvard
  
 def main():
     bot = Wafflebot()
@@ -50,7 +50,7 @@ def main():
             case 2:
                 bot.arm.go_to_home_pose()
             case 3:
-                print("hello")
+                print("hello") # Hallo -Håvard
                 break
             case _:
                 print(f"invalid input {choice}. Try again.")

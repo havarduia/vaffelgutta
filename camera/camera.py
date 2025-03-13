@@ -1,25 +1,11 @@
 import pyrealsense2 as rs
-import cv2
 import numpy as numphy
-import yaml
-import os
-from time import sleep
 numphy.set_printoptions(suppress=True, precision=4)
 from print import print_blue
 from print import print_error
-from robot.tools.file_manipulation import Jsonreader
-from filtering import smooth_data as smooth
+
+from vision_instance import InstanceRegistry
 from camera_config_loader import ConfigLoader as ConfigLoader
-class InstanceRegistry:
-    _instances = {}
-
-    @classmethod
-    def register(cls, key, instance):
-        cls._instances[key] = instance
-
-    @classmethod
-    def get(cls, key):
-        return cls._instances.get(key)
 
 class Camera:
     def __init__(self, config_loader):
@@ -29,8 +15,8 @@ class Camera:
         self.config = rs.config()
         
         camera_id = config_loader.get("camera_id")
-        resolution = config_loader.get("resolution", [1280, 720])
-        fps = config_loader.get("fps", 30)
+        resolution = config_loader.get("resolution")
+        fps = config_loader.get("fps")
         
         self.config.enable_device(camera_id)
         self.config.enable_stream(rs.stream.color, resolution[0], resolution[1], rs.format.bgr8, fps)
@@ -82,205 +68,3 @@ class Camera:
         """Return the camera matrix and distortion coefficients."""
         return self.camera_matrix, self.dist_coeffs
 
-class Aruco:
-    def __init__(self):
-        # Fetch the Camera instance from the registry.
-        self.camera = InstanceRegistry.get("Camera")
-        if self.camera is None:
-            raise Exception("Camera instance not found. Ensure Camera is initialized before Aruco.")
-        # Register this Aruco instance.
-        InstanceRegistry.register("Aruco", self)
-        
-        self.detector = self._detector()
-    
-    def _detector(self):
-        aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
-        parameters = cv2.aruco.DetectorParameters()
-        return cv2.aruco.ArucoDetector(aruco_dict, parameters)    
-    
-    def get_points(self, marker_length, corner):
-        
-        objectPoints = numphy.array([
-                [-marker_length / 2,  marker_length / 2, 0],
-                [ marker_length / 2,  marker_length / 2, 0],
-                [ marker_length / 2, -marker_length / 2, 0],
-                [-marker_length / 2, -marker_length / 2, 0]
-            ], dtype=numphy.float32)
-
-        imagePoints = numphy.array(corner, dtype=numphy.float32).reshape(-1, 2)
-        
-        return objectPoints, imagePoints
-    
-    def _aruco_detection(self):
-        image = self.camera.get_image()
-        if image is None:
-            return None, None
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        corners, ids, _ = self.detector.detectMarkers(gray)
-        if ids is not None:
-            ids = ids.flatten()
-        return corners, ids
-    
-    def R_corrected(self, R):
-        R = numphy.matrix(R)
-        mult = numphy.matrix([
-            [0, 1, 0],
-            [0, 0, 1],
-            [1, 0, 0]
-            ])
-        R =  mult*R
-        return R
-        
-    def get_homo_matrix(self, rvec,tvec):
-        R, _ = cv2.Rodrigues(rvec)
-        T = numphy.eye(4, dtype=R.dtype)
-        T[:3, :3] = R
-        R = self.R_corrected(R)
-        T[:3, 3] = tvec.flatten()
-        return T
-
-    def estimate_pose(self, marker_length):
-
-        camera_matrix, distcoeffs = self.camera.get_calibration()
-        corners, ids= self._aruco_detection()
-        
-        if ids is None or len(corners) == 0:
-            print_error("Marker not detected! 👺")
-            return {}  # Return empty dictionary
-        
-        transformations = {}   
-        raw_poses = []     
-        for tag_id, corner in zip(ids, corners):
-            
-            objectPoints, imagePoints = self.get_points(marker_length, corner)
-             
-            success, rvec, tvec = cv2.solvePnP(objectPoints,
-                                               imagePoints,
-                                               camera_matrix,
-                                               distcoeffs,
-                                               flags=cv2.SOLVEPNP_IPPE_SQUARE)
-            
-            if not success:
-              print_error(f"Pose estimation failed for tag {tag_id}.")
-              continue
-           
-            #rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corner, marker_length, camera_matrix, distcoeffs)
-            raw_poses.append((tag_id, rvec, tvec))
-        
-        if raw_poses:
-            tag_ids, rvecs, tvecs = zip(*raw_poses)
-            rvecs = smooth(numphy.array(rvecs))
-            tvecs = smooth(numphy.array(tvecs))
-            
-            for tag_id, rvec, tvec in zip(tag_ids, rvecs, tvecs):
-                T = self.get_homo_matrix(rvec,tvec)
-                transformations[tag_id] = T
-        return transformations 
-class CoordinateSystem:
-    
-    def __init__(self, config_loader):
-        
-        # Fetch the Aruco instance from the registry.
-        self.aruco = InstanceRegistry.get("Aruco")
-        if self.aruco is None:
-            raise Exception("\033[91mAruco instance not found. Ensure Aruco is initialized after Camera.\033[0m")
-        
-        self.marker_length = config_loader.get("marker_length", 0.048)
-        self.origin_id = config_loader.get("origin_id", 0)
-        self.transformations = self.aruco.estimate_pose(self.marker_length)
-        
-    def transformation_origin_to_tag(self, config_loader):
-        
-        origin_id = config_loader.get("origin_id", 0)
-        offset_x = config_loader.get("offset_x", 0)
-        offset_y = config_loader.get("offset_y", 0)
-        offset_z = config_loader.get("offset_z", 0)
-        bias_x = config_loader.get("bias_x", 0)
-        bias_y = config_loader.get("bias_y", 0)
-        bias_z = config_loader.get("bias_z", 0)
-        
-        if origin_id not in self.transformations:
-            print_error(f"Error: Marker {origin_id} not detected! 👺")
-            return {}  
-        
-        origin = self.transformations[origin_id]
-        origin_inv = numphy.linalg.inv(origin)
-        tags = {}  # Dictionary to store transformations
-        
-
-        
-        for tag_id, transformation in self.transformations.items():
-            tag_id = int(tag_id)
-            if tag_id == origin_id:
-                continue
-            
-            origin_to_tag = numphy.dot(origin_inv, transformation)
-            
-            # Reorder the transformation matrix elements
-            xx = origin_to_tag[1][1]
-            xy = -origin_to_tag[0][1]
-            xz = origin_to_tag[2][1]
-            
-            yx = -origin_to_tag[1][0]
-            yy = origin_to_tag[0][0]
-            yz = -origin_to_tag[2][0]
-            
-            zx = origin_to_tag[1][2]
-            zy = -origin_to_tag[0][2]
-            zz = origin_to_tag[2][2]
-            
-            tx = origin_to_tag[1][3]
-            ty = -origin_to_tag[0][3]
-            tz = origin_to_tag[2][3]
-            
-            origin_to_tag = numphy.array([
-                [xx, yx, zx, tx+bias_x+offset_x],
-                [xy, yy, zy, ty+bias_y+offset_y],
-                [xz, yz, zz, tz+bias_z+offset_z],
-                [0,  0,  0,  1]
-            ]).tolist()
-            
-            tags[tag_id] = origin_to_tag  # Store result
-
-        return tags
-    
-    def init_tags(self, *tags: str | int):
-        all_tags=[]
-        for tag in tags:
-            all_tags.append(str(tag))
-        return all_tags
-    
-    def save_to_json(self, *allowed_tags: str | int):
-
-        reader = Jsonreader()
-        self.transformations = Aruco.estimate_pose()
-        tags = self.transformation_origin_to_tag(0, 0.5, 0.5, 0.5)
-
-        for id in tags.keys():
-            id = str(id)
-
-        allowed_tags = self.init_tags(allowed_tags)
-        reader.write("camera_readings",tags)        
-        data = reader.read("camera_readings")
-        
-        for key in data.keys():
-            if not key in str(allowed_tags):
-                reader.pop("camera_readings",key)
-                print(f"removed hallucinated tag, id: {key}")    
-        
-def initalize_system():
-    config_loader = ConfigLoader()
-    camera = Camera(config_loader)
-    aruco = Aruco()
-    coord_sys = CoordinateSystem(config_loader)
-    return camera, aruco, coord_sys
-
-def main():
-    camera, aruco, coord_sys = initalize_system()   
-
-    while True:
-        # Update pose estimation
-        coord_sys.save_to_json(25)       
-        
-if __name__ == '__main__':
-    main()

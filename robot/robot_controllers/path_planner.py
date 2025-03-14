@@ -11,19 +11,6 @@ def calculate_biggest_joint(joints):
     return biggest_joint
 
 
-def plan_matrix(bot: InterbotixManipulatorXS, target: list, guess: list = None):
-    
-    joint_targets, success = bot.arm.set_ee_pose_matrix(
-        T_sd=target,
-        custom_guess= guess,
-        execute=False
-    )
-    joint_targets = fix_joint_limits(joint_targets)
-    if joint_targets[0] == False:
-        success = False
-
-    return (joint_targets, success)
-
 
 def _eliminate_obvious_false_positions(bot, start, stop, ignore: list):    
     """

@@ -1,4 +1,4 @@
-from robot.robot_controllers.Wafflebot import Wafflebot
+from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
 from robot.tools.file_manipulation import Jsonreader
 from robot.tools.camera_interface import get_tag_from_camera
 import numpy as numphy

@@ -1,5 +1,5 @@
 # robot modules
-from robot.robot_controllers.Wafflebot import *
+from robot.robot_controllers.Wafflebot.Wafflebot import *
 from robot.tools.file_manipulation import Jsonreader, table_print
 from robot.tools.errorhandling import handle_error
 from robot.tools.update_tagoffsets import create_offset_matrix

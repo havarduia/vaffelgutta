@@ -1,10 +1,11 @@
 from robot.tools.errorhandling import handle_error
-from robot.robot_controllers.Wafflebot import Wafflebot
+from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
 from robot.robot_controllers.movements.action_header import Actions
 from robot.tools.file_manipulation import table_print
+from os import system
 
 def printmenu():
-    print("")
+    system("clear")
     print("Welcome to the actions tester.")
     print("Press 1 to perform an action")
     print("Press 2 to go to home pose")

@@ -8,11 +8,12 @@ from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 
 from robot.robot_controllers import robot_boot_manager, path_planner, safety_functions
 from robot.tools.file_manipulation import Jsonreader
-
+from robot.robot_controllers.Wafflebot.emergency_stop import run_emergency_stop_monitor
+from robot.robot_controllers.Wafflebot import pose_to_joints
 from robot.tools.visualizers.tf_publisher import TFPublisher
 
 from argparse import ArgumentParser
-from threading import Thread
+from functools import partial
 from rclpy import ok as rclpyok
 from time import sleep
 import numpy as numphy
@@ -36,97 +37,43 @@ class Wafflebot:
             )
         robot_startup()
         # Keep a look out for the emergency stop
-        self.run_emergency_stop_monitor()
+        self.launch_emergency_stop_monitor()
         # Set print level:
         self.debug_print = debug_print
         # Define shorthands to call bot functions intuitively 
         self.arm        = self.bot.arm
         self.gripper    = self.bot.gripper
         self.core       = self.bot.core
-
     # return the methods of the child class (interbotixmanipulatorxs)
     def __getattr__(self, name):
         return getattr(self.bot, name)
 
-    def __del__(self):
-        self.exit()
-    
-    def _refine_guess(self,target):
+
+    def get_joint_command_from_matrix(self,
+                                target: any,
+                                file: str = "None",
+                                ) -> tuple[list[float] | None, bool]:
         """
-        Refines the guessed position into a position that is hopefully less awward for the arm to reach.
+        Future replacement to merge interpret_target_command and refine_guess
         """
-        bot = self.bot
-        self.arm.capture_joint_positions()
-        current_pose = self.arm.get_joint_positions()
-        # Try using current position as seed for target joints. Else retry with vanilla guesses
-        (target_joints, success) = path_planner.plan_matrix(bot, target, current_pose)
-        if not success:
-            target_joints, success = path_planner.plan_matrix(bot, target)
-        # error checking
-        if not success:
-            if self.debug_print:
-                print("Wafflebot: move failed after first fix joints - aborting")
-            return (None, False)
-        # For positions that have made over a quarter rotation: 
-        # Might cause double rotation --> awkward position.
-        # So retry with forced upright position. Waist ([0]) is exempt this problem.
-        prev_target = target_joints.copy()
-        for i in range(1,6):
-            if abs(target_joints[i]) > numphy.pi/2:
-                target_joints[i] = 0.0        
-        target_joints, success = path_planner.plan_matrix(bot, target, target_joints) 
-        if not success:
-            if self.debug_print:
-                print("Wafflebot: move failed after second fix joints - using previous guess")
-            target_joints = prev_target
-        # if the shoulder is bent back and the elbow is pointing up,
-        # it is likely another unnatural position that should be fixed
-        prev_target = target_joints.copy()
-        if (
-            target_joints[1] < -(numphy.pi/6)   # if shoulder is bent back 
-            and not target_joints[2] > 0.1      # and elbow is not pointing somewhat foreward
-        ):   
-            if self.debug_print:
-                print(f"Adjusted from state:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
-            # turn around waist (joint overflow will be handled down the line)
-            target_joints[0] +=numphy.pi           
-            # reset shoulder and elbow
-            target_joints[1] = 1e-6  
-            target_joints[2] = 1e-6
-            if self.debug_print:
-                print(f"to:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
-            adjusted = True
-        else:
-            adjusted = False
-        # refine adjusted target pose        
-        target_joints, success = path_planner.plan_matrix(bot, target, target_joints) 
-        if not success:
-            if self.debug_print:
-                print("Wafflebot: move failed after third fix joints - using previous guess")
-            target_joints = prev_target
-        # since the position has changed, redo the first uprightness test.
-        prev_target = target_joints.copy()
-        for i in range(1,6):
-            if abs(target_joints[i]) > numphy.pi/2:
-                target_joints[i] = 0.0001
-        # refine final target pose
-        target_joints, success = path_planner.plan_matrix(bot, target, target_joints)        
-        if not success:
-            if self.debug_print:
-                print("Wafflebot: move failed after fourth fix joints - using previous guess")
-            target_joints = prev_target
-        if adjusted:
-            if self.debug_print:
-                print(f"the adjusted joints are:\n{target_joints[0]}\n{target_joints[1]}\n{target_joints[2]}")
-        return target_joints, True
+        raise NotImplementedError
+
+    def refine_guess(self,target) -> tuple[list[float] | None , bool]:
+        """
+        Refines the guessed position into a position that is hopefully less awkward for the arm to reach.
+        """    
+        target_joints, success = pose_to_joints.refine_guess(self.bot, target, self.debug_print)   
+        return (target_joints, True) if success else (None, False)
     
     def _interpret_target_command(self,
                                 target: any,
                                 file: str = "None",
                                 ) -> tuple[list[float] | None, bool]:
-        if (isinstance(target, list)):
-            if (len(target) == 6):
-                return (target, True)
+        """
+        Converts a guess ino
+        """
+        if (isinstance(target, list)) and (len(target) == 6):
+            return (target, True)
         elif isinstance(target, numphy.matrix):
             target = target.tolist()
         elif isinstance(target, str):
@@ -145,7 +92,7 @@ class Wafflebot:
             if self.debug_print:
                 print("Wafflebot: Unsupported command type.")
             return (None, False)
-        target_joints, success = self._refine_guess(target)
+        target_joints, success = self.refine_guess(target)
         return (target_joints, success)
     
     def exit(self):
@@ -220,8 +167,18 @@ class Wafflebot:
                 # todo make interruptible. (e. stop etc)
                 sleep(move_time)
 
+    def launch_emergency_stop_monitor(self):
+        run_emergency_stop_monitor(self.safe_stop)
 
 
+if __name__ == "__main__":
+    b = Wafflebot(0)
+    b.launch_emergency_stop_monitor()()
+    for i in range(20):
+        print("main is running")
+        sleep(2)
+
+    """
     def run_emergency_stop_monitor(self):
         if "Jetson.GPIO" in sysmodules: # Check if running on Jetson
             # **Start GPIO monitoring in a separate thread**
@@ -231,7 +188,7 @@ class Wafflebot:
         return
     
     def monitor_emergency_stop(self):
-        """ Function to monitor GPIO button in a separate thread. """
+        "#"" Function to monitor GPIO button in a separate thread. "#""
         # Set the GPIO mode
         GPIO.setmode(GPIO.BOARD)
         button_pin = 18  # Define button pin
@@ -244,3 +201,4 @@ class Wafflebot:
                 self.safe_stop(slow = True)
                 break
             sleep(0.1)  # Prevent CPU overuse
+    """

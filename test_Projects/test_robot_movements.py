@@ -6,7 +6,7 @@ chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
 from time import sleep
-from robot.robot_controllers.Wafflebot import Wafflebot
+from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
 
 def main():
     # Init robot

@@ -1,12 +1,4 @@
-<<<<<<< HEAD
-from robot.executable_scripts.common.errorhandling import handle_error
-=======
-# set working directory:
-from common.directory_fixer import fix_directiory
-fix_directiory()
-###
 from robot.tools.errorhandling import handle_error
->>>>>>> refs/remotes/origin/main
 from robot.robot_controllers.Wafflebot import Wafflebot
 from robot.robot_controllers import movements
 
@@ -28,7 +20,6 @@ def main():
 
     movements.batter.place_cup_at_filling_station(bot)    
     sleep(2)
-
 
     movements.batter.pick_up_cup_from_filling_station(bot)
     movements.batter.pour_batter(bot)

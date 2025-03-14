@@ -23,7 +23,7 @@ def main():
     # test functionalities
 
 if __name__ == "__main__":
-    from robot.robot_controllers.Wafflebot import Wafflebot
+    from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
     try:
         main()
     except Exception as error:

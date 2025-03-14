@@ -10,10 +10,10 @@ class Actions:
         self.open_waffle_iron()
         if print_actions: print("Applying lube")
         self.apply_lube()
-        if print_actions: print("Adding batter")
-        self.fill_batter_on_iron()
         if print_actions: print("Inserting sticks")
         self.insert_sticks()
+        if print_actions: print("Adding batter")
+        self.fill_batter_on_iron()
         if print_actions: print("Closing waffle iron")
         self.close_waffle_iron()
         if print_actions: print(f"Waiting for {delay} seconds")
@@ -68,13 +68,16 @@ class Actions:
         self.fill_cup()
         self.pick_up_cup()
         self.pour_batter()
-        self.place_cup()
+        self.place_cup(True)
 
-    def place_cup(self):
-        batter.place_cup_at_filling_station(self.bot)
+    def place_cup(self, is_holding_cup):
+        batter.place_cup_at_filling_station(self.bot, is_holding_cup)
     
     def fill_cup(self):
-        batter.fill_cup(self.bot)
+        try:
+            batter.fill_cup(self.bot)
+        except NotImplementedError:
+            print("Not implemented yet.")
 
     def pick_up_cup(self):
         batter.pick_up_cup_from_filling_station(self.bot)
@@ -95,9 +98,12 @@ class Actions:
         return valid_methods 
 
 if __name__ == "__main__":
-    from robot.robot_controllers.Wafflebot import Wafflebot
+    from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
     b = Wafflebot()
     a = Actions(b)
     from robot.tools.file_manipulation import table_print
     table_print(a.get_actions())
     b.safe_stop()
+
+
+    

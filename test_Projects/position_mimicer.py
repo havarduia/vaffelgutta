@@ -9,9 +9,9 @@ syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 from interbotix_common_modules.common_robot.robot import robot_startup, robot_shutdown
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 # user libraries: 
-from robot_workspace.backend_controllers import robot_boot_manager
+from robot.backend_controllers.robot_controllers import robot_boot_manager
 from time import sleep
-from robot_workspace.assets.Wafflebot import Wafflebot
+from robot.backend_controllers.robot_controllers.Wafflebot import Wafflebot
 def main():
     bot = Wafflebot()
     
@@ -41,5 +41,5 @@ if __name__ == '__main__':
         main()
     # if error detected, run the error handler
     except (KeyboardInterrupt, Exception) as error_program_closed_message:
-        with open("robot_workspace/backend_controllers/errorhandling.py") as errorhandler: exec(errorhandler.read())
+        with open("robot/backend_controllers/errorhandling.py") as errorhandler: exec(errorhandler.read())
     

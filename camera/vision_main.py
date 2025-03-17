@@ -1,7 +1,7 @@
-from camera import Camera
-from aruco import Aruco
-from coordinatesystem import CoordinateSystem
-from camera_config_loader import ConfigLoader                
+from camera.Camera import Camera
+from camera.aruco import Aruco
+from camera.coordinatesystem import CoordinateSystem
+from camera.camera_config_loader import ConfigLoader                
         
 def initalize_system():
     config_loader = ConfigLoader()

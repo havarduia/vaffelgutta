@@ -124,10 +124,11 @@ class Wafflebot:
                                 target: any,
                                 file: str = "None",
                                 ) -> tuple[list[float] | None, bool]:
-        if (isinstance(target, list)) and (len(target) == 6):
-            return (target, True)
+        if (isinstance(target, list)):
+            if (len(target) == 6):
+                return (target, True)
         elif isinstance(target, numphy.matrix):
-            target = target.tolist() 
+            target = target.tolist()
         elif isinstance(target, str):
             if file.lower() == "none":
                 if self.debug_print:
@@ -182,10 +183,9 @@ class Wafflebot:
         # Todo? add blocking = False?
         start_joints = self.arm.get_joint_positions()
         target_joints, success = self._interpret_target_command(target, file)
-
         if not success:
             if self.debug_print:
-                print("Wafflebot:\Could not plan movement.")
+                print("Wafflebot:\nCould not plan movement.")
             return False    
         waypoints, success = (path_planner.plan_path(self, start_joints, target_joints, ignore, []))
 

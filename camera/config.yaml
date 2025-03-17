@@ -4,8 +4,8 @@ fps: 30
 marker_length: 0.048
 origin_id: 0
 offset_x: 0
-offset_y: 0
-offset_z: 0
+offset_y: -0.18
+offset_z: 0.035
 bias_x: 0
 bias_y: 0
 bias_z: 0

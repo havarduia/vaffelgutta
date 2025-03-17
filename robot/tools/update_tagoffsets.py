@@ -32,21 +32,23 @@ def abs_position_from_offset(reference_tag, offset):
     #compute x-y-z 
     (xt,yt,zt) = [tag   [i,3]   for i in range(3)]
     (xo,yo,zo) = [offset[i,3]   for i in range(3)]
-    (dx,dy,dz) = [tag   [:3,i]  for i in range(3)]
+    (dx,dy,dz) = [tag   [:3,i].tolist() for i in range(3)]
+
+
     # compute absolute position:
     x,y,z = [(
-              xt*dx[i]
-            + yt*dy[i] 
-            + zt*dz[i]
-            )[0,0] # squeeze out item from 2d array
+              xo*dx[i][0]
+            + yo*dy[i][0] 
+            + zo*dz[i][0]
+            ) # squeeze out item from 2d array
             for i in range(3)]
-    x+=xo;  y+=yo;  z+=zo 
+    x+=xt;  y+=yt;  z+=zt 
     # Collect the terms into a single output matrix
     out_matrix[0,3] = x
     out_matrix[1,3] = y
     out_matrix[2,3] = z
+  
     return out_matrix.tolist() 
-
 
 def create_offset_matrix(current_arm_pos: list[list[float]], tag: list[list[float]])->list[list[float]]:
     """
@@ -56,3 +58,21 @@ def create_offset_matrix(current_arm_pos: list[list[float]], tag: list[list[floa
     tag = numphy.matrix(tag)
     offset = numphy.linalg.inv(tag)*current_arm_pos
     return offset.tolist()
+
+if __name__ == "__main__": 
+    tag = ([
+    [ 0.9638844,  -0.26469881, -0.02934978,  0.30423656],
+    [ 0.26467165,  0.96432626, -0.00487716, -0.22009233],
+    [ 0.02959374, -0.00306704,  0.9995573 ,  0.48485223],
+    [ 0.       ,   0.,          0.       ,   1.        ] 
+          ])
+    
+    offset = ([
+        [0,1,0,0],
+        [1,0,0,0],
+        [0,0,1,0],
+        [0,0,0,1]
+    ])
+    print(numphy.array(
+       abs_position_from_offset(tag, offset)
+    ))

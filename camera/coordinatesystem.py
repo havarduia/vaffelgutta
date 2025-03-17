@@ -1,19 +1,16 @@
 from camera.camera_config_loader import ConfigLoader
-from camera.vision_instance import InstanceRegistry
 from camera.print import print_blue, print_error
 from robot.tools.file_manipulation import Jsonreader
 import numpy as numphy  
 
 class CoordinateSystem:
-    def __init__(self, config_loader):
-        self.aruco = InstanceRegistry.get("Aruco")
-        if self.aruco is None:
-            raise RuntimeError("Aruco instance not found. Ensure Aruco is initialized after Camera.")
-        
+    def __init__(self, aruco_instance, config_loader):
+
+        self.aruco = aruco_instance
         self.config_loader = config_loader
         self.marker_length = config_loader.get("marker_length")
         self.origin_id = config_loader.get("origin_id")
-        self.transformations = self.aruco.estimate_pose(config_loader)
+        self.transformations = self.aruco.estimate_pose()
 
     def transformation_origin_to_tag(self):
         """Transforms the origin marker to all detected tag transformations."""
@@ -55,7 +52,7 @@ class CoordinateSystem:
     def save_to_json(self, *allowed_tags):
         """Saves transformations to a JSON file while filtering allowed tags."""
         reader = Jsonreader()
-        self.transformations = self.aruco.estimate_pose(self.config_loader)
+        self.transformations = self.aruco.estimate_pose()
         tags = self.transformation_origin_to_tag()
 
         allowed_tags = self.init_tags(allowed_tags)

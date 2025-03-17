@@ -1,33 +1,27 @@
 from camera.realsense import Camera
 from camera.filtering import smooth_data as smooth
-from camera.vision_instance import InstanceRegistry
 from camera.camera_config_loader import ConfigLoader
 import cv2
-import numpy as numphy
-from camera.print import print_blue, print_error
+import numpy as numphy 
+from print import print_blue, print_error  
 
 class Aruco:
-    def __init__(self):
-        # Fetch the Camera instance from the registry.
-        self.camera = InstanceRegistry.get("Camera")
-        if self.camera is None:
-            raise RuntimeError("Camera instance not found. Ensure Camera is initialized before Aruco.")
-
-        # Register this Aruco instance.
-        InstanceRegistry.register("Aruco", self)
+    def __init__(self, realsense_instance, config_loader):
+        self.marker_length = config_loader.get("marker_length") 
+        self.camera = realsense_instance
 
         # Initialize Aruco detector
         self.aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
         self.parameters = cv2.aruco.DetectorParameters()
         self.detector = cv2.aruco.ArucoDetector(self.aruco_dict, self.parameters)
 
-    def get_points(self, marker_length, corner):
+    def get_points(self, corner):
         """Returns 3D object points and 2D image points for Aruco marker."""
         object_points = numphy.array([
-            [-marker_length / 2,  marker_length / 2, 0],
-            [ marker_length / 2,  marker_length / 2, 0],
-            [ marker_length / 2, -marker_length / 2, 0],
-            [-marker_length / 2, -marker_length / 2, 0]
+            [-self.marker_length / 2,  self.marker_length / 2, 0],
+            [ self.marker_length / 2,  self.marker_length / 2, 0],
+            [ self.marker_length / 2, -self.marker_length / 2, 0],
+            [-self.marker_length / 2, -self.marker_length / 2, 0]
         ], dtype=numphy.float32)
 
         image_points = numphy.array(corner, dtype=numphy.float32).reshape(-1, 2)
@@ -64,9 +58,8 @@ class Aruco:
         T[:3, 3] = tvec.flatten()
         return T
 
-    def estimate_pose(self, config_loader):
+    def estimate_pose(self):
         """Estimates pose of detected Aruco markers."""
-        marker_length = config_loader.get("marker_length")
 
         camera_matrix, dist_coeffs = self.camera.get_calibration()
         if camera_matrix is None or dist_coeffs is None:
@@ -82,7 +75,7 @@ class Aruco:
         raw_poses = []
 
         for tag_id, corner in zip(ids, corners):
-            object_points, image_points = self.get_points(marker_length, corner)
+            object_points, image_points = self.get_points(corner)
 
             success, rvec, tvec = cv2.solvePnP(
                 object_points,

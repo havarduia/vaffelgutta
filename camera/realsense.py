@@ -3,10 +3,7 @@ import numpy as numphy
 numphy.set_printoptions(suppress=True, precision=4)
 from camera.print import print_blue
 from camera.print import print_error
-
-from camera.vision_instance import InstanceRegistry
-from camera.camera_config_loader import ConfigLoader as ConfigLoader
-
+from camera_config_loader import ConfigLoader as ConfigLoader
 class Camera:
     def __init__(self, config_loader):
 
@@ -25,8 +22,6 @@ class Camera:
         self.camera_matrix = None
         self.dist_coeffs = None
         self.start_streaming()
-        # Register this instance so other classes can fetch it.
-        InstanceRegistry.register("Camera", self)
 
     def __del__(self):
         self.stop_streaming()

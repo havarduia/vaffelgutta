@@ -12,7 +12,7 @@ def main():
     
     while True:
         # Update pose estimation
-        coord_sys.save_to_json(25)
+        coord_sys.start(25)
 if __name__ == '__main__':
     main()
     

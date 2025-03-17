@@ -49,7 +49,7 @@ class CoordinateSystem:
         """Converts input tags to a list of IDs."""
         return list(map(str, tags))
 
-    def save_to_json(self, *allowed_tags):
+    def start(self, *allowed_tags):
         """Saves transformations to a JSON file while filtering allowed tags."""
         reader = Jsonreader()
         self.transformations = self.aruco.estimate_pose()

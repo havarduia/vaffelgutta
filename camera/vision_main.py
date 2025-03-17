@@ -1,4 +1,4 @@
-from camera.Camera import Camera
+from camera.realsense import Camera
 from camera.aruco import Aruco
 from camera.coordinatesystem import CoordinateSystem
 from camera.camera_config_loader import ConfigLoader                

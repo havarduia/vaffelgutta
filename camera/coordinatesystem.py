@@ -1,6 +1,6 @@
-from camera_config_loader import ConfigLoader as ConfigLoader
-from vision_instance import InstanceRegistry
-from print import print_blue, print_error
+from camera.camera_config_loader import ConfigLoader as ConfigLoader
+from camera.vision_instance import InstanceRegistry
+from camera.print import print_blue, print_error
 from robot.tools.file_manipulation import Jsonreader
 import numpy as numphy
 
@@ -25,7 +25,7 @@ class CoordinateSystem:
         bias_z = config_loader.get("bias_z")
         
         if origin_id not in self.transformations:
-            print_error(f"Error: Marker {origin_id} not detected! 👺")
+            #print_error(f"Error: Marker {origin_id} not detected! 👺")
             return {}  
         
         origin = self.transformations[origin_id]
@@ -59,9 +59,9 @@ class CoordinateSystem:
             tz = origin_to_tag[2][3]
             
             origin_to_tag = numphy.array([
-                [xx, yx, zx, tx+bias_x+offset_x],
-                [xy, yy, zy, ty+bias_y+offset_y],
-                [xz, yz, zz, tz+bias_z+offset_z],
+                [xx, yx, zx, tx+bias_x-offset_x],
+                [xy, yy, zy, ty+bias_y-offset_y],
+                [xz, yz, zz, tz+bias_z-offset_z],
                 [0,  0,  0,  1]
             ]).tolist()
             
@@ -92,5 +92,5 @@ class CoordinateSystem:
         for key in data.keys():
             print(key)
             if not key in allowed_tags:
-                print(f"removed hallucinated tag, id: {key}")    
+                #print(f"removed hallucinated tag, id: {key}")    
                 reader.pop("camera_readings",key) 

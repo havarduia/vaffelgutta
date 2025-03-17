@@ -1,10 +1,10 @@
-from camera import Camera
-from filtering import smooth_data as smooth
-from vision_instance import InstanceRegistry
-from camera_config_loader import ConfigLoader as ConfigLoader
+from camera.Camera import Camera
+from camera.filtering import smooth_data as smooth
+from camera.vision_instance import InstanceRegistry
+from camera.camera_config_loader import ConfigLoader as ConfigLoader
 import cv2
 import numpy as numphy
-from print import print_blue, print_error
+from camera.print import print_blue, print_error
 
 class Aruco:
     def __init__(self):
@@ -70,7 +70,7 @@ class Aruco:
         corners, ids= self._aruco_detection()
         
         if ids is None or len(corners) == 0:
-            print_error("Marker not detected! 👺")
+            #print_error("Marker not detected! 👺")
             return {}  # Return empty dictionary
         
         transformations = {}   
@@ -86,7 +86,7 @@ class Aruco:
                                                flags=cv2.SOLVEPNP_IPPE_SQUARE)
             
             if not success:
-              print_error(f"Pose estimation failed for tag {tag_id}.")
+              #print_error(f"Pose estimation failed for tag {tag_id}.")
               continue
            
             #rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corner, marker_length, camera_matrix, distcoeffs)

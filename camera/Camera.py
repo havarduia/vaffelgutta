@@ -1,11 +1,11 @@
 import pyrealsense2 as rs
 import numpy as numphy
 numphy.set_printoptions(suppress=True, precision=4)
-from print import print_blue
-from print import print_error
+from camera.print import print_blue
+from camera.print import print_error
 
-from vision_instance import InstanceRegistry
-from camera_config_loader import ConfigLoader as ConfigLoader
+from camera.vision_instance import InstanceRegistry
+from camera.camera_config_loader import ConfigLoader as ConfigLoader
 
 class Camera:
     def __init__(self, config_loader):

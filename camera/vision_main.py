@@ -1,7 +1,8 @@
-from camera import Camera
-from aruco import Aruco
-from coordinatesystem import CoordinateSystem
-from camera_config_loader import ConfigLoader                
+from camera.Camera import Camera
+from camera.aruco import Aruco
+from camera.coordinatesystem import CoordinateSystem
+from camera.camera_config_loader import ConfigLoader                
+import cv2
         
 def initalize_system():
     config_loader = ConfigLoader()
@@ -12,10 +13,19 @@ def initalize_system():
 
 def main():
     camera, aruco, coord_sys = initalize_system()   
+    cv2.namedWindow("Hagle", cv2.WINDOW_NORMAL) 
 
     while True:
         # Update pose estimation
         coord_sys.save_to_json(25)     
+        image = camera.get_image()
+        if image is not None:
+            cv2.imshow("Hagle", image)
+        else:
+            print("Hagle")
         
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
 if __name__ == '__main__':
     main()

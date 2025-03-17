@@ -1,8 +1,7 @@
-from camera.Camera import Camera
+from camera.realsense import Camera
 from camera.aruco import Aruco
 from camera.coordinatesystem import CoordinateSystem
 from camera.camera_config_loader import ConfigLoader                
-import cv2
         
 def initalize_system():
     config_loader = ConfigLoader()

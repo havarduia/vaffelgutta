@@ -1,7 +1,7 @@
 from camera.realsense import Camera
 from camera.aruco import Aruco
 from camera.coordinatesystem import CoordinateSystem
-from camera.camera_config_loader import ConfigLoader
+from camera.misc import ConfigLoader
 
 def initalize_system():
     """Initializes the camera, ArUco detector, and coordinate system."""

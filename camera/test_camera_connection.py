@@ -1,12 +1,13 @@
 import pyrealsense2 as rs
 
+
 def test_realsense_connection():
     # Create a context object to interact with all available RealSense devices
     context = rs.context()
 
     # Get the list of connected devices
     devices = context.query_devices()
-    
+
     if len(devices) == 0:
         print("No RealSense devices detected.")
         return
@@ -23,7 +24,7 @@ def test_realsense_connection():
 
     # Create a configuration object to configure the streams
     config = rs.config()
-    
+
     # Enable color and depth streams
     config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)  # 30 FPS
     config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
@@ -46,12 +47,17 @@ def test_realsense_connection():
             print("Failed to capture frames.")
             return
 
-        print(f"Captured color frame of size: {color_frame.get_width()} x {color_frame.get_height()}")
-        print(f"Captured depth frame of size: {depth_frame.get_width()} x {depth_frame.get_height()}")
+        print(
+            f"Captured color frame of size: {color_frame.get_width()} x {color_frame.get_height()}"
+        )
+        print(
+            f"Captured depth frame of size: {depth_frame.get_width()} x {depth_frame.get_height()}"
+        )
 
     finally:
         # Stop streaming when done
         pipeline.stop()
+
 
 if __name__ == "__main__":
     test_realsense_connection()

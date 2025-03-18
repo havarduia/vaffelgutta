@@ -2,7 +2,7 @@
 from camera.realsense import Camera
 from camera.aruco import Aruco
 from camera.coordinatesystem import CoordinateSystem
-from camera.camera_config_loader import ConfigLoader
+from camera.misc import ConfigLoader
 import cv2
 from camera.init_camera import initalize_system as init
 import os

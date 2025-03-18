@@ -32,7 +32,7 @@ def abs_position_from_offset(reference_tag, offset):
     #compute x-y-z 
     (xt,yt,zt) = [tag   [i,3]   for i in range(3)]
     (xo,yo,zo) = [offset[i,3]   for i in range(3)]
-    (dx,dy,dz) = [tag   [:3,i].tolist() for i in range(3)]
+    (dx,dy,dz) = [out_matrix[:3,i].tolist() for i in range(3)]
 
 
     # compute absolute position:
@@ -40,8 +40,7 @@ def abs_position_from_offset(reference_tag, offset):
               xo*dx[i][0]
             + yo*dy[i][0] 
             + zo*dz[i][0]
-            ) # squeeze out item from 2d array
-            for i in range(3)]
+            )for i in range(3)]
     x+=xt;  y+=yt;  z+=zt 
     # Collect the terms into a single output matrix
     out_matrix[0,3] = x
@@ -68,7 +67,7 @@ if __name__ == "__main__":
           ])
     
     offset = ([
-        [0,1,0,0],
+        [0,1,0,1],
         [1,0,0,0],
         [0,0,1,0],
         [0,0,0,1]

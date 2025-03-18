@@ -7,9 +7,8 @@ from time import sleep
 from robot.tools.file_manipulation import Jsonreader
 from robot.tools.visualizers.tf_publisher import TFPublisher
 from robot.tools.update_tagoffsets import create_offset_matrix, abs_position_from_offset
-import subprocess
 import numpy as numphy
-from threading import Thread, Event
+from camera.init_camera import initalize_system as init_camera
 
 def get_aruco_pose(id: str):
     reader = Jsonreader()
@@ -27,18 +26,19 @@ def recordOffset(bot: Wafflebot, tagid: str, visualizer: TFPublisher = None):
 
     return
 
-def goToTag(bot: Wafflebot, tagid:str, visualizer: TFPublisher = None):
+def goToTag(bot: Wafflebot, tagid:str, camera, visualizer: TFPublisher = None):
     i = 0
+    reader = Jsonreader()
     while i<int(10/0.1):
         i+=1
-        reader = Jsonreader()
+        camera.start(25)
         tag_pos = reader.read("camera_readings")[tagid]
         offset = reader.read("offsets")["copy_camera"]
-        target = abs_position_from_offset(tag_pos, offset,scaling=0.5)
+        target = abs_position_from_offset(tag_pos, offset)
 
         visualizer.broadcast_transform(target)
         # plan a:
-        bot.move(target, blocking=False)
+        bot.move(target, speed_scaling=0.2, blocking=False)
         # plan b:
         #bot.arm.set_ee_pose_matrix(target, blocking=False)
         print("Moving robot")
@@ -52,18 +52,14 @@ def printmenu():
     print("Press 4 to toggle arm torque")
     print("press 5 to exit")
     print("press 6 to toggle rotation offset")
-    return
-
+    return 
 def main():
     # Init robot
+    throwaway,throwaway2,camera = init_camera()
+    sleep(3)
     bot = Wafflebot(use_real_robot=False, debug_print=True)    
     bot.arm.go_to_home_pose()
     pub = TFPublisher()
-    import os
-    p = subprocess.Popen(["python3", "-u", "camera/vision_main.py"], 
-                     cwd=os.path.expanduser("~/git/vaffelgutta"),
-                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-
     use_offset = True
     tagid = "25"
     torqed = True
@@ -76,10 +72,10 @@ def main():
             print("That was not a number😡") # 😡
         match choice:
             case 1:
+                camera.start(25) 
                 recordOffset(bot, tagid, pub)
             case 2:
-                
-                goToTag(bot, tagid, pub)
+                goToTag(bot, tagid,None, pub)
             case 3: 
                 tagid = str(input("Input new ID: "))
             case 4:

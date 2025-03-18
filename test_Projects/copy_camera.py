@@ -3,12 +3,14 @@ import directory_fixer
 directory_fixer.fix_directiory()
 from robot.robot_controllers.Wafflebot import Wafflebot
 from robot.tools.errorhandling import handle_error
-from time import sleep
+from time import sleep, time_ns
 from robot.tools.file_manipulation import Jsonreader
 from robot.tools.visualizers.tf_publisher import TFPublisher
 from robot.tools.update_tagoffsets import create_offset_matrix, abs_position_from_offset
 import numpy as numphy
 from camera.init_camera import initalize_system as init_camera
+from threading import Thread
+import cv2
 
 def get_aruco_pose(id: str):
     reader = Jsonreader()
@@ -26,10 +28,25 @@ def recordOffset(bot: Wafflebot, tagid: str, visualizer: TFPublisher = None):
 
     return
 
+def show_camera(camera):
+    cv2.namedWindow("RealSense Camera", cv2.WINDOW_NORMAL)  # Make window resizable 
+    while True:
+        image = camera.get_image()
+        
+        if image is not None:
+            cv2.imshow("RealSense Camera", image)
+        else:
+            print("No image captured")
+        
+        # Break on 'q' key press
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+
 def goToTag(bot: Wafflebot, tagid:str, camera, visualizer: TFPublisher = None):
     i = 0
     reader = Jsonreader()
-    while i<int(10/0.1):
+    while i<int(50/0.2):
         i+=1
         camera.start(25)
         tag_pos = reader.read("camera_readings")[tagid]
@@ -38,12 +55,13 @@ def goToTag(bot: Wafflebot, tagid:str, camera, visualizer: TFPublisher = None):
 
         visualizer.broadcast_transform(target)
         # plan a:
-        bot.move(target, speed_scaling=0.2, blocking=False)
+        bot.move(target, speed_scaling=1.0, blocking=False)
         # plan b:
         #bot.arm.set_ee_pose_matrix(target, blocking=False)
         print("Moving robot")
-        sleep(0.1)
+        sleep(0.2)
     return
+
 
 def printmenu():
     print("Press 1 to record offset")
@@ -53,9 +71,12 @@ def printmenu():
     print("press 5 to exit")
     print("press 6 to toggle rotation offset")
     return 
+
 def main():
     # Init robot
-    throwaway,throwaway2,camera = init_camera()
+     
+    camera_display,throwaway2,camera_coordsys = init_camera()
+    Thread(target=show_camera,daemon=True, args=[camera_display] ).start()
     sleep(3)
     bot = Wafflebot(use_real_robot=False, debug_print=True)    
     bot.arm.go_to_home_pose()
@@ -72,10 +93,10 @@ def main():
             print("That was not a number😡") # 😡
         match choice:
             case 1:
-                camera.start(25) 
+                camera_coordsys.start(25) 
                 recordOffset(bot, tagid, pub)
             case 2:
-                goToTag(bot, tagid,camera, pub)
+                goToTag(bot, tagid,camera_coordsys, pub)
             case 3: 
                 tagid = str(input("Input new ID: "))
             case 4:

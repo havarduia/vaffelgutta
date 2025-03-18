@@ -3,7 +3,7 @@ from camera.filtering import smooth_data as smooth
 from camera.camera_config_loader import ConfigLoader as ConfigLoader
 import cv2
 import numpy as numphy
-from print import print_blue, print_error
+from camera.print import print_blue, print_error
 
 class Aruco:
     def __init__(self, camera, config_loader):

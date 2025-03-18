@@ -75,7 +75,7 @@ def main():
                 camera.start(25) 
                 recordOffset(bot, tagid, pub)
             case 2:
-                goToTag(bot, tagid,None, pub)
+                goToTag(bot, tagid,camera, pub)
             case 3: 
                 tagid = str(input("Input new ID: "))
             case 4:

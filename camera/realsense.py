@@ -3,7 +3,7 @@ import numpy as numphy
 numphy.set_printoptions(suppress=True, precision=4)
 from camera.print import print_blue
 from camera.print import print_error
-from camera_config_loader import ConfigLoader as ConfigLoader
+from camera.camera_config_loader import ConfigLoader as ConfigLoader
 class Camera:
     def __init__(self, config_loader):
 

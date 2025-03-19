@@ -3,7 +3,8 @@ from camera.aruco import Aruco
 from camera.coordinatesystem import CoordinateSystem
 from camera.Config.misc import ConfigLoader
 
-def initalize_system():
+# Added type annotations for initialize-system (line 7) -AT
+def initalize_system()-> tuple[Camera, Aruco, CoordinateSystem]:
     """Initializes the camera, ArUco detector, and coordinate system."""
     config_loader = ConfigLoader()
     camera = Camera(config_loader)

@@ -56,6 +56,7 @@ def create_offset_matrix(current_arm_pos: list[list[float]], tag: list[list[floa
     current_arm_pos = numphy.matrix(current_arm_pos)
     tag = numphy.matrix(tag)
     offset = numphy.linalg.inv(tag)*current_arm_pos
+    offset[:3,:3] = current_arm_pos[:3, :3]
     return offset.tolist()
 
 if __name__ == "__main__": 

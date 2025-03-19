@@ -28,6 +28,9 @@ def abs_position_from_offset(reference_tag, offset):
     tag     = numphy.matrix(reference_tag)
     offset  = numphy.matrix(offset)
     out_matrix = tag * offset # initialize rotation, but xyz is off
+
+    return out_matrix.tolist()
+
     # Naming convention: o-ffset, t-ag, a-bsolute pos 
     #compute x-y-z 
     (xt,yt,zt) = [tag   [i,3]   for i in range(3)]
@@ -56,7 +59,6 @@ def create_offset_matrix(current_arm_pos: list[list[float]], tag: list[list[floa
     current_arm_pos = numphy.matrix(current_arm_pos)
     tag = numphy.matrix(tag)
     offset = numphy.linalg.inv(tag)*current_arm_pos
-    offset[:3,:3] = current_arm_pos[:3, :3]
     return offset.tolist()
 
 if __name__ == "__main__": 

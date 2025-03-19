@@ -57,7 +57,7 @@ def goToTag(bot: Wafflebot, tagid:str, camera, pre_offset):
         target = abs_position_from_offset(tag_pos, offset)
 
         # plan a:
-        print(target)
+	Stashed changes
         bot.speed = 0.3
         bot.move(target, blocking=False)
         # plan b:
@@ -118,9 +118,7 @@ def main():
                 follow_tag(bot,tagid,camera_coordsys)
             case _:
                 print("invalid input. Try again.")
-    
 
-    
     # Close bot, close program:
     bot.safe_stop()
 

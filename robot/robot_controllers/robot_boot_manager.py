@@ -14,7 +14,6 @@ def robot_launch(use_real_robot):
   +' robot_model:=vx300s'
   +' hardware_type:=' + hardwaretype
   +' use_sim:=' + use_sim
-  +' use_rviz:=' +use_sim
   )
   
   process = Popen(["bash", "-c", command],

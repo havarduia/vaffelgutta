@@ -43,17 +43,19 @@ def show_camera(camera):
             break
 
 
-def goToTag(bot: Wafflebot, tagid:str, camera, visualizer: TFPublisher = None):
+def goToTag(bot: Wafflebot, tagid:str, camera, pre_offset):
     i = 0
     reader = Jsonreader()
-    while i<int(50/0.2):
+    while i<int(5/0.2):
         i+=1
         camera.start(25)
         tag_pos = reader.read("camera_readings")[tagid]
-        offset = reader.read("offsets")["copy_camera"]
+        if pre_offset is not None:
+            offset = pre_offset
+        else:
+            offset = reader.read("offsets")["copy_camera"]
         target = abs_position_from_offset(tag_pos, offset)
 
-        visualizer.broadcast_transform(target)
         # plan a:
         print(target)
         bot.speed = 0.3
@@ -64,6 +66,14 @@ def goToTag(bot: Wafflebot, tagid:str, camera, visualizer: TFPublisher = None):
         sleep(0.2)
     return
 
+def follow_tag(bot, tagid, camera):
+    offset =[
+    [1.0,0.0,0.0,0.0],
+    [0.0,1.0,0.0,0.0],
+    [0.0,0.0,1.0,0.05],
+    [0.0,0.0,0.0,1.0]
+    ]
+    goToTag(bot,tagid,camera, offset)
 
 def printmenu():
     print("Press 1 to record offset")
@@ -71,26 +81,17 @@ def printmenu():
     print("press 3 to set tag id")
     print("Press 4 to toggle arm torque")
     print("press 5 to exit")
-    print("press 6 to toggle rotation offset")
+    print("press 6 to follow the tag like a silly lil goose")
     return 
 
 def main():
-    # Init robot
-     
+    # Init robot  
     camera_display,throwaway2,camera_coordsys = init_camera()
-    
-    from multiprocessing import Process
 
-# Start the subprocess
-    process = Process(target=show_camera, args=(camera_display,), daemon=True)
-    process.start()
-
-    #Thread(target=show_camera,daemon=True, args=[camera_display] ).start()
-    sleep(3)
+    Thread(target=show_camera,daemon=True, args=[camera_display] ).start()
     bot = Wafflebot(use_real_robot=False, debug_print=True)    
     bot.arm.go_to_home_pose()
     pub = TFPublisher()
-    use_offset = True
     tagid = "25"
     torqed = True
     while True:
@@ -105,7 +106,7 @@ def main():
                 camera_coordsys.start(25) 
                 recordOffset(bot, tagid, pub)
             case 2:
-                goToTag(bot, tagid,camera_coordsys, pub)
+                goToTag(bot, tagid,camera_coordsys, None)
             case 3: 
                 tagid = str(input("Input new ID: "))
             case 4:
@@ -114,7 +115,7 @@ def main():
             case 5:
                 break
             case 6:
-                use_offset = not use_offset
+                follow_tag(bot,tagid,camera_coordsys)
             case _:
                 print("invalid input. Try again.")
     

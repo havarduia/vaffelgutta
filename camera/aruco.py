@@ -1,7 +1,7 @@
 from camera.realsense import Camera
 import cv2
 import numpy as numphy
-from camera.misc import print_blue, print_error, smooth_data as smooth, ConfigLoader
+from camera.Config.misc import print_blue, print_error, smooth_data as smooth, ConfigLoader
 class Aruco:
     def __init__(self, camera, config_loader):
         # Fetch the Camera instance from the registry.
@@ -63,7 +63,6 @@ class Aruco:
 
         camera_matrix, distcoeffs = self.camera.get_calibration()
         corners, ids = self._aruco_detection()
-
         if ids is None or len(corners) == 0:
             print_error("Marker not detected! 👺")
             return {}  # Return empty dictionary
@@ -81,14 +80,14 @@ class Aruco:
                 distcoeffs,
                 flags=cv2.SOLVEPNP_IPPE_SQUARE,
             )
-
+            
             if not success:
                 print_error(f"Pose estimation failed for tag {tag_id}.")
                 continue
 
             # rvec, tvec, _ = cv2.aruco.estimatePoseSingleMarkers(corner, marker_length, camera_matrix, distcoeffs)
             raw_poses.append((tag_id, rvec, tvec))
-
+        
         if raw_poses:
             tag_ids, rvecs, tvecs = zip(*raw_poses)
             rvecs = smooth(numphy.array(rvecs))
@@ -98,3 +97,4 @@ class Aruco:
                 T = self.get_homo_matrix(rvec, tvec)
                 transformations[tag_id] = T
         return transformations
+    

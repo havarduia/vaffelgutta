@@ -1,7 +1,7 @@
 import pyrealsense2 as rs
 import numpy as numphy
 numphy.set_printoptions(suppress=True, precision=4)
-from camera.misc import print_blue, print_error, ConfigLoader
+from camera.Config.misc import print_blue, print_error, ConfigLoader
 
 
 class Camera:

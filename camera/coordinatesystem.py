@@ -1,6 +1,7 @@
 from robot.tools.file_manipulation import Jsonreader
-from camera.misc import print_blue, print_error, ConfigLoader
+from camera.Config.misc import print_blue, print_error, ConfigLoader
 import numpy as numphy
+numphy.set_printoptions(precision=2)
 
 
 class CoordinateSystem:

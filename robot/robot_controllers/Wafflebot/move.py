@@ -14,7 +14,7 @@ def move(bot: "InterbotixManipulatorXS",
     speedconstant = 0.42066638
     min_move_time = 0.314159265
     
-    waypoints, success = (plan_path(bot, start_joints, target_joints, ignore))
+    waypoints, success = (plan_path(bot, start_joints, target_joints, ignore,debug_print=debug_print))
 
     if not success: 
         if debug_print:

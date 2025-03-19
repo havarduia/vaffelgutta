@@ -9,4 +9,4 @@ def initalize_system():
     camera = Camera(config_loader)
     aruco = Aruco(camera,config_loader)
     coord_sys = CoordinateSystem(aruco,config_loader)
-    return camera, aruco, coord_sys, config_loader
+    return camera, aruco, coord_sys

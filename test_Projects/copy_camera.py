@@ -57,8 +57,6 @@ def goToTag(bot: Wafflebot, tagid:str, camera, pre_offset):
         target = abs_position_from_offset(tag_pos, offset)
 
         # plan a:
-	Stashed changes
-        bot.speed = 0.3
         bot.move(target, blocking=False)
         # plan b:
         #bot.arm.set_ee_pose_matrix(target, blocking=False)
@@ -68,9 +66,9 @@ def goToTag(bot: Wafflebot, tagid:str, camera, pre_offset):
 
 def follow_tag(bot, tagid, camera):
     offset =[
-    [1.0,0.0,0.0,0.0],
+    [0.0,0.0,1.0,0.0],
     [0.0,1.0,0.0,0.0],
-    [0.0,0.0,1.0,0.05],
+    [-1.0,0.0,0.0,0.15],
     [0.0,0.0,0.0,1.0]
     ]
     goToTag(bot,tagid,camera, offset)

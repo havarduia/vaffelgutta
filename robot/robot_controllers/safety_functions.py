@@ -118,13 +118,14 @@ def fix_joint_limits(joints: list)->list:
     ind = 0
     for joint in joints:
         joint = _fix_single_joint(joint=joint, ind=ind)
-        if joint == False: return [False] # 0.0 represents error
+        if joint == False: return False # 0.0 represents error
         joints[ind] = joint
         ind+=1
     
     return joints 
 
-def check_collisions(pose: list, overrides: list = []):
+def check_collisions(pose: list, overrides: list = None):
+    if overrides is None: overrides = []
     update_robot_bounding_box(pose)
 
     reader = Jsonreader("robot/assets/boundingboxes/")
@@ -133,7 +134,7 @@ def check_collisions(pose: list, overrides: list = []):
 
     # Test for collision:
     for object_boxname, object_box in zip(boundingboxes.keys(),boundingboxes.values()):
-        if object_boxname in overrides: 
+        if object_boxname in overrides:
             continue
         for robot_boxname, robot_box in zip(robotboxes.keys(), robotboxes.values()):
             if _test_collision(robot_box, object_box): 

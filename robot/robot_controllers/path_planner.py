@@ -10,25 +10,18 @@ def calculate_biggest_joint(joints):
             biggest_joint = joint
     return biggest_joint
 
-
-
-def _eliminate_obvious_false_positions(bot, start, stop, ignore: list):    
-    """
-    ignore.append("floor")
+def test_endpoint(stop, ignore: list, debug_print):    
     
-    boom, botbox, itembox = check_collisions(bot, start,ignore)  
-    if boom: return f"invalid origin - {botbox} collides with {itembox}"
-    
-    boom, botbox, itembox = check_collisions(bot, stop, ignore)
-    if boom: return f"invalid endpoint - {botbox} collides with {itembox}"
-    """
-    return None
+    boom, botbox, itembox = check_collisions(stop, ignore)
+    if boom and debug_print:
+        print(f"invalid endpoint - {botbox} collides with {itembox}")
+    return boom
 
-def _list_sum(list_items, values):
+def list_sum(list_items, values):
     items = []
     # ensure list compatibility and check if the value is a single number    
     values = [values] if not isinstance(values, list) else values 
-    single_item = True if len(values) ==1 else False 
+    single_item = True if len(values) == 1 else False 
  
     count = len(list_items)
     for i in range(count):
@@ -37,11 +30,11 @@ def _list_sum(list_items, values):
         items.append(list_items[i]+values[i]) # <-- bread and butter of this whole operation chief
     return items
 
-def _list_multiply(list_items, values):
+def list_multiply(list_items, values):
     items = []
     # ensure list compatibility and check if the value is a single number    
     values = [values] if not isinstance(values, list) else values 
-    single_item = True if len(values) ==1 else False 
+    single_item = True if len(values) == 1 else False 
     
     count = len(list_items)
     for i in range(count):
@@ -50,7 +43,7 @@ def _list_multiply(list_items, values):
         items.append(list_items[i]*values[i]) # <-- bread and butter of this whole operation chief
     return items
 
-def _calculate_waypoint_count(joints, dt = 1e-1):
+def _calculate_waypoint_count(joints, dt = 0.1):
     T = 0
     biggest_joint = 0
     joint_count = len(joints)
@@ -65,8 +58,8 @@ def plan_path(
         bot: InterbotixManipulatorXS,
         start:list,
         stop:list,
-        ignore:list = [],
-        waypoints:list = [],
+        ignore:list = None,
+        waypoints:list = None,
         failed_attempts:int = 0,
         timeout: int = 0,
         debug_print: bool = False
@@ -81,34 +74,31 @@ def plan_path(
     :input waypoints: List of previously computed waypoints. used for recursive calls
     :input attempt: a way to 
     :Returns: 
-    list of waypoint positions if success,
-    [False] if failure 
+    list of waypoint positions (or None),
+    Bool success 
     """
     if timeout > 100:
         if debug_print:
             print("Path planner: timed out")
         return (None, False)
-    if not waypoints == []: #Dont test obvious positions twice
-        error = _eliminate_obvious_false_positions(bot, start, stop, ignore)
-        if not error == None:
-            if debug_print:
-                print("Path planner: This path is impossible")
-                print(f"Reason: {error}")
-            return (None, False)    
+    if ignore is None: ignore == []
+    if waypoints is None: 
+        waypoints = []
+    else:
+        error = test_endpoint(stop, ignore, debug_print)
+        if error: return (None, False)    
  
     minus_start = [-1*s for s in start]
-    joint_deltas = _list_sum(stop, minus_start)
+    joint_deltas = list_sum(stop, minus_start)
     waypoint_count = _calculate_waypoint_count(joint_deltas)
+    # If movement is very small, just gamble it.
     if waypoint_count == 0:
-        return ([start], True)
+        return ([stop], True)
     kaboom = 0
+    
     for dt in range(waypoint_count):
-        
-        #current_position = _list_sum(start, _list_multiply(joint_deltas, dt/waypoint_count))
-        next_position = _list_sum(start, _list_multiply(joint_deltas,((dt+1)/waypoint_count)))
-        
+        next_position = list_sum(start, list_multiply(joint_deltas,((dt+1)/waypoint_count)))
         (kaboom, robot_box, object_box) = check_collisions(next_position)
-
         if kaboom: 
             break
     
@@ -122,11 +112,11 @@ def plan_path(
             
             uprighter_position =[0,-0.2,-0.2,0,0,0]
 
-            position_attempt = _list_sum(start,uprighter_position)
+            position_attempt = list_sum(start,uprighter_position)
 
             plan = plan_path(bot, start, position_attempt, ignore, waypoints,1, timeout+1)
             if plan[1] == False:
-                return[None, False]
+                return None, False
             else: 
                 waypoints.append(plan[0][len(plan[0])-1])
 
@@ -138,7 +128,7 @@ def plan_path(
             position_attempt[waist_index] = waist_angle
             plan = plan_path(bot, start,position_attempt,ignore, waypoints, 2, timeout+1)
             if plan[1] == False:
-                return [None,False]
+                return None,False
             else: 
                 waypoints.append(plan[0][len(plan[0])-1])
         elif failed_attempts == 2:
@@ -149,7 +139,7 @@ def plan_path(
             position_attempt[waist_index] = waist_angle
             plan = plan_path(bot,start,position_attempt,ignore, waypoints, 3, timeout+1)
             if plan[1] == False:
-                return [None, False]
+                return None, False
             else:
                 waypoints.append(plan[0][len(plan[0])-1])
 

@@ -4,7 +4,6 @@ from robot.robot_controllers.safety_functions import fix_joint_limits
 import numpy as numphy
 from typing import Callable
 
-
 def get_current_joints(bot: "InterbotixManipulatorXS") -> list[list[float]]:
     sleep(0.03) # give some time for the joints to settle 
     bot.arm.capture_joint_positions()
@@ -25,13 +24,13 @@ def template_try_movement(bot: "InterbotixManipulatorXS", target: list, guess: l
         T_sd=target,
         custom_guess= guess,
         execute=False)
-    
-    joint_targets = fix_joint_limits(joint_targets)
-    success = (joint_targets[0] == False)
+    if success:
+        joint_targets = fix_joint_limits(joint_targets)
+        success = joint_targets is not False
     return (joint_targets, success)
 
 def make_try_movement(bot: "InterbotixManipulatorXS", target: list):
-   return partial(template_try_movement(bot, target))
+   return partial(template_try_movement, bot, target)
 
 def double_twister_fix(joints: list, try_movement: Callable):
         """
@@ -66,23 +65,25 @@ def shoulder_bender_fix(joints: list, debug_print: bool,try_movement: Callable):
                 print(f"to:\n{temp_joints[0]}\n{temp_joints[1]}\n{temp_joints[2]}")
         return try_movement(temp_joints)
     
-
 def refine_guess(bot: "InterbotixManipulatorXS",
-                target: list[list[str]],
+                target: list[list[float]],
                 debug_print:bool
                 ) -> tuple[list[str] | None, bool]:        
 
         try_movement: Callable = make_try_movement(bot, target)
         current_pose = get_current_joints(bot)
+
         # Try using current position as seed for target joints. Else retry with vanilla guesses
         (temp_joints, success) =  try_movement(guess=current_pose)
         if not success:
-            (temp_joints, success) = try_movement(guess=target)
+            (temp_joints, success) = try_movement()
+
         # error checking
         if errorchecking(success, 1, debug_print):
             target_joints = temp_joints.copy()
         else:
             return (None, False)
+
         (temp_joints, success) = double_twister_fix(target_joints, try_movement)
         if errorchecking(success, 2, debug_print):
             target_joints = temp_joints.copy()

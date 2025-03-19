@@ -30,6 +30,6 @@ class CurrentState:
 
     def set(self, new_state: State) -> None:
         self.state = new_state
-
+        
     def get(self) -> State:
         return self.state

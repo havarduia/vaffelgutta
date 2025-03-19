@@ -1,7 +1,7 @@
 # Change the working directory to the base directory
 import directory_fixer
 directory_fixer.fix_directiory()
-from robot.robot_controllers.Wafflebot import Wafflebot
+from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
 from robot.tools.errorhandling import handle_error
 from time import sleep, time_ns
 from robot.tools.file_manipulation import Jsonreader
@@ -55,7 +55,9 @@ def goToTag(bot: Wafflebot, tagid:str, camera, visualizer: TFPublisher = None):
 
         visualizer.broadcast_transform(target)
         # plan a:
-        bot.move(target, speed_scaling=1.0, blocking=False)
+        print(target)
+        bot.speed = 0.3
+        bot.move(target, blocking=False)
         # plan b:
         #bot.arm.set_ee_pose_matrix(target, blocking=False)
         print("Moving robot")
@@ -76,7 +78,14 @@ def main():
     # Init robot
      
     camera_display,throwaway2,camera_coordsys = init_camera()
-    Thread(target=show_camera,daemon=True, args=[camera_display] ).start()
+    
+    from multiprocessing import Process
+
+# Start the subprocess
+    process = Process(target=show_camera, args=(camera_display,), daemon=True)
+    process.start()
+
+    #Thread(target=show_camera,daemon=True, args=[camera_display] ).start()
     sleep(3)
     bot = Wafflebot(use_real_robot=False, debug_print=True)    
     bot.arm.go_to_home_pose()

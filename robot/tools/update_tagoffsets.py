@@ -10,47 +10,6 @@ from robot.tools.file_manipulation import Jsonreader
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 import numpy as numphy
 
-def read_single_offset(name:str):
-    """
-    Returns the specified offset matrix
-    """
-    reader = Jsonreader()
-    offsets = reader.read("offsets")
-    try:
-        return offsets[name]
-    except KeyError:
-        print(f"{name} not found in offsets")
-        return False
-
-    
-def abs_position_from_offset(reference_tag, offset):
-    #reference tag and offset are 4x4 matrices expressed as list of list
-    tag     = numphy.matrix(reference_tag)
-    offset  = numphy.matrix(offset)
-    out_matrix = tag * offset # initialize rotation, but xyz is off
-
-    return out_matrix.tolist()
-
-    # Naming convention: o-ffset, t-ag, a-bsolute pos 
-    #compute x-y-z 
-    (xt,yt,zt) = [tag   [i,3]   for i in range(3)]
-    (xo,yo,zo) = [offset[i,3]   for i in range(3)]
-    (dx,dy,dz) = [out_matrix[:3,i].tolist() for i in range(3)]
-
-
-    # compute absolute position:
-    x,y,z = [(
-              xo*dx[i][0]
-            + yo*dy[i][0] 
-            + zo*dz[i][0]
-            )for i in range(3)]
-    x+=xt;  y+=yt;  z+=zt 
-    # Collect the terms into a single output matrix
-    out_matrix[0,3] = x
-    out_matrix[1,3] = y
-    out_matrix[2,3] = z
-  
-    return out_matrix.tolist() 
 
 def create_offset_matrix(current_arm_pos: list[list[float]], tag: list[list[float]])->list[list[float]]:
     """
@@ -61,7 +20,19 @@ def create_offset_matrix(current_arm_pos: list[list[float]], tag: list[list[floa
     offset = numphy.linalg.inv(tag)*current_arm_pos
     return offset.tolist()
 
+
+def abs_position_from_offset(reference_tag, offset):
+    #reference tag and offset are 4x4 matrices expressed as list of list
+    tag     = numphy.matrix(reference_tag)
+    offset  = numphy.matrix(offset)
+    out_matrix = tag * offset # initialize rotation, but xyz is off
+
+    return out_matrix.tolist()
+
+
+
 if __name__ == "__main__": 
+    # test script:
     tag = ([
     [ 0.9638844,  -0.26469881, -0.02934978,  0.30423656],
     [ 0.26467165,  0.96432626, -0.00487716, -0.22009233],

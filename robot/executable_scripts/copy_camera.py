@@ -112,7 +112,7 @@ def main():
                 record_time(f"move_start_{movement_number}")
                 goToTag(bot, tagid,camera_coordsys, None)
                 record_time(f"move_end_{movement_number}")
-                
+                read_times()
                 movement_number +=1
             case 3: 
                 tagid = str(input("Input new ID: "))
@@ -122,10 +122,13 @@ def main():
             case 5:
                 break
             case 6:
+                os.system("clear")
+                record_time("start")
                 record_time(f"move_start_{movement_number}")
                 follow_tag(bot,tagid,camera_coordsys)
                 record_time(f"move_end_{movement_number}")
                 movement_number +=1
+                read_times()
             case _:
                 print("invalid input. Try again.")
 

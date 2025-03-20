@@ -101,6 +101,7 @@ def print_line(line_items: list[str], wordlength: int):
 
 def table_print(text_items: list[str], words_per_line: int = 3, skip_sort: bool = False):
     """function to print a list of items as a pretty princess table"""
+    text_items = [str(item) for item in text_items]
     if not skip_sort:
         text_items.sort()
     line_length: int = 70
@@ -126,7 +127,4 @@ def table_print(text_items: list[str], words_per_line: int = 3, skip_sort: bool 
     print("-"*(line_length))
 
 if __name__ == "__main__":
-
-    reader = Jsonreader()
-    reader.write("test",{25: [2,4], "25": [2,5]})
-    reader.read("test")
+    pass 

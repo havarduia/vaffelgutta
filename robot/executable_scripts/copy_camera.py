@@ -1,16 +1,15 @@
-# Change the working directory to the base directory
-import directory_fixer
-directory_fixer.fix_directiory()
 from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
 from robot.tools.errorhandling import handle_error
-from time import sleep, time_ns
+from time import sleep
 from robot.tools.file_manipulation import Jsonreader
 from robot.tools.visualizers.tf_publisher import TFPublisher
 from robot.tools.update_tagoffsets import create_offset_matrix, abs_position_from_offset
-import numpy as numphy
 from camera.init_camera import initalize_system as init_camera
 from threading import Thread
 import cv2
+from robot.tools.timekeeper import record_time, read_times
+import os
+
 
 def get_aruco_pose(id: str):
     reader = Jsonreader()
@@ -48,7 +47,9 @@ def goToTag(bot: Wafflebot, tagid:str, camera, pre_offset):
     reader = Jsonreader()
     while i<int(5/0.2):
         i+=1
+        record_time("(buffer)")
         camera.start(25)
+        record_time(f"camera_frame_no_{i}")
         tag_pos = reader.read("camera_readings")[tagid]
         if pre_offset is not None:
             offset = pre_offset
@@ -58,6 +59,7 @@ def goToTag(bot: Wafflebot, tagid:str, camera, pre_offset):
 
         # plan a:
         bot.move(target, blocking=False)
+        record_time(f"robot_frame_no_{i}")
         # plan b:
         #bot.arm.set_ee_pose_matrix(target, blocking=False)
         print("Moving robot")
@@ -92,6 +94,7 @@ def main():
     pub = TFPublisher()
     tagid = "25"
     torqed = True
+    movement_number = 1
     while True:
         printmenu()
         choice = input("Input: ")
@@ -104,7 +107,13 @@ def main():
                 camera_coordsys.start(25) 
                 recordOffset(bot, tagid, pub)
             case 2:
+                os.system("clear")
+                record_time("start")
+                record_time(f"move_start_{movement_number}")
                 goToTag(bot, tagid,camera_coordsys, None)
+                record_time(f"move_end_{movement_number}")
+                
+                movement_number +=1
             case 3: 
                 tagid = str(input("Input new ID: "))
             case 4:
@@ -113,7 +122,10 @@ def main():
             case 5:
                 break
             case 6:
+                record_time(f"move_start_{movement_number}")
                 follow_tag(bot,tagid,camera_coordsys)
+                record_time(f"move_end_{movement_number}")
+                movement_number +=1
             case _:
                 print("invalid input. Try again.")
 

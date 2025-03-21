@@ -3,11 +3,14 @@ from functools import partial
 from robot.robot_controllers.safety_functions import fix_joint_limits
 import numpy as numphy
 from typing import Callable
+from modern_robotics import IKinSpace
+from multiprocessing import Process, Manager, Queue
+from copy import deepcopy
+
 
 def get_current_joints(bot: "InterbotixManipulatorXS") -> list[list[float]]:
     sleep(0.03) # give some time for the joints to settle 
     bot.arm.capture_joint_positions()
-    sleep(0.03) # give some time for the joints to settle 
     current_pose = bot.arm.get_joint_positions()
     return current_pose 
 
@@ -19,15 +22,42 @@ def errorchecking(success: bool, attempt: int, debug: bool) -> bool:
             print(f"Wafflebot errorchecking: attempt {attempt} failed.")
         return False
 
-def template_try_movement(bot: "InterbotixManipulatorXS", target: list, guess: list = None):    
-    joint_targets, success = bot.arm.set_ee_pose_matrix(
-        T_sd=target,
-        custom_guess= guess,
-        execute=False)
-    if success:
-        joint_targets = fix_joint_limits(joint_targets)
-        success = joint_targets is not False
-    return (joint_targets, success)
+def movement_proc_caller(q: Queue, bot: "InterbotixManipulatorXS", target_pose: list, guess: list = None):
+        result = IKinSpace(
+            bot.arm.robot_des.Slist,
+            bot.arm.robot_des.M,
+            target_pose,
+            guess,
+            0.001,
+            0.001
+            )
+        q.put(result)
+        return
+        
+
+def template_try_movement(bot: "InterbotixManipulatorXS", target_pose: list, guess: list = None):    
+    guesses = deepcopy(bot.arm.initial_guesses)
+    if guess is not None:
+        guesses.append(guess)
+    results = []
+    q = Queue(len(guesses))
+    for i in range(len(guesses)):
+        try:
+            proc = Process(target=movement_proc_caller,args=(q,bot,target_pose,guess))    
+            proc.start()
+            results.append(q.get(timeout=1))
+        except TimeoutError:
+             proc.close()
+
+    proc.join()
+    q.close()
+
+    for joints, success in results:#[r for r in results]:
+        if success:
+            joint_targets = fix_joint_limits(joints)
+            if joint_targets is not False:
+                return (joint_targets, True)
+    return (None, False)
 
 def make_try_movement(bot: "InterbotixManipulatorXS", target: list):
    return partial(template_try_movement, bot, target)
@@ -75,9 +105,7 @@ def refine_guess(bot: "InterbotixManipulatorXS",
 
         # Try using current position as seed for target joints. Else retry with vanilla guesses
         (temp_joints, success) =  try_movement(guess=current_pose)
-        if not success:
-            (temp_joints, success) = try_movement()
-
+        
         # error checking
         if errorchecking(success, 1, debug_print):
             target_joints = temp_joints.copy()

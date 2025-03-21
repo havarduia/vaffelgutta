@@ -62,3 +62,4 @@ cd build
 cmake ../ -DFORCE_RSUSB_BACKEND=true -DBUILD_PYTHON_BINDINGS:bool=true -DPYTHON_EXECUTABLE=$(which python3)
 make -j$(nproc)
 sudo make install -j$(nproc)
+echo "Remember to reboot."

@@ -151,7 +151,7 @@ def plan_path(
             
         if waypoints[1] == True:
             # continue path planning from the new start point
-            plan_path(bot, waypoints[len(waypoints)-1],stop,ignore,waypoints,0, timeout+1)
+            plan_path(bot, waypoints[len(waypoints)-1],stop,ignore,waypoints,failed_attempts, timeout+1)
     else:
         waypoints.append(next_position)   
   

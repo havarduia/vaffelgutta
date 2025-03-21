@@ -1,11 +1,11 @@
 camera_id: "031422250347"
 resolution: [1280, 720]
 fps: 30
-marker_length: 0.048
+marker_length: 0.05
 origin_id: 0
-offset_x: -0.18
-offset_y: -0.18
-offset_z: 0.03
-bias_x: 0
-bias_y: 0
-bias_z: 0
+offset_x: 0.00
+offset_y: 0.00
+offset_z: 0.00
+bias_x: -0.01
+bias_y: -0.0085
+bias_z: -0.015

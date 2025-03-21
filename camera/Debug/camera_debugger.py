@@ -5,7 +5,8 @@ import os
 import tkinter as tk
 from tkinter import messagebox
 from camera.init_camera import initalize_system
-np.set_printoptions(precision=2)
+from camera.Config.misc import print_blue, print_error
+import numpy as numphy
 import time
 class ArucoDebugger:
     def __init__(self, aruco, coord_sys):
@@ -64,16 +65,14 @@ class ArucoDebugger:
     
 
     def debug_pose_estimation(self):
-        while True:
-            # Clear the terminal before printing the new transformation
-            os.system("cls" if os.name == "nt" else "clear")
-
-            transformation = self.coord_sys.transformation_origin_to_tag()
-            print("Transformation Matrix:\n", transformation)
-
-            # Allow exit with ESC key
-            if cv2.waitKey(1) & 0xFF == 27:  
-                break
+        try:
+            while True: 
+                tags = coord_sys.transformation_origin_to_tag()
+                for tag, T in tags.items():
+                    print_blue(f"Tag ID: {tag} Transformation: \n{numphy.array(T)}\n")
+        except KeyboardInterrupt:
+            print_error("\nProcess interrupted by user. Exiting gracefully.")
+            
 
 
 def create_gui(debugger):
@@ -91,6 +90,6 @@ def create_gui(debugger):
     root.mainloop()
 
 if __name__ == "__main__":
-    camera, aruco, coord_sys, config_loader = initalize_system()
+    camera, aruco, coord_sys = initalize_system()
     debugger = ArucoDebugger(aruco, coord_sys)
     create_gui(debugger)

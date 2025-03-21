@@ -5,8 +5,10 @@ import numpy as numphy
 from typing import Callable
 from modern_robotics import IKinSpace
 from multiprocessing import Process, Manager, Queue
+from robot.tools.timekeeper import read_times, record_time
 from copy import deepcopy
-
+from random import random
+from time import time_ns
 
 def get_current_joints(bot: "InterbotixManipulatorXS") -> list[list[float]]:
     sleep(0.03) # give some time for the joints to settle 
@@ -48,7 +50,6 @@ def template_try_movement(bot: "InterbotixManipulatorXS", target_pose: list, gue
             results.append(q.get(timeout=1))
         except TimeoutError:
              proc.close()
-
     proc.join()
     q.close()
 
@@ -99,31 +100,38 @@ def refine_guess(bot: "InterbotixManipulatorXS",
                 target: list[list[float]],
                 debug_print:bool
                 ) -> tuple[list[str] | None, bool]:        
+        record_time("start")
 
         try_movement: Callable = make_try_movement(bot, target)
         current_pose = get_current_joints(bot)
 
         # Try using current position as seed for target joints. Else retry with vanilla guesses
         (temp_joints, success) =  try_movement(guess=current_pose)
+        record_time(f"move1")
         
         # error checking
         if errorchecking(success, 1, debug_print):
             target_joints = temp_joints.copy()
         else:
+            record_time("error")
+            read_times()
             return (None, False)
-
+        """
         (temp_joints, success) = double_twister_fix(target_joints, try_movement)
         if errorchecking(success, 2, debug_print):
             target_joints = temp_joints.copy()
-
+        """
         (temp_joints, success) = shoulder_bender_fix(target_joints, debug_print, try_movement)
         if errorchecking(success, 3, debug_print):
             target_joints = temp_joints.copy()
+            record_time(f"move2")
         
         (temp_joints, success) = double_twister_fix(target_joints, try_movement)
         if errorchecking(success, 4, debug_print):
             target_joints = temp_joints.copy()
-        
+            record_time(f"move3")
+        record_time("finish")
+        read_times()        
         return target_joints, True
 
 # Enable type hinting:

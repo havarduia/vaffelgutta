@@ -3,6 +3,8 @@ from robot.robot_controllers import robot_boot_manager
 from interbotix_common_modules.common_robot.robot import robot_startup, robot_shutdown
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from rclpy import ok as rclpyok
+from robot.tools.timekeeper import read_times, record_time
+
 class Wafflebot:
     def __init__(self, use_real_robot : bool = False, debug_print: bool = False):
         # Include launch arguments 
@@ -57,7 +59,6 @@ class Wafflebot:
             target = interpret_target_command.refine_guess(
                 self.bot, target, self.debug_print
                 ) 
-
         return target
 
     
@@ -65,27 +66,37 @@ class Wafflebot:
         if rclpyok():
             robot_shutdown()  
             robot_boot_manager.robot_close()    
+
     
     def safe_stop(self, slow = False):
         safe_stop.safe_stop(self.bot, slow)
         self.exit()
 
+
     def move(self, target, ignore = None, blocking=True, file = None) -> bool:
         if ignore is None: ignore = []
+        record_time("move_entered") 
         target_joints, return_type = interpret_target_command.interpret_target_command(
             target, file, self.debug_print
         )
+        record_time("interpret_target_command")
         if return_type == 1:
             target_joints, return_type = pose_to_joints.refine_guess(
                 self.bot, target_joints, self.debug_print
                 )
+            record_time("refine_guess")
         if return_type == 0:
             if self.debug_print:
                 print("Wafflebot: Invalid movement detected")
+            record_time("movement_failed")
             return False
+        
         move.move(
             self.bot, target_joints,ignore,blocking,self.speed,self.debug_print
             )
+        record_time("move_command")
+        return None
+    
 
     def launch_emergency_stop_monitor(self):
         emergency_stop.run_emergency_stop_monitor(self.safe_stop)

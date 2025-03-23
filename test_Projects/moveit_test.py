@@ -31,6 +31,8 @@ def launch_moveit_interface():
         "interbotix_xsarm_moveit_interface",
         "xsarm_moveit_interface.launch.py",
         "robot_model:=vx300s",
+        "hardware_type:=fake",
+        "use_sim:=true"
     ]
     process = subprocess.Popen(command)
     # Wait a few seconds for the interface to initialize.

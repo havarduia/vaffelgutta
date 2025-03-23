@@ -9,11 +9,13 @@ def robot_launch(use_real_robot):
   hardwaretype = "actual" if use_real_robot else "fake"
   use_sim = "true" if (not use_real_robot) else "false"
   
-  command = ('ros2 launch interbotix_xsarm_control'
-  +' xsarm_control.launch.py'
+  command = ('ros2 launch'
+  +' interbotix_xsarm_moveit'
+  +' xsarm_moveit.launch.py'
   +' robot_model:=vx300s'
   +' hardware_type:=' + hardwaretype
   +' use_sim:=' + use_sim
+  +' use_moveit_rviz:=false'
   )
   
   process = Popen(["bash", "-c", command],
@@ -22,7 +24,7 @@ def robot_launch(use_real_robot):
   global boot_manager_pid; boot_manager_pid = process.pid
   sleep(0.5)  
   print("Boot Manager: Process started with pid: " + str(process.pid))
-  return()
+  return process  
 
 def robot_close():
     try:

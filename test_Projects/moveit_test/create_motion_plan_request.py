@@ -9,8 +9,11 @@ def create_motion_plan_request(start_state, goal_state) -> GetMotionPlan.Request
     request.motion_plan_request.group_name = "interbotix_arm"
     request.motion_plan_request.num_planning_attempts = 10
     request.motion_plan_request.allowed_planning_time = 5.0
+    request.motion_plan_request.max_acceleration_scaling_factor = 0.1
+    request.motion_plan_request.max_velocity_scaling_factor = 0.1
     # Create robot start state
     request.motion_plan_request.start_state = create_robot_state_from_joint_states(start_state)
     # Create goal constraints
     goal_constraints = create_pose_goal_constraints(goal_state)
     request.motion_plan_request.goal_constraints = [goal_constraints]
+    return request

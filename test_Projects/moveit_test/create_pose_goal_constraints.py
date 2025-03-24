@@ -39,7 +39,7 @@ def get_positionconstraint(pose_goal: PoseStamped) -> PositionConstraint:
 
     return pos_constraint
 
-def create_orientation_constraint(pose_goal: PoseStamped) ->OrientationConstraint
+def create_orientation_constraint(pose_goal: PoseStamped) ->OrientationConstraint:
     # Create an orientation constraint.
     ori_constraint = OrientationConstraint()
     ori_constraint.header = pose_goal.header

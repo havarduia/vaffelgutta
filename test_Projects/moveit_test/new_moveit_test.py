@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import asyncio
 from time import sleep
+import rclpy.subscription
 from robot.robot_controllers.robot_boot_manager import robot_launch, robot_close
 from robot.tools.errorhandling import handle_error
 #Håvard:
@@ -28,34 +29,41 @@ from geometry_msgs.msg import PoseStamped
 from shape_msgs.msg import SolidPrimitive
 import tf_transformations
 
+
 class MotionPlanner(Node):
-    def __init__(self, bot: "InterbotixManipulatorXS", interbotix_moveit_process):
+    def __init__(self, interbotix_moveit_process):
         #name node:
         super().__init__('vx300s_motion_planner')
         # Store Process of interbotix (TODO add this feature to wafflebot)
         self.interbotix_moveit_process = interbotix_moveit_process
         self.group_name = "interbotix_arm"
-        self.bot = bot
         # Create ros clients
         self.planning_client = self.create_client(GetMotionPlan, '/plan_kinematic_path')
         self.exec_action_client = rclpy.action.ActionClient(
             self, FollowJointTrajectory, '/vx300s/arm_controller/follow_joint_trajectory'
         )
+        #self.joint_states = self.create_subscription(msg_type= topic="/vx300s/")
+
         # Check if clients have loaded successfully
-        if not self.planning_client.wait_for_service(timeout_sec=1.0):
+        if not self.planning_client.wait_for_service(timeout_sec=10.0):
             raise RuntimeError ("Planning service would not load. Please restart. If problem persists, please reboot.")
-        if not self.exec_action_client.wait_for_server(timeout_sec=1.0):
+        if not self.exec_action_client.wait_for_server(timeout_sec=10.0):
             raise RuntimeError ("Execution service would not load. Please restart. If problem persists, please reboot.")
 
         self.target_pose_matrix = None
         self.moving = False
-        
-    def move(self, target): 
+    
+    def get_joint_states(self):
+        pass
+    
+    def move(self, start_state: list[float], target: list[list[float]]): 
         if self.moving:
             print("already moving")
-            return False
-        start_state = self.bot.arm.get_joint_positions()
+            return False        
+        self.moving = True
         self.planning_request(start_state, target)
+        while self.moving:
+            rclpy.spin_once(self)
 
     def planning_request(self, start_state, goal_state):
         mp_request = create_motion_plan_request(start_state, goal_state) 
@@ -63,27 +71,26 @@ class MotionPlanner(Node):
         motionplan_future.add_done_callback(self.planning_callback)
 
     def planning_callback(self, future):
-        if not self.moving:
-            try:
-                response = future.result()
-                if response.motion_plan_response.error_code.val == 1: # Error code 1 means success. Anything else is a failure
-                    target_trajectory = response.motion_plan_response.trajectory.joint_trajectory
-                    self.execute_trajectory_request(target_trajectory)
-                    return True
-                else:
-                    return False
-            except Exception as e:
-                print("Motion planner broke UwU")
-                print(e.with_traceback())
-                return "Motion planner broke UwU" 
-        else:
-            print("Bruh moveit")
+        try:
+            response = future.result()
+            if response.motion_plan_response.error_code.val == 1: # Error code 1 means success. Anything else is a failure
+                target_trajectory = response.motion_plan_response.trajectory.joint_trajectory
+                self.execute_trajectory_request(target_trajectory)
+                return True
+            else:
+                self.moving = False
+                return False
+        except Exception as e:
+            self.moving = False
+            print("Motion planner broke UwU")
+            print(e.with_traceback())
+            return "Motion planner broke UwU" 
+    
 
     def execute_trajectory_request(self, trajectory: JointTrajectory):
         # Sends ROS request to execute the planned trajectory
         goal_msg = FollowJointTrajectory.Goal()
         goal_msg.trajectory = trajectory
-        self.moving = True
         send_goal_future = self.exec_action_client.send_goal_async(goal_msg)
         send_goal_future.add_done_callback(self.execute_trajectory_callback)
 
@@ -96,6 +103,7 @@ class MotionPlanner(Node):
                 return False
             goal_handle.get_result_async().add_done_callback(self.trajectory_finished_callback)
         except Exception as e:
+            self.moving = False
             print(e.with_traceback())
             return "Motion planner broke UwU" 
             
@@ -105,13 +113,16 @@ class MotionPlanner(Node):
             self.moving = False
             return True
         except Exception as e:
+            self.moving = False
             print(f"Execution result failed: {e}")
     
+    def __del__(self):
+        self.shutdown_node()
 
     def shutdown_node(self):
         # Terminate the MoveIt interface process if it's still running.
-        if self.moveit_process.poll() is None:
-            self.moveit_process.terminate()
+        if self.interbotix_moveit_process.poll() is None:
+            self.interbotix_moveit_process.terminate()
         self.destroy_node()
 
 

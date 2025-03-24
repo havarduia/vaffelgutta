@@ -25,7 +25,8 @@ def main():
     sleep(2)
 
     motionplanner = MotionPlanner(interbotix_moveit_process)
- 
+    motionplanner.move(0,1)
+    return
     reader = Jsonreader()
     poses = reader.read("recordings")
     #motionplanner.move(bot.arm.get_joint_positions(), homepose)

@@ -8,6 +8,7 @@ Consider this a quick fix to avoid rebooting the PC
 import psutil
 import os
 from signal import SIGTERM as killsig
+from time import sleep
 
 def return_this_script_pid():
     return 
@@ -37,16 +38,15 @@ def main():
         "gzclient",
         "gzserver",
         "gazebo",
-        "python3",
-        "robot_state_publisher",
         "ros2",
         "xs_sdk",
-        "realsense2_camera_node"
+        "realsense2_camera_node",
+        "robot_state_publisher",
+        "python3",
     ]
     for proc in processes:
         print(f"Killing {proc}")
         kill_processes_by_name(proc, killsig)
-    print("finished")
     return
 
 

@@ -27,6 +27,9 @@ def main():
     try:  
         robot_startup()
         bot.arm.go_to_home_pose()
+        bot.arm.set_single_joint_position("shoulder", -0.3)
+        sleep(2)
+        return
         bot.arm.set_ee_cartesian_trajectory(x = 0.1)
         sleep(0.5)
         bot.arm.set_ee_cartesian_trajectory(y = 0.1)

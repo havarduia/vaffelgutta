@@ -42,25 +42,31 @@ class MotionPlanner(Node):
         self.exec_action_client = rclpy.action.ActionClient(
             self, FollowJointTrajectory, '/vx300s/arm_controller/follow_joint_trajectory'
         )
-        #self.joint_states = self.create_subscription(msg_type= topic="/vx300s/")
-
+        self.joint_state_subscriber = self.create_subscription(
+            JointState, "/vx300s/joint_states", self.update_joint_state, 10
+            )
+        self.joint_state = None
         # Check if clients have loaded successfully
         if not self.planning_client.wait_for_service(timeout_sec=10.0):
             raise RuntimeError ("Planning service would not load. Please restart. If problem persists, please reboot.")
         if not self.exec_action_client.wait_for_server(timeout_sec=10.0):
             raise RuntimeError ("Execution service would not load. Please restart. If problem persists, please reboot.")
-
+        
         self.target_pose_matrix = None
         self.moving = False
     
-    def get_joint_states(self):
-        pass
+    def update_joint_state(self, future: rclpy.Future):
+        self.joint_state = future.result()
+        print(self.joint_state)    
     
     def move(self, start_state: list[float], target: list[list[float]]): 
         if self.moving:
             print("already moving")
             return False        
+        print(self.joint_state_subscriber)
+        return
         self.moving = True
+        #start_state = self.joint_state_subscriber.
         self.planning_request(start_state, target)
         while self.moving:
             rclpy.spin_once(self)

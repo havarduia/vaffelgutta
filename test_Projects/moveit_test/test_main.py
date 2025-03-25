@@ -27,6 +27,7 @@ def main():
     motionplanner = MotionPlanner(interbotix_moveit_process)
     reader = Jsonreader()
     poses = reader.read("recordings")
+    sleep(2)
     motionplanner.move(homepose)
 
     motionplanner.move(poses["hagle"]["matrix"])

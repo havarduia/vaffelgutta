@@ -25,19 +25,14 @@ def main():
     sleep(2)
 
     motionplanner = MotionPlanner(interbotix_moveit_process)
-    motionplanner.move(0,1)
-    return
     reader = Jsonreader()
     poses = reader.read("recordings")
-    #motionplanner.move(bot.arm.get_joint_positions(), homepose)
-    sleep(2)
-    bot.arm.capture_joint_positions()
-    print(bot.arm.get_joint_positions())
-    print(bot.arm.get_joint_commands())
-    
+    motionplanner.move(homepose)
 
-   # motionplanner.move(bot.arm.get_joint_commands(),poses["hagle"]["matrix"])
-    sleep(30)
+    motionplanner.move(poses["hagle"]["matrix"])
+    for i in range(10):
+        print(f"imma kill myself in {11-i}")
+        sleep(1)
        
     motionplanner.destroy_node()
     robot_close()

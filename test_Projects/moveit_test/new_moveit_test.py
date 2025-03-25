@@ -45,28 +45,28 @@ class MotionPlanner(Node):
         self.joint_state_subscriber = self.create_subscription(
             JointState, "/vx300s/joint_states", self.update_joint_state, 10
             )
-        self.joint_state = None
         # Check if clients have loaded successfully
         if not self.planning_client.wait_for_service(timeout_sec=10.0):
             raise RuntimeError ("Planning service would not load. Please restart. If problem persists, please reboot.")
         if not self.exec_action_client.wait_for_server(timeout_sec=10.0):
             raise RuntimeError ("Execution service would not load. Please restart. If problem persists, please reboot.")
         
-        self.target_pose_matrix = None
         self.moving = False
+        self.target_pose_matrix = None
+        self.joint_states = None
+        self.gripper_state = None
+   
+    def update_joint_state(self, joint_states: JointState):
+        self.joint_states = list(joint_states.position)[:6]
+        self.gripper_state = list(joint_states.position)[-1]
     
-    def update_joint_state(self, future: rclpy.Future):
-        self.joint_state = future.result()
-        print(self.joint_state)    
-    
-    def move(self, start_state: list[float], target: list[list[float]]): 
+    def move(self, target: list[list[float]]): 
         if self.moving:
             print("already moving")
             return False        
-        print(self.joint_state_subscriber)
-        return
         self.moving = True
-        #start_state = self.joint_state_subscriber.
+        rclpy.spin_once(self) # update joint state subscriber
+        start_state = self.joint_states
         self.planning_request(start_state, target)
         while self.moving:
             rclpy.spin_once(self)
@@ -162,3 +162,5 @@ if __name__ == "__main__":
     finally:
         if rclpy.ok():
             robot_close()
+
+

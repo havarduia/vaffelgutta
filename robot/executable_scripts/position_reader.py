@@ -49,7 +49,7 @@ def playposition(bot: Wafflebot, data_type: Literal["joints", "matrix"]):
         print(f"Going to {name}")
         position = data[name][data_type]
         if data_type == "matrix":
-            bot.move(position,file="recordings")
+            bot.move_old(position,file="recordings")
         elif data_type == "joints":
             bot.arm.set_joint_positions(position)
         sleep(1)

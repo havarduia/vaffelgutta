@@ -62,19 +62,19 @@ def place_cup_at_filling_station(bot: Wafflebot, is_holding_cup : bool) -> bool:
             print ("robot_movements/batter.py:\nfunction to test upright cup not made yet. Assuming success.")
             
         bot.gripper.release()
-        bot.move(cup_pos, ["cup", "filling_station", "waffle_iron"])
+        bot.move_old(cup_pos, ["cup", "filling_station", "waffle_iron"])
         bot.gripper.grasp()
     
-        bot.move(cam_pos,["cup", "filling_station"])
+        bot.move_old(cam_pos,["cup", "filling_station"])
         if not _check_if_holding_cup():
             raise Exception("Bot failed to grasp the cup.\nMANUAL INTERVENTION NEEDED!!")
             return False
         return True
     
-    bot.move(front_of_filling_station_pos, ["cup"])
-    bot.move(filling_station_pos, ["cup", "filling_station"])
+    bot.move_old(front_of_filling_station_pos, ["cup"])
+    bot.move_old(filling_station_pos, ["cup", "filling_station"])
     bot.gripper.release()
-    bot.move(front_of_filling_station_pos, ["cup", "filling_station"])
+    bot.move_old(front_of_filling_station_pos, ["cup", "filling_station"])
     return True
 
 def fill_cup(bot: Wafflebot) -> bool:
@@ -110,10 +110,10 @@ def pick_up_cup_from_filling_station(bot: Wafflebot) -> bool:
     front_of_filling_station_pos    = filling_station_origin * front_of_filling_station_offset
 
     bot.gripper.release() 
-    bot.move(cup_pos, ["cup", "filling_station"])
+    bot.move_old(cup_pos, ["cup", "filling_station"])
     bot.gripper.grasp()
-    bot.move(front_of_filling_station_pos, ["cup", "filling_station"])
-    bot.move(front_of_waffle_iron_pos, ["cup"])
+    bot.move_old(front_of_filling_station_pos, ["cup", "filling_station"])
+    bot.move_old(front_of_waffle_iron_pos, ["cup"])
     return True
 
 def pour_batter(bot: Wafflebot) -> bool:
@@ -146,8 +146,8 @@ def pour_batter(bot: Wafflebot) -> bool:
     for offset in pour_offsets:
         pour_positions.append(waffle_iron_origin * offset)
 
-    bot.move(front_of_waffle_iron_pos, ["cup"])
+    bot.move_old(front_of_waffle_iron_pos, ["cup"])
     for position in pour_positions:
-        bot.move(position, ["cup", "waffle_iron"])
-    bot.move(front_of_waffle_iron_pos, ["cup", "waffle_iron"])
+        bot.move_old(position, ["cup", "waffle_iron"])
+    bot.move_old(front_of_waffle_iron_pos, ["cup", "waffle_iron"])
     return True

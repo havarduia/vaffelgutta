@@ -1,25 +1,20 @@
 from robot.tools.timekeeper import record_time, read_times
+from time import sleep
 from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
+from os import system
+from modern_robotics import FKinSpace
+from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 
-bot = Wafflebot()
-record_time("start")
+bot = InterbotixManipulatorXS(robot_model="vx300s")#Wafflebot(use_real_robot=False, use_rviz= False)
 
-target = ([
-    [1.0, 0.0, 0.0, 10.0],
-    [0.0, 1.0, 0.0, 10.0],
-    [0.0, 0.0, 1.0, 10.0],
-    [0.0, 0.0, 0.0, 1.0],
-    ])
+system("clear")
+sleep_state = [0.0, -1.76, 1,55,0.0,0.8,0.0] 
+home_state = [0.0]*6
+print(home_state)
+pose = FKinSpace(bot.bot.arm.robot_des.M, bot.bot.arm.robot_des.Slist, sleep_state) 
 
-from time import time
-first_time = time()
-testcount = 50
-for i in range(testcount):
-    bot.arm.set_ee_pose_matrix(target, execute = False)
-    record_time(f"movement_{i}")
-sum_times = time()-first_time
-read_times()
-print("The average time is:")
-print(sum_times/testcount)
+print(pose)
 
-bot.exit()
+pose = FKinSpace(bot.bot.arm.robot_des.M, bot.bot.arm.robot_des.Slist, sleep_state) 
+
+print(pose)

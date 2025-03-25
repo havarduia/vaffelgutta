@@ -55,8 +55,14 @@ class MotionPlanner(Node):
         self.target_pose_matrix = None
         self.joint_states = None
         self.gripper_state = None
-   
+        self.update_count = 0
+
+
     def update_joint_state(self, joint_states: JointState):
+        self.update_count +=1
+        # nip overflow errors in the bud
+        if self.update_count > 10000:
+            self.update_count = 0    
         self.joint_states = list(joint_states.position)[:6]
         self.gripper_state = list(joint_states.position)[-1]
     
@@ -65,8 +71,12 @@ class MotionPlanner(Node):
             print("already moving")
             return False        
         self.moving = True
-        rclpy.spin_once(self) # update joint state subscriber
+        update_count = self.update_count
+        # update joint state subscriber
+        while update_count == self.update_count:
+            rclpy.spin_once(self)
         start_state = self.joint_states
+   
         self.planning_request(start_state, target)
         while self.moving:
             rclpy.spin_once(self)

@@ -35,7 +35,7 @@ def pick_up_lube(bot: Wafflebot, reverse: bool = False)-> bool:
     # calculate where to go to:
     lube_prep_pos = lube_origin * lube_prep_offset
     # move to prep
-    bot.move(lube_prep_pos, ["lube"])
+    bot.move_old(lube_prep_pos, ["lube"])
     if not reverse:
         bot.gripper.release()
         # update target
@@ -43,12 +43,12 @@ def pick_up_lube(bot: Wafflebot, reverse: bool = False)-> bool:
         lube_prep_pos = lube_origin * lube_prep_offset
     lube_grab_pos = lube_origin * lube_grab_offset
     # Go to lube
-    bot.move(lube_grab_pos, ["lube"])
+    bot.move_old(lube_grab_pos, ["lube"])
     if reverse:
         bot.gripper.release()
     else:
         bot.gripper.grasp()    
-    bot.move(lube_prep_pos, ["lube"])
+    bot.move_old(lube_prep_pos, ["lube"])
 
 def spray_lube(bot:Wafflebot) -> bool:
     """
@@ -80,12 +80,12 @@ def spray_lube(bot:Wafflebot) -> bool:
     for i in range(len(spray_offsets)):
         spray_positions[i] = waffle_iron_origin * spray_offsets[i]
     
-    bot.move(front_of_waffle_iron_pos, ["waffle_iron", "lube"])
+    bot.move_old(front_of_waffle_iron_pos, ["waffle_iron", "lube"])
     
     for i in range(len(spray_offsets)):
-        bot.move(spray_positions[i], ["waffle_iron", "lube"])
+        bot.move_old(spray_positions[i], ["waffle_iron", "lube"])
         #spray()
-    bot.move(front_of_waffle_iron_pos, ["waffle_iron","lube"])
+    bot.move_old(front_of_waffle_iron_pos, ["waffle_iron","lube"])
 
     
 

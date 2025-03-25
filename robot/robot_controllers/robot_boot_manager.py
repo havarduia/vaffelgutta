@@ -3,19 +3,20 @@ from subprocess import Popen
 from signal import SIGTERM
 from time import sleep
 
-def robot_launch(use_real_robot): 
+def robot_launch(use_real_robot, use_rviz = True): 
   #run shell script
    
   hardwaretype = "actual" if use_real_robot else "fake"
   use_sim = "true" if (not use_real_robot) else "false"
+  use_rviz = "true" if use_rviz else "false"
   
   command = ('ros2 launch'
   +' interbotix_xsarm_moveit'
-  +' xsarm_moveit.launch.py'
+  +f' xsarm_moveit.launch.py'
   +' robot_model:=vx300s'
   +' hardware_type:=' + hardwaretype
-  +' use_sim:=' + use_sim
-  +' use_moveit_rviz:=true'
+  #+' use_sim:=' + use_sim
+  +f' use_moveit_rviz:='+use_rviz
   )
   
   process = Popen(["bash", "-c", command],

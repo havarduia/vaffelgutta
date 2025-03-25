@@ -58,7 +58,7 @@ def goToTag(bot: Wafflebot, tagid:str, camera, pre_offset):
         target = abs_position_from_offset(tag_pos, offset)
 
         # plan a:
-        bot.move(target, blocking=False)
+        bot.move_old(target, blocking=False)
         record_time(f"robot_frame_no_{i}")
         # plan b:
         #bot.arm.set_ee_pose_matrix(target, blocking=False)

@@ -78,9 +78,9 @@ class CoordinateSystem:
 
         reader.write("camera_readings", tags)
         data = reader.read("camera_readings")
-
-        for key in data.keys():
-            print(key)
-            if not key in allowed_tags:
-                print(f"removed hallucinated tag, id: {key}")
-                reader.pop("camera_readings", key)
+        if "all" not in allowed_tags:
+            for key in data.keys():
+                #print(key)
+                if not key in allowed_tags:
+                    print(f"removed hallucinated tag, id: {key}")
+                    reader.pop("camera_readings", key)

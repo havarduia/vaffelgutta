@@ -3,6 +3,8 @@ from robot.robot_controllers.Wafflebot.Wafflebot import *
 from robot.tools.file_manipulation import Jsonreader, table_print
 from robot.tools.errorhandling import handle_error
 from robot.tools.update_tagoffsets import create_offset_matrix
+from camera.init_camera import initalize_system as init_camera
+from camera.coordinatesystem import CoordinateSystem
 # user libraries: 
 from time import sleep
 from typing import Literal
@@ -100,29 +102,38 @@ def pop_item()->None:
         print(f"Thanos snapped {key}. Perfectly balanced, as all things should be.")
     return
 
-def record_offset(bot:Wafflebot):
+def record_offset(bot:Wafflebot, cam: CoordinateSystem):
+    tagid = 25
+    tagid = input(f"Give me a tagid!! default: {tagid}\nInput: ")
     name = recordposition(bot)
 
-    # Run update camera here
-
+    cam.start(tagid)
     reader = Jsonreader()
-    robot_postions = reader.read("recordings")
+    data = reader.read("recordings")
+    
     tags = reader.read("camera_readings")
 
-    robot_position = robot_postions[name]["matrix"]
-
-    tagid = input("Input the tag id: ")
+    robot_position = data[name]["matrix"]    
+    robot_joints = data[name]["joints"]
     tag = tags[tagid]
 
     offset = create_offset_matrix(robot_position, tag)
-    data = {name: offset}
-    reader.write("offsets", data)     
+    newdata = {
+        "reference_pose" : robot_position,
+        "reference_pose_joints" : robot_joints,
+        "reference_tag" : tagid,
+        "offset": offset
+    }
+    
+    reader.write("offsets", {name : newdata})     
+
     print("successfully recorded offset.")
     return None
 
 def main():
     # boot bot
     bot =  Wafflebot()
+    camera_display,throwaway2,camera_coordsys = init_camera()
     bot.arm.go_to_sleep_pose()
     #print menu and listen for keystrokes:
     while True:
@@ -140,7 +151,7 @@ def main():
             break
         elif userinput == str(9):
             print("You used a secret input, you sneaky rascal!")
-            record_offset(bot)
+            record_offset(bot, camera_coordsys)
         else:
             print("invalid input, try again bozo")
 

@@ -3,6 +3,8 @@ from time import sleep
 from robot.robot_controllers.robot_boot_manager import robot_launch, robot_close
 from robot.tools.errorhandling import handle_error
 from robot.robot_controllers.Wafflebot.moveit.create_motion_plan_request import create_motion_plan_request
+from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
+from robot.tools.file_manipulation import Jsonreader
 
 import rclpy
 from rclpy.node import Node
@@ -42,6 +44,7 @@ class MotionPlanner(Node):
         self.gripper_state = None
         self.update_count = 0
         self.movement_success =False 
+        
 
     def update_joint_states(self):
         update_count = self.update_count
@@ -58,12 +61,24 @@ class MotionPlanner(Node):
         self.gripper_state = list(joint_states.position)[-1]
         return
 
-    def move(self, target: list[list[float]], speed_scaling: float = 1.0): 
+    def update_collisionobjects(self, ignore):
+        reader = Jsonreader()
+        reader.update_filedirectory("robot/assets/boundingboxes/")
+        collisionobjects: dict = reader.read("boundingboxes_static")
+        collisionobjects.update(reader.read("boundingboxes_dynamic"))
+        publisher = CollisionObjectPublisher()
+        publisher.publish_collisionobjects(collisionobjects, ignore)
+
+    def move(self, 
+             target: list[list[float]],
+               speed_scaling: float = 1.0,
+              ignore: list[str] = None
+              ) -> None: 
         if self.moving:
             print("already moving")
             self.movement_success = False
-            return False        
         self.moving = True
+        self.update_collisionobjects(ignore)
         self.update_joint_states()
         start_state = self.joint_states
    

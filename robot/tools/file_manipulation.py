@@ -14,6 +14,8 @@ class Jsonreader:
         
         :param directory: full path of the direcory to change to. Starting at vaffelgutta/.
         """
+        if not directory.endswith("/"):
+            directory += "/"
         self.directory_path  = directory
 
     def read(self, filename: str)->dict | None:

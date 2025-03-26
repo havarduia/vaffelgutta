@@ -3,6 +3,7 @@ from robot.robot_controllers import robot_boot_manager
 from interbotix_common_modules.common_robot.robot import robot_startup, robot_shutdown
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from rclpy import ok as rclpyok
+from robot.robot_controllers.path_planner import list_multiply
 from robot.tools.timekeeper import read_times, record_time
 from robot.robot_controllers.Wafflebot.moveit.MotionPlanner import MotionPlanner
 
@@ -43,6 +44,13 @@ class Wafflebot:
     def __getattr__(self, name):
         return getattr(self.bot, name)
 
+    def go_to_home_pose(self):
+        if not self.move(self.arm.robot_des.M):
+            start_joints = self.motionplanner.update_joint_state()
+            for i in range(1,11):
+                self.arm.set_joint_positions(list_multiply(start_joints, (1-i/10)))
+                
+                            
     def exit(self):
         if rclpyok():
             self.motionplanner.destroy_node()
@@ -60,6 +68,7 @@ class Wafflebot:
         if ignore is None: ignore = []
         # TODO add collision objects to path
         self.motionplanner.move(target,speed_scaling)
-
+        return self.motionplanner.movement_success
+          
     def launch_emergency_stop_monitor(self):
         emergency_stop.run_emergency_stop_monitor(self.safe_stop)

@@ -54,7 +54,7 @@ class Wafflebot:
         start_joints = self.motionplanner.update_joint_states()
         for i in range(1, 51):
             self.arm.set_joint_positions(list_multiply(start_joints, (1 - i / 50)), blocking=False)
-            sleep(0.01)
+            sleep(0.02)
         sleep(0.2)
 
     def go_to_sleep_pose(self):

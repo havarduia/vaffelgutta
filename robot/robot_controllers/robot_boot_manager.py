@@ -4,8 +4,6 @@ from signal import SIGTERM
 from time import sleep
 
 def robot_launch(use_moveit_robot, use_rviz = True): 
-  #run shell script
-   
   hardwaretype = "actual" if True else "fake"
   use_sim = "true" if (not True) else "false"
   use_rviz = "true" if use_rviz else "false"

@@ -59,7 +59,7 @@ def goToTag(bot: Wafflebot, tagid:str, camera, pre_offset):
         target = abs_position_from_offset(tag_pos, offset)
 
         # plan a:
-        bot.move_old(target, blocking=False)
+        bot.move(target, speed_scaling=4.0)
         record_time(f"robot_frame_no_{i}")
         # plan b:
         #bot.arm.set_ee_pose_matrix(target, blocking=False)
@@ -71,7 +71,7 @@ def follow_tag(bot, tagid, camera):
     offset =[
     [0.0,0.0,1.0,0.0],
     [0.0,1.0,0.0,0.0],
-    [-1.0,0.0,0.0,0.15],
+    [-1.0,0.0,0.0,0.50],
     [0.0,0.0,0.0,1.0]
     ]
     goToTag(bot,tagid,camera, offset)
@@ -136,6 +136,7 @@ def main(bot: Wafflebot):
     bot.safe_stop()
 
 if __name__ == '__main__':
+    bot = None
     try:
         bot = Wafflebot()
         main(bot)

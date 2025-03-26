@@ -1,5 +1,6 @@
 from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
 from robot.tools.errorhandling import handle_error
+from rclpy._rclpy_pybind11 import RCLError
 from time import sleep
 from robot.tools.file_manipulation import Jsonreader
 from robot.tools.visualizers.tf_publisher import TFPublisher
@@ -84,13 +85,12 @@ def printmenu():
     print("press 6 to follow the tag like a silly lil goose")
     return 
 
-def main():
+def main(bot: Wafflebot):
     # Init robot  
     camera_display,throwaway2,camera_coordsys = init_camera()
 
     Thread(target=show_camera,daemon=True, args=[camera_display] ).start()
-    bot = Wafflebot(use_real_robot=False, debug_print=True)    
-    bot.arm.go_to_home_pose()
+    bot.go_to_home_pose()
     pub = TFPublisher()
     tagid = "25"
     torqed = True
@@ -137,7 +137,9 @@ def main():
 
 if __name__ == '__main__':
     try:
-        main()
+        bot = Wafflebot()
+        main(bot)
+        bot.exit()
     # if error detected, run the error handler
-    except (KeyboardInterrupt, Exception) as error_program_closed_message:
-        handle_error(error_program_closed_message)
+    except (Exception, KeyboardInterrupt, RCLError) as e:
+        handle_error(e, bot)

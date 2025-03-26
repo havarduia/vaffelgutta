@@ -28,7 +28,7 @@ class MotionPlanner(Node):
             self, FollowJointTrajectory, '/vx300s/arm_controller/follow_joint_trajectory'
         )
         self.joint_state_subscriber = self.create_subscription(
-            JointState, "/vx300s/joint_states", self.update_joint_state, 10
+            JointState, "/vx300s/joint_states", self._update_joint_state, 10
             )
         # Check if clients have loaded successfully
         if not self.planning_client.wait_for_service(timeout_sec=10.0):
@@ -43,15 +43,20 @@ class MotionPlanner(Node):
         self.update_count = 0
         self.movement_success =False 
 
+    def update_joint_states(self):
+        update_count = self.update_count
+        while update_count == self.update_count:
+            rclpy.spin_once(self)
+        return self.joint_states
 
-    def update_joint_state(self, joint_states: JointState):
+    def _update_joint_state(self, joint_states: JointState):
         self.update_count +=1
         # nip overflow errors in the bud
         if self.update_count > 10_000:
             self.update_count = 0    
         self.joint_states = list(joint_states.position)[:6]
         self.gripper_state = list(joint_states.position)[-1]
-        return self.joint_states
+        return
 
     def move(self, target: list[list[float]], speed_scaling: float = 1.0): 
         if self.moving:
@@ -59,10 +64,7 @@ class MotionPlanner(Node):
             self.movement_success = False
             return False        
         self.moving = True
-        update_count = self.update_count
-        # update joint state subscriber
-        while update_count == self.update_count:
-            rclpy.spin_once(self)
+        self.update_joint_states()
         start_state = self.joint_states
    
         self.planning_request(start_state, target, speed_scaling)

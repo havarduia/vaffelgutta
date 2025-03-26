@@ -40,10 +40,16 @@ def main():
         "gazebo",
         "ros2",
         "xs_sdk",
+        "move_group",
+        "ros2_control_node",
         "realsense2_camera_node",
         "robot_state_publisher",
         "python3",
     ]
+    if os.getuid() == 0:
+        kill_processes_by_name("node", killsig)
+    else:
+        print("Not running as sudo. some features cannot be killled.")
     for proc in processes:
         print(f"Killing {proc}")
         kill_processes_by_name(proc, killsig)

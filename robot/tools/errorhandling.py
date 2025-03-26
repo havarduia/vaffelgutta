@@ -6,7 +6,7 @@ import traceback
 from rclpy import ok
 
 
-def handle_error(error_program_closed_message):
+def handle_error(error_program_closed_message, bot = None):
     # Letsgo
     print("Error Caused. Powering down robot.")
     # Countdown before stopping the robot - to create reaction time
@@ -20,6 +20,8 @@ def handle_error(error_program_closed_message):
 
         # Shut down robot using library
         try:
+            if bot is not None:
+                bot.exit()
             if ok():
                 robot_shutdown()
         except Exception as error_robot_shutdown_message:

@@ -50,7 +50,7 @@ def playposition(bot: Wafflebot, data_type: Literal["joints", "matrix"]):
         print(f"Going to {name}")
         position = data[name][data_type]
         if data_type == "matrix":
-            bot.move_old(position,file="recordings")
+            bot.move(position,file="recordings")
         elif data_type == "joints":
             bot.arm.set_joint_positions(position)
         sleep(1)
@@ -103,25 +103,25 @@ def pop_item()->None:
     return
 
 def record_offset(bot:Wafflebot, cam: CoordinateSystem):
+    name = recordposition(bot)
+    cam.start("all")
+    reader = Jsonreader()
+    data = reader.read("recordings")    
+    tags = reader.read("camera_readings")
+
     tagid = 25
     tagid = input(f"Give me a tagid!! default: {tagid}\nInput: ")
-    name = recordposition(bot)
-
-    cam.start(tagid)
-    reader = Jsonreader()
-    data = reader.read("recordings")
-    
-    tags = reader.read("camera_readings")
+    tag = tags[tagid]
 
     robot_position = data[name]["matrix"]    
     robot_joints = data[name]["joints"]
-    tag = tags[tagid]
 
     offset = create_offset_matrix(robot_position, tag)
+
     newdata = {
-        "reference_pose" : robot_position,
-        "reference_pose_joints" : robot_joints,
-        "reference_tag" : tagid,
+        "basepose" : robot_position,
+        "joints" : robot_joints,
+        "tag" : tagid,
         "offset": offset
     }
     

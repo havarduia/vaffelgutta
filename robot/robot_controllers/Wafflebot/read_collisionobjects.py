@@ -8,7 +8,7 @@ import numpy as numphy
 from copy import deepcopy
 
 
-def read_colisionobjects() -> None:
+def read_collisionobjects() -> None:
 
     reader = Jsonreader()
 

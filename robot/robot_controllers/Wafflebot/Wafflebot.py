@@ -8,8 +8,7 @@ from robot.robot_controllers.path_planner import list_multiply, list_sum
 from robot.tools.timekeeper import read_times, record_time
 from robot.robot_controllers.Wafflebot.moveit.MotionPlanner import MotionPlanner
 from camera.coordinatesystem import CoordinateSystem
-from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
-
+from robot.robot_controllers.Wafflebot.read_collisionobjects import read_colisionobjects
 
 class Wafflebot:
     def __init__(
@@ -28,7 +27,6 @@ class Wafflebot:
             gripper_name="gripper",
         )
         self.motionplanner = MotionPlanner(interbotix_process)
-        self.collision_publisher = CollisionObjectPublisher()
         robot_startup()
 
         # Keep a look out for the emergency stop

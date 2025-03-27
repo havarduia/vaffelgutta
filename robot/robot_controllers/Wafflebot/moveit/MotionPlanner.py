@@ -71,9 +71,9 @@ class MotionPlanner(Node):
 
     def move(self, 
              target: list[list[float]],
-               speed_scaling: float = 1.0,
-              ignore: list[str] = None
-              ) -> None: 
+             speed_scaling: float = 1.0,
+             ignore: list[str] = None
+             ) -> None: 
         if self.moving:
             print("already moving")
             self.movement_success = False

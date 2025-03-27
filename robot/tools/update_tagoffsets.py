@@ -13,7 +13,7 @@ import numpy as numphy
 
 def create_offset_matrix(current_arm_pos: list[list[float]], tag: list[list[float]])->list[list[float]]:
     """
-    returns the offset matrix for a position to fo from a tag to a string 
+    returns the offset matrix for a position to the arm from a tag  
     """
     current_arm_pos = numphy.matrix(current_arm_pos)
     tag = numphy.matrix(tag)

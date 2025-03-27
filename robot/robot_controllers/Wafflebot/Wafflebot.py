@@ -7,42 +7,43 @@ from time import sleep
 from robot.robot_controllers.path_planner import list_multiply, list_sum
 from robot.tools.timekeeper import read_times, record_time
 from robot.robot_controllers.Wafflebot.moveit.MotionPlanner import MotionPlanner
+from camera.coordinatesystem import CoordinateSystem
+from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
 
 
 class Wafflebot:
     def __init__(
         self,
-        use_real_robot: bool = False,
+        cam: CoordinateSystem,
         debug_print: bool = False,
         use_rviz: bool = True,
     ):
         # Include launch arguments
         use_real_robot = use_real_robot or argumentparser.read_input_args()
         # Initialize robot:
-        interbotix_process = robot_boot_manager.robot_launch(use_real_robot, use_rviz)
+        interbotix_process = robot_boot_manager.robot_launch(use_rviz)
         self.bot = InterbotixManipulatorXS(
             robot_model="vx300s",
             group_name="arm",
             gripper_name="gripper",
         )
         self.motionplanner = MotionPlanner(interbotix_process)
+        self.collision_publisher = CollisionObjectPublisher()
         robot_startup()
 
         # Keep a look out for the emergency stop
         self.launch_emergency_stop_monitor()
-        self.debug_print = debug_print
-        self.speed = 1.0
         # Define shorthands to call bot functions intuitively
         self.arm = self.bot.arm
         self.gripper = self.bot.gripper
         self.core = self.bot.core
+        # misc inits
         self.home_pose = self.arm.robot_des.M
-        self.sleep_pose = [
-            [0.83094068, 0.0, 0.55636102, 0.13459297],
-            [0.0, 1.0, 0.0, 0.0],
-            [-0.55636102, 0.0, 0.83094068, 0.09320746],
-            [0.0, 0.0, 0.0, 1.0],
-        ]
+        self.debug_print = debug_print
+        self.speed = 1.0
+        self.cam = cam
+
+        # initialize joint positions
         self.motionplanner.update_joint_states()
 
     # return the methods of the child class (interbotixmanipulatorxs)
@@ -93,11 +94,12 @@ class Wafflebot:
             self.go_to_sleep_pose()
         self.exit()
 
-    def move(self, target, ignore=None, speed_scaling: float = 1.0):
+    def move(self, target, ignore: list[str]=None, speed_scaling: float = 1.0):
         if ignore is None:
             ignore = []
-        # TODO add collision objects to path
-        self.motionplanner.move(target, speed_scaling)
+        self.cam.start("all")
+        objects = read_collisionobjects() 
+        self.motionplanner.move(target, speed_scaling, ignore)
         return self.motionplanner.movement_success
 
     def launch_emergency_stop_monitor(self):

@@ -64,8 +64,8 @@ class MotionPlanner(Node):
     def update_collisionobjects(self, ignore):
         reader = Jsonreader()
         reader.update_filedirectory("robot/assets/boundingboxes/")
-        collisionobjects: dict = reader.read("boundingboxes_static")
-        collisionobjects.update(reader.read("boundingboxes_dynamic"))
+        collisionobjects: dict = reader.read("static")
+        collisionobjects.update(reader.read("dynamic"))
         publisher = CollisionObjectPublisher()
         publisher.publish_collisionobjects(collisionobjects, ignore)
 

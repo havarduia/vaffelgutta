@@ -12,21 +12,19 @@ ctk.set_widget_scaling(2.0)
 # Create main application window
 root = ctk.CTk()
 root.title("waffle UI")
-root.geometry("1920x1080")  # change the size of the screen
+root.geometry("700x450") #change the size of the screen
 
-# Configure grid layout for responsiveness in the root
-root.grid_columnconfigure(1, weight=1)
+# Configure grid layout for responsiveness
+root.grid_columnconfigure(1, weight=1) #how the layout looks based on how many columns you want
 root.grid_rowconfigure(0, weight=1)
 
 # Sidebar menu (Left Navigation)
-sidebar = ctk.CTkFrame(root, width=180, corner_radius=15, fg_color="gray17")
-sidebar.grid(row=0, column=0, rowspan=5, sticky="nsew", padx=10, pady=10)
+sidebar = ctk.CTkFrame(root, width=180, corner_radius=15, fg_color="gray17") #formating the looks of the navigation menu
+sidebar.grid(row=0, column=0, rowspan=5, sticky="nswe", padx=10, pady=10)
 
 # Main content frame (right side, changes dynamically)
-content_frame = ctk.CTkFrame(root, corner_radius=15, fg_color="gray13")
-content_frame.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
-content_frame.grid_columnconfigure(0, weight=1)
-content_frame.grid_rowconfigure(0, weight=1)
+content_frame = ctk.CTkFrame(root, corner_radius=15, fg_color="gray13")#configurating the right menu
+content_frame.grid(row=0, column=1, sticky="nswe", padx=10, pady=10)
 
 # Global variables for stats
 total_waffles_made = 0
@@ -233,6 +231,7 @@ def stop_progress():
     progress_bar.configure(mode="indeterminate", value=0)
     estimated_time_label.configure(text="Estimated time to next waffle: 0s")
 
+# Emergency stop logic with delay
 def emergency_stop_action():
     global emergency_stop_state
     if emergency_stop_state == "STOPPED":
@@ -248,23 +247,24 @@ def reset_emergency_stop():
     emergency_stop_state = "STOPPED"
     btn_emergency.configure(fg_color="red", text="Emergency Stop")
 
-# Initialize emergency stop state
-emergency_stop_state = "STOPPED"
+# Sidebar buttons
+btn_dashboard = ctk.CTkButton(sidebar, text="Dashboard", height=50, command=lambda: show_page("Dashboard"))
+btn_dashboard.pack(pady=5)
 
-# Sidebar buttons with larger height and fonts for tablet use
-btn_dashboard = ctk.CTkButton(sidebar, text="Dashboard", height=100, font=("Arial", 24), command=lambda: show_page("Dashboard"))
-btn_dashboard.pack(pady=10)
-btn_settings = ctk.CTkButton(sidebar, text="Settings", height=100, font=("Arial", 24), command=lambda: show_page("Settings"))
-btn_settings.pack(pady=10)
-btn_stats = ctk.CTkButton(sidebar, text="Stats", height=100, font=("Arial", 24), command=lambda: show_page("Stats"))
-btn_stats.pack(pady=10)
-btn_developer = ctk.CTkButton(sidebar, text="Developer", height=100, font=("Arial", 24), command=lambda: show_page("Developer"))
-btn_developer.pack(pady=10)
-btn_emergency = ctk.CTkButton(sidebar, text="Emergency Stop", height=100, font=("Arial", 24), fg_color="red", command=emergency_stop_action)
-btn_emergency.pack(pady=15)
-btn_exit = ctk.CTkButton(sidebar, text="Exit", height=100, font=("Arial", 24), fg_color="yellow", command=root.quit)
-btn_exit.pack(pady=15)
+btn_settings = ctk.CTkButton(sidebar, text="Settings", height=50, command=lambda: show_page("Settings"))
+btn_settings.pack(pady=5)
 
-# Start with Dashboard page
+btn_stats = ctk.CTkButton(sidebar, text="Stats", height=50, command=lambda: show_page("Stats"))
+btn_stats.pack(pady=5)
+
+btn_developer = ctk.CTkButton(sidebar, text="Developer", height=50, command=lambda: show_page("Developer"))
+btn_developer.pack(pady=5)
+
+btn_emergency = ctk.CTkButton(sidebar, text="Emergency Stop", height=50, fg_color="red", command=emergency_stop_action)
+btn_emergency.pack(pady=10)
+
+btn_exit = ctk.CTkButton(sidebar, text="Exit", fg_color="yellow", height=50, command=root.quit)
+btn_exit.pack(pady=10)
+
 show_page("Dashboard")
 root.mainloop()

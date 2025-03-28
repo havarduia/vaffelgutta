@@ -42,6 +42,7 @@ class CollisionObjectPublisher(Node):
             obj.primitive_poses.append(pose)
             
             if name in self.ignored_objects:
+                print("CollisionObjectPublisher.py: ignored object.")
                 obj.operation = CollisionObject.REMOVE
             else:
                 obj.operation = CollisionObject.ADD           
@@ -53,6 +54,5 @@ class CollisionObjectPublisher(Node):
         self.collisionobjects = collisionobjects
         self.ignored_objects = ignore
         self._publish_collision_objects()
-        rclpy.spin_once(self)
         self.ignored_objects = None 
 

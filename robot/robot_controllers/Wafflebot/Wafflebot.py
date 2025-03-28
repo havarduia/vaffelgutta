@@ -8,7 +8,7 @@ from robot.robot_controllers.path_planner import list_multiply, list_sum
 from robot.tools.timekeeper import read_times, record_time
 from robot.robot_controllers.Wafflebot.moveit.MotionPlanner import MotionPlanner
 from camera.coordinatesystem import CoordinateSystem
-from robot.robot_controllers.Wafflebot.read_collisionobjects import read_colisionobjects
+from robot.robot_controllers.Wafflebot.read_collisionobjects import read_collisionobjects
 
 class Wafflebot:
     def __init__(
@@ -18,7 +18,7 @@ class Wafflebot:
         use_rviz: bool = True,
     ):
         # Include launch arguments
-        use_real_robot = use_real_robot or argumentparser.read_input_args()
+        use_real_robot = argumentparser.read_input_args()
         # Initialize robot:
         interbotix_process = robot_boot_manager.robot_launch(use_rviz)
         self.bot = InterbotixManipulatorXS(
@@ -96,7 +96,7 @@ class Wafflebot:
         if ignore is None:
             ignore = []
         self.cam.start("all")
-        objects = read_collisionobjects() 
+        read_collisionobjects() 
         self.motionplanner.move(target, speed_scaling, ignore)
         return self.motionplanner.movement_success
 

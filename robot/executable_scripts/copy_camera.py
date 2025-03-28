@@ -71,7 +71,7 @@ def follow_tag(bot, tagid, camera):
     offset =[
     [0.0,0.0,1.0,0.0],
     [0.0,1.0,0.0,0.0],
-    [-1.0,0.0,0.0,0.50],
+    [-1.0,0.0,0.0,0.20],
     [0.0,0.0,0.0,1.0]
     ]
     goToTag(bot,tagid,camera, offset)
@@ -85,11 +85,11 @@ def printmenu():
     print("press 6 to follow the tag like a silly lil goose")
     return 
 
-def main(bot: Wafflebot):
+def main(bot: Wafflebot, camera_display, throwaway2, camera_coordsys):
     # Init robot  
-    camera_display,throwaway2,camera_coordsys = init_camera()
-
-    Thread(target=show_camera,daemon=True, args=[camera_display] ).start()
+    
+    #Thread(target=show_camera,daemon=True, args=[camera_display]).start()
+    print("hello worl")
     bot.go_to_home_pose()
     pub = TFPublisher()
     tagid = "25"
@@ -138,8 +138,9 @@ def main(bot: Wafflebot):
 if __name__ == '__main__':
     bot = None
     try:
-        bot = Wafflebot()
-        main(bot)
+        camera_display,throwaway2,camera_coordsys = init_camera()
+        bot = Wafflebot(camera_coordsys, use_rviz=False)
+        main(bot, camera_display, throwaway2, camera_coordsys)
         bot.exit()
     # if error detected, run the error handler
     except (Exception, KeyboardInterrupt, RCLError) as e:

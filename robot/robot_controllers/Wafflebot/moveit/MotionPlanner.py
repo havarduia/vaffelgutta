@@ -32,6 +32,7 @@ class MotionPlanner(Node):
         self.joint_state_subscriber = self.create_subscription(
             JointState, "/vx300s/joint_states", self._update_joint_state, 10
             )
+        self.collision_publisher = CollisionObjectPublisher()
         # Check if clients have loaded successfully
         if not self.planning_client.wait_for_service(timeout_sec=10.0):
             raise RuntimeError ("Planning service would not load. Please restart. If problem persists, please reboot.")
@@ -66,8 +67,8 @@ class MotionPlanner(Node):
         reader.update_filedirectory("robot/assets/boundingboxes/")
         collisionobjects: dict = reader.read("static")
         collisionobjects.update(reader.read("dynamic"))
-        publisher = CollisionObjectPublisher()
-        publisher.publish_collisionobjects(collisionobjects, ignore)
+        self.collision_publisher.publish_collisionobjects(collisionobjects, ignore)
+        rclpy.spin_once(self)
 
     def move(self, 
              target: list[list[float]],
@@ -77,6 +78,7 @@ class MotionPlanner(Node):
         if self.moving:
             print("already moving")
             self.movement_success = False
+            return
         self.moving = True
         self.update_collisionobjects(ignore)
         self.update_joint_states()

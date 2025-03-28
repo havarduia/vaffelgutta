@@ -16,16 +16,10 @@ def execute(
     current_state = state.get()
    
     match current_state:    
-        case State.SLEEP:
-            sleepstate(state, bot)
-             
+
         case State.REST:
             print("I am resting, dammit. These youngins...")
             rest(state, bot)
-        
-        case State.HOME:
-            print("I am going home, long day today.")
-            home(state, bot)
 
         case State.OPEN_IRON:
             print("Opening iron!")

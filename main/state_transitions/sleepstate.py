@@ -7,4 +7,4 @@ def sleepstate(state: "State", bot: "Wafflebot"):
 if __name__ == "__main__":
     # to resolve type annotation
     from robot.robot_controllers.Wafflebot import Wafflebot
-    from robot.tools.waffle_states.waffle_states import State
+    from waffle_states.waffle_states import State

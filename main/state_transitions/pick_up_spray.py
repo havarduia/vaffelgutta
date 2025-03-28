@@ -1,4 +1,4 @@
-def error(state: "State", bot: "Wafflebot"):
+def pick_up_spray(state: "State", bot: "Wafflebot"):
     if not False:# TODO add some test for if the robot is closing up shop.
         pass 
     

@@ -1,5 +1,4 @@
 from main.waffle_states.waffle_states import State, CurrentState
-
 from main.state_transitions import *
 
 def execute(

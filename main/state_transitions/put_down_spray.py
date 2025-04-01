@@ -1,6 +1,10 @@
+placeholder = 1
+
 def put_down_spray(state: "State", bot: "Wafflebot"):
-    if not False:# TODO add some test for if the robot is closing up shop.
-        pass 
+    if placeholder == 1:
+        state.set(State.PLACE_CUP_TO_STAT)
+    elif placeholder == 2:
+        state.set(State.ERROR)
     
 
 if __name__ == "__main__":

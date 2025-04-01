@@ -1,8 +1,11 @@
-def pick_up_spray(state: "State", bot: "Wafflebot"):
-    if not False:# TODO add some test for if the robot is closing up shop.
-        pass 
-    
+placeholder = 1
 
+def pick_up_spray(state: "State", bot: "Wafflebot"):
+    if placeholder == 1:
+        state.set(State.SPRAY)
+    elif placeholder == 2:
+        state.set(State.ERROR)
+    
 if __name__ == "__main__":
     # to resolve type annotation
     from robot.robot_controllers.Wafflebot import Wafflebot

@@ -24,8 +24,9 @@ int main(int argc, char** argv) {
     std::string srdf_path = "/home/havard/git/vaffelgutta/collision_detection_demo/vx300s.srdf";
 
     try {
-        std::string robot_description = processXacroFile(urdf_path);
-        std::string robot_description_semantic = processXacroFile(srdf_path);
+        // Load URDF and SRDF directly
+        std::string robot_description = loadFileContent(urdf_path);
+        std::string robot_description_semantic = loadFileContent(srdf_path);
 
         node->declare_parameter("robot_description", robot_description);
         node->declare_parameter("robot_description_semantic", robot_description_semantic);

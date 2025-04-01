@@ -1,0 +1,20 @@
+digraph G {
+"vx300s/gripper_link" -> "vx300s/ee_arm_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"vx300s/wrist_link" -> "vx300s/gripper_link"[label=" Broadcaster: default_authority\nAverage rate: 10.2\nBuffer length: 5.0\nMost recent transform: 1742741778.218392\nOldest transform: 1742741773.218374\n"];
+"vx300s/gripper_bar_link" -> "vx300s/fingers_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"vx300s/ee_arm_link" -> "vx300s/gripper_bar_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"vx300s/fingers_link" -> "vx300s/ee_gripper_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"world" -> "vx300s/base_link"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"vx300s/upper_arm_link" -> "vx300s/upper_forearm_link"[label=" Broadcaster: default_authority\nAverage rate: 10.2\nBuffer length: 5.0\nMost recent transform: 1742741778.218392\nOldest transform: 1742741773.218374\n"];
+"vx300s/shoulder_link" -> "vx300s/upper_arm_link"[label=" Broadcaster: default_authority\nAverage rate: 10.2\nBuffer length: 5.0\nMost recent transform: 1742741778.218392\nOldest transform: 1742741773.218374\n"];
+"vx300s/upper_forearm_link" -> "vx300s/lower_forearm_link"[label=" Broadcaster: default_authority\nAverage rate: 10.2\nBuffer length: 5.0\nMost recent transform: 1742741778.218392\nOldest transform: 1742741773.218374\n"];
+"vx300s/ee_arm_link" -> "vx300s/gripper_prop_link"[label=" Broadcaster: default_authority\nAverage rate: 10.2\nBuffer length: 5.0\nMost recent transform: 1742741778.218392\nOldest transform: 1742741773.218374\n"];
+"vx300s/fingers_link" -> "vx300s/left_finger_link"[label=" Broadcaster: default_authority\nAverage rate: 10.2\nBuffer length: 5.0\nMost recent transform: 1742741778.218392\nOldest transform: 1742741773.218374\n"];
+"vx300s/fingers_link" -> "vx300s/right_finger_link"[label=" Broadcaster: default_authority\nAverage rate: 10.2\nBuffer length: 5.0\nMost recent transform: 1742741778.218392\nOldest transform: 1742741773.218374\n"];
+"vx300s/base_link" -> "vx300s/shoulder_link"[label=" Broadcaster: default_authority\nAverage rate: 10.2\nBuffer length: 5.0\nMost recent transform: 1742741778.218392\nOldest transform: 1742741773.218374\n"];
+"vx300s/lower_forearm_link" -> "vx300s/wrist_link"[label=" Broadcaster: default_authority\nAverage rate: 10.2\nBuffer length: 5.0\nMost recent transform: 1742741778.218392\nOldest transform: 1742741773.218374\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1742741778.2286904"[ shape=plaintext ] ;
+}->"world";
+}

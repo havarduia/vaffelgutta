@@ -1,0 +1,74 @@
+[0.013s] Invoking command in '/home/havard/git/vaffelgutta/collision_detection_demo/build/env_collision_checker': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/havard/ws_moveit/install/moveit_configs_utils:/home/havard/ws_moveit/install/launch_param_builder:/home/havard/interbotix_ws/install/interbotix_xs_modules:/home/havard/interbotix_ws/install/interbotix_perception_modules:/home/havard/interbotix_ws/install/interbotix_common_modules:/opt/ros/humble /usr/bin/cmake /home/havard/git/vaffelgutta/collision_detection_demo/src/env_collision_checker -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker
+[0.062s] -- The C compiler identification is GNU 11.4.0
+[0.101s] -- The CXX compiler identification is GNU 11.4.0
+[0.108s] -- Detecting C compiler ABI info
+[0.173s] -- Detecting C compiler ABI info - done
+[0.177s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.177s] -- Detecting C compile features
+[0.178s] -- Detecting C compile features - done
+[0.180s] -- Detecting CXX compiler ABI info
+[0.259s] -- Detecting CXX compiler ABI info - done
+[0.263s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.263s] -- Detecting CXX compile features
+[0.263s] -- Detecting CXX compile features - done
+[0.485s] -- Found Python3: /usr/include/python3.10 (found version "3.10.12") found components: Development Development.Module Development.Embed 
+[0.490s] -- Found ament_cmake: 1.3.11 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.774s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.816s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.876s] -- Found rclcpp: 16.0.12 (/opt/ros/humble/share/rclcpp/cmake)
+[0.933s] -- Found rosidl_generator_c: 3.1.6 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[0.941s] -- Found rosidl_adapter: 3.1.6 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[0.952s] -- Found rosidl_generator_cpp: 3.1.6 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[0.967s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.987s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.047s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[1.054s] -- Found rmw_fastrtps_cpp: 6.2.7 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[1.156s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[1.180s] -- Found FastRTPS: /opt/ros/humble/include  
+[1.222s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[1.238s] -- Looking for pthread.h
+[1.307s] -- Looking for pthread.h - found
+[1.307s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[1.369s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[1.370s] -- Found Threads: TRUE  
+[1.412s] -- Found moveit_ros_planning_interface: 2.5.8 (/home/havard/ws_moveit/install/moveit_ros_planning_interface/share/moveit_ros_planning_interface/cmake)
+[1.451s] -- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0/BoostConfig.cmake (found version "1.74.0") found components: date_time filesystem program_options system thread 
+[1.595s] -- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0/BoostConfig.cmake (found version "1.74.0") found components: chrono date_time filesystem iostreams program_options regex serialization system thread 
+[1.657s] -- Found parameter_traits: 0.4.0 (/opt/ros/humble/share/parameter_traits/cmake)
+[1.673s] -- Found Eigen3: TRUE (found version "3.4.0") 
+[1.677s] -- Found rclcpp_lifecycle: 16.0.12 (/opt/ros/humble/share/rclcpp_lifecycle/cmake)
+[1.701s] -- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0/BoostConfig.cmake (found version "1.74.0") found components: filesystem 
+[1.813s] -- library: /usr/lib/x86_64-linux-gnu/libcurl.so
+[1.846s] -- Ensuring Eigen3 include directory is part of orocos-kdl CMake target
+[1.994s] -- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0/BoostConfig.cmake (found version "1.74.0") found components: system filesystem date_time program_options thread chrono 
+[2.015s] -- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0/BoostConfig.cmake (found version "1.74.0") found components: thread system filesystem regex date_time program_options 
+[2.033s] -- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0/BoostConfig.cmake (found version "1.74.0") found components: system filesystem date_time program_options thread 
+[2.095s] -- Performing Test HAS_FLTO
+[2.195s] -- Performing Test HAS_FLTO - Success
+[2.196s] -- Found pybind11: /usr/include (found version "2.9.1")
+[2.204s] -- Found ament_lint_auto: 0.12.12 (/opt/ros/humble/share/ament_lint_auto/cmake)
+[2.287s] -- Added test 'copyright' to check source files copyright and LICENSE
+[2.288s] -- Added test 'cppcheck' to perform static code analysis on C / C++ code
+[2.288s] -- Configured cppcheck include dirs: 
+[2.288s] -- Configured cppcheck exclude dirs and/or files: 
+[2.290s] -- Added test 'cpplint' to check C / C++ code against the Google style
+[2.290s] -- Configured cpplint exclude dirs and/or files: 
+[2.290s] -- Added test 'lint_cmake' to check CMake code style
+[2.292s] -- Added test 'uncrustify' to check C / C++ code style
+[2.292s] -- Configured uncrustify additional arguments: 
+[2.292s] -- Added test 'xmllint' to check XML markup files
+[2.294s] -- Configuring done
+[2.301s] [31mCMake Error at /usr/share/cmake-3.22/Modules/FindPython/Support.cmake:3330 (add_library):
+[2.301s]   Target "moveit_python_binding" links to target
+[2.301s]   "moveit_ros_planning_interface::moveit_ros_planning_interface" but the
+[2.301s]   target was not found.  Perhaps a find_package() call is missing for an
+[2.301s]   IMPORTED target, or an ALIAS target is missing?
+[2.301s] Call Stack (most recent call first):
+[2.301s]   /usr/share/cmake-3.22/Modules/FindPython3.cmake:494 (__Python3_add_library)
+[2.301s]   /usr/lib/cmake/pybind11/pybind11NewTools.cmake:207 (python3_add_library)
+[2.301s]   CMakeLists.txt:27 (pybind11_add_module)
+[2.301s] 
+[2.301s] [0m
+[2.311s] -- Generating done
+[2.313s] [0mCMake Generate step failed.  Build files cannot be regenerated correctly.[0m
+[2.321s] Invoked command in '/home/havard/git/vaffelgutta/collision_detection_demo/build/env_collision_checker' returned '1': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/havard/ws_moveit/install/moveit_configs_utils:/home/havard/ws_moveit/install/launch_param_builder:/home/havard/interbotix_ws/install/interbotix_xs_modules:/home/havard/interbotix_ws/install/interbotix_perception_modules:/home/havard/interbotix_ws/install/interbotix_common_modules:/opt/ros/humble /usr/bin/cmake /home/havard/git/vaffelgutta/collision_detection_demo/src/env_collision_checker -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker

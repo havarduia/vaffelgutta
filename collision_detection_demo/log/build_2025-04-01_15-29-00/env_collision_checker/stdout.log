@@ -1,17 +1,7 @@
--- The C compiler identification is GNU 11.4.0
--- The CXX compiler identification is GNU 11.4.0
--- Detecting C compiler ABI info
--- Detecting C compiler ABI info - done
--- Check for working C compiler: /usr/bin/cc - skipped
--- Detecting C compile features
--- Detecting C compile features - done
--- Detecting CXX compiler ABI info
--- Detecting CXX compiler ABI info - done
--- Check for working CXX compiler: /usr/bin/c++ - skipped
--- Detecting CXX compile features
--- Detecting CXX compile features - done
+-- Found Python3: /usr/include/python3.10 (found version "3.10.12") found components: Development Development.Module Development.Embed 
 -- Found ament_cmake: 1.3.11 (/opt/ros/humble/share/ament_cmake/cmake)
 -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+-- Override CMake install command with custom implementation using symlinks instead of copying resources
 -- Found rclcpp: 16.0.12 (/opt/ros/humble/share/rclcpp/cmake)
 -- Found rosidl_generator_c: 3.1.6 (/opt/ros/humble/share/rosidl_generator_c/cmake)
 -- Found rosidl_adapter: 3.1.6 (/opt/ros/humble/share/rosidl_adapter/cmake)
@@ -20,19 +10,11 @@
 -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
 -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
 -- Found rmw_fastrtps_cpp: 6.2.7 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
--- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
--- Found FastRTPS: /opt/ros/humble/include  
 -- Using RMW implementation 'rmw_fastrtps_cpp' as default
--- Looking for pthread.h
--- Looking for pthread.h - found
--- Performing Test CMAKE_HAVE_LIBC_PTHREAD
--- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
--- Found Threads: TRUE  
 -- Found moveit_ros_planning_interface: 2.5.8 (/home/havard/ws_moveit/install/moveit_ros_planning_interface/share/moveit_ros_planning_interface/cmake)
 -- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0/BoostConfig.cmake (found version "1.74.0") found components: date_time filesystem program_options system thread 
 -- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0/BoostConfig.cmake (found version "1.74.0") found components: chrono date_time filesystem iostreams program_options regex serialization system thread 
 -- Found parameter_traits: 0.4.0 (/opt/ros/humble/share/parameter_traits/cmake)
--- Found Eigen3: TRUE (found version "3.4.0") 
 -- Found rclcpp_lifecycle: 16.0.12 (/opt/ros/humble/share/rclcpp_lifecycle/cmake)
 -- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0/BoostConfig.cmake (found version "1.74.0") found components: filesystem 
 -- library: /usr/lib/x86_64-linux-gnu/libcurl.so
@@ -71,10 +53,16 @@
 -- Looking for shmat - found
 -- Looking for IceConnectionNumber in ICE
 -- Looking for IceConnectionNumber in ICE - found
+-- Found pybind11: /usr/include (found version "2.9.1")
+-- MoveIt ROS Planning Interface Found: 1
+-- MoveIt Core Found: 1
 -- Found ament_lint_auto: 0.12.12 (/opt/ros/humble/share/ament_lint_auto/cmake)
+-- Added test 'copyright' to check source files copyright and LICENSE
 -- Added test 'cppcheck' to perform static code analysis on C / C++ code
 -- Configured cppcheck include dirs: 
 -- Configured cppcheck exclude dirs and/or files: 
+-- Added test 'cpplint' to check C / C++ code against the Google style
+-- Configured cpplint exclude dirs and/or files: 
 -- Added test 'lint_cmake' to check CMake code style
 -- Added test 'uncrustify' to check C / C++ code style
 -- Configured uncrustify additional arguments: 
@@ -82,24 +70,6 @@
 -- Configuring done
 -- Generating done
 -- Build files have been written to: /home/havard/git/vaffelgutta/collision_detection_demo/build/env_collision_checker
-[ 50%] [32mBuilding CXX object CMakeFiles/collision_checker_node.dir/src/collision_checker_node.cpp.o[0m
-[100%] [32m[1mLinking CXX executable collision_checker_node[0m
-[100%] Built target collision_checker_node
--- Install configuration: ""
--- Installing: /home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/lib/env_collision_checker/collision_checker_node
--- Set runtime path of "/home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/lib/env_collision_checker/collision_checker_node" to ""
--- Installing: /home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/share/ament_index/resource_index/package_run_dependencies/env_collision_checker
--- Installing: /home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/share/ament_index/resource_index/parent_prefix_path/env_collision_checker
--- Installing: /home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/share/env_collision_checker/environment/ament_prefix_path.sh
--- Installing: /home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/share/env_collision_checker/environment/ament_prefix_path.dsv
--- Installing: /home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/share/env_collision_checker/environment/path.sh
--- Installing: /home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/share/env_collision_checker/environment/path.dsv
--- Installing: /home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/share/env_collision_checker/local_setup.bash
--- Installing: /home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/share/env_collision_checker/local_setup.sh
--- Installing: /home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/share/env_collision_checker/local_setup.zsh
--- Installing: /home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/share/env_collision_checker/local_setup.dsv
--- Installing: /home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/share/env_collision_checker/package.dsv
--- Installing: /home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/share/ament_index/resource_index/packages/env_collision_checker
--- Installing: /home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/share/env_collision_checker/cmake/env_collision_checkerConfig.cmake
--- Installing: /home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/share/env_collision_checker/cmake/env_collision_checkerConfig-version.cmake
--- Installing: /home/havard/git/vaffelgutta/collision_detection_demo/install/env_collision_checker/share/env_collision_checker/package.xml
+[ 25%] [32mBuilding CXX object CMakeFiles/collision_checker_node.dir/src/collision_checker_node.cpp.o[0m
+[ 50%] [32mBuilding CXX object CMakeFiles/moveit_python_binding.dir/src/moveit_python_binding.cpp.o[0m
+[ 75%] [32m[1mLinking CXX executable collision_checker_node[0m

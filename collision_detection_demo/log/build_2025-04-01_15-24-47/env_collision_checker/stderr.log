@@ -1,0 +1,12 @@
+[31mCMake Error at /usr/share/cmake-3.22/Modules/FindPython/Support.cmake:3330 (add_library):
+  Target "moveit_python_binding" links to target
+  "moveit_ros_planning_interface::moveit_ros_planning_interface" but the
+  target was not found.  Perhaps a find_package() call is missing for an
+  IMPORTED target, or an ALIAS target is missing?
+Call Stack (most recent call first):
+  /usr/share/cmake-3.22/Modules/FindPython3.cmake:494 (__Python3_add_library)
+  /usr/lib/cmake/pybind11/pybind11NewTools.cmake:207 (python3_add_library)
+  CMakeLists.txt:27 (pybind11_add_module)
+
+[0m
+[0mCMake Generate step failed.  Build files cannot be regenerated correctly.[0m

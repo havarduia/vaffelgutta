@@ -1,0 +1,18 @@
+gmake[2]: *** No rule to make target '/home/havard/ws_moveit/install/moveit_core/lib/libmoveit_core.so', needed by 'moveit_python_binding.cpython-310-x86_64-linux-gnu.so'.  Stop.
+gmake[2]: *** Waiting for unfinished jobs....
+In file included from [01m[K/home/havard/ws_moveit/install/moveit_core/include/moveit/robot_state/robot_state.h:40[m[K,
+                 from [01m[K/home/havard/ws_moveit/install/moveit_ros_planning_interface/include/moveit/move_group_interface/move_group_interface.h:41[m[K,
+                 from [01m[K/home/havard/git/vaffelgutta/collision_detection_demo/src/env_collision_checker/src/moveit_python_binding.cpp:10[m[K:
+[01m[K/home/havard/ws_moveit/install/moveit_core/include/moveit/robot_model/robot_model.h:42:10:[m[K [01;31m[Kfatal error: [m[Ksrdfdom/model.h: No such file or directory
+   42 | #include [01;31m[K<srdfdom/model.h>[m[K
+      |          [01;31m[K^~~~~~~~~~~~~~~~~[m[K
+compilation terminated.
+gmake[2]: *** [CMakeFiles/moveit_python_binding.dir/build.make:76: CMakeFiles/moveit_python_binding.dir/src/moveit_python_binding.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:165: CMakeFiles/moveit_python_binding.dir/all] Error 2
+gmake[1]: *** Waiting for unfinished jobs....
+/usr/bin/ld: /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o: in function `_start':
+(.text+0x1b): undefined reference to `main'
+collect2: error: ld returned 1 exit status
+gmake[2]: *** [CMakeFiles/collision_checker_node.dir/build.make:421: collision_checker_node] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:139: CMakeFiles/collision_checker_node.dir/all] Error 2
+gmake: *** [Makefile:146: all] Error 2

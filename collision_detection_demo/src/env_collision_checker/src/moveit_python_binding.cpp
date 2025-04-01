@@ -1,12 +1,19 @@
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <stdexcept>
+#include <sstream>
+#include <fstream>
+#include <chrono>
+
+// ROS2 and MoveIt includes
 #include <rclcpp/rclcpp.hpp>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit_msgs/msg/collision_object.hpp>
 #include <shape_msgs/msg/solid_primitive.hpp>
 #include <geometry_msgs/msg/pose.hpp>
-#include <fstream>
-#include <sstream>
-#include <cstdlib>
+
+namespace py = pybind11;
 
 // Function to load file content
 std::string loadFileContent(const std::string &file_path) {
@@ -90,4 +97,12 @@ void runPlanner(const std::string &urdf_path, const std::string &srdf_path) {
         RCLCPP_WARN(node->get_logger(), "Motion planning failed.");
 
     rclcpp::shutdown();
+}
+
+// Define the Python module
+PYBIND11_MODULE(moveit_python_binding, m) {
+    m.doc() = "Python bindings for a MoveIt collision checker using ROS2";
+    m.def("load_file_content", &loadFileContent, "Load file content from a given file path");
+    m.def("run_planner", &runPlanner, "Run the MoveIt planner",
+          py::arg("urdf_path"), py::arg("srdf_path"));
 }

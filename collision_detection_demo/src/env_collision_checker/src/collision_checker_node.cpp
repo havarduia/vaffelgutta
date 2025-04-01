@@ -7,22 +7,16 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
+#include "collision_checker_helpers.cpp"
+#include "json.hpp" 
 
-// Function to load file content
-std::string loadFileContent(const std::string &file_path) {
-    std::ifstream file(file_path);
-    if (!file.is_open()) {
-        throw std::runtime_error("Could not open file: " + file_path);
-    }
+using json = nlohmann::json
 
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
-}
 
 int main(int argc, char** argv) {
     // Initialize ROS 2
     rclcpp::init(argc, argv);
+    
     auto node = rclcpp::Node::make_shared("collision_checker_node");
 
     // Paths to URDF and SRDF
@@ -51,6 +45,7 @@ int main(int argc, char** argv) {
     // Allow some time for the planning scene to update
     rclcpp::sleep_for(std::chrono::seconds(2));
 
+    boxes = loadboxes()
     // Define a collision object (a box)
     moveit_msgs::msg::CollisionObject collision_object;
     collision_object.header.frame_id = move_group.getPlanningFrame();

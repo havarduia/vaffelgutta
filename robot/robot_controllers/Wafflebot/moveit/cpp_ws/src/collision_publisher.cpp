@@ -52,17 +52,6 @@ std::string loadFileContent(const std::string &file_path) {
     buffer << file.rdbuf();
     return buffer.str();
 }
-// Function to load file content
-std::string loadFileContent(const std::string &file_path) {
-    std::ifstream file(file_path);
-    if (!file.is_open()) {
-        throw std::runtime_error("Could not open file: " + file_path);
-    }
-
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
-}
 
 
 int main(int argc, char** argv) {

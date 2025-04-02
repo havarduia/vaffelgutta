@@ -3,4 +3,4 @@ nohup.out
 .vscode/
 build/
 install/
-camera/camera_library/camera_ws/log/
+log/

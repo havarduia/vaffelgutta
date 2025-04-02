@@ -58,6 +58,7 @@ int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
 
   auto node = rclcpp::Node::make_shared("collision_checker_node");
+    auto node = rclcpp::Node::make_shared("collision_checker_node");
 
     try {
       // Load URDF and SRDF directly

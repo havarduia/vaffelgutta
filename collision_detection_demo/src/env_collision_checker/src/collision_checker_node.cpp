@@ -17,8 +17,8 @@ using json = nlohmann::json;
 json open_boxes(int filechoice){
     std::string readbuffer;
     std::string text;
-    std::string filepath_add = "robot/assets/boundingboxes/publish/add.json";
-    std::string filepath_rm = "robot/assets/boundingboxes/publish/remove.json";
+    std::string filepath_add = "/home/havard/git/vaffelgutta/robot/assets/boundingboxes/publish/add.json";
+    std::string filepath_rm = "/home/havard/git/vaffelgutta/robot/assets/boundingboxes/publish/remove.json";
     if (filechoice == 0){
         std::ifstream file(filepath_add);
     }

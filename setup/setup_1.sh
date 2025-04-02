@@ -1,7 +1,7 @@
 #!/bin/bash
 current_dir=$(pwd)
 
-read -p "Do you only want to add PYTHON PATHS? (y/n): " choice
+read -p "Do you only want to add PYTHON PATHS and not install? (y/n): " choice
 if [[ "$choice" == "y" || "$choice" == "Y" ]]; then
     grep -qxF "export PYTHONPATH=\$PYTHONPATH:$current_dir" ~/.bashrc || echo "export PYTHONPATH=\$PYTHONPATH:$current_dir" >> ~/.bashrc
     exec bash
@@ -41,9 +41,11 @@ architecture=$(dpkg --print-architecture)
 if [[ "$architecture" == "arm64" ]]; then
     curl 'https://raw.githubusercontent.com/Interbotix/interbotix_ros_manipulators/main/interbotix_ros_xsarms/install/rpi4/xsarm_rpi4_install.sh' -o xsarm_rpi4_install.sh
     chmod +x xsarm_rpi4_install.sh
+    sudo mv xsarm_rpi4_install.sh setup_2.sh
 else
     curl 'https://raw.githubusercontent.com/Interbotix/interbotix_ros_manipulators/main/interbotix_ros_xsarms/install/amd64/xsarm_amd64_install.sh' -o xsarm_amd64_install.sh
     chmod +x xsarm_amd64_install.sh
+    sudo mv xsarm_amd64_install.sh setup_2.sh
 fi
 
 # Install required dependencies
@@ -62,4 +64,6 @@ cd build
 cmake ../ -DFORCE_RSUSB_BACKEND=true -DBUILD_PYTHON_BINDINGS:bool=true -DPYTHON_EXECUTABLE=$(which python3)
 make -j$(nproc)
 sudo make install -j$(nproc)
-echo "Remember to reboot."
+echo 'export PYTHONPATH=$PYTHONPATH:~/librealsense/build/release' >> ~/.bashrc
+sudo cp ~/librealsense/config/99-realsense-libusb.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules && sudo udevadm trigger

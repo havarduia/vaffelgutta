@@ -60,8 +60,9 @@ int main(int argc, char** argv) {
 
     auto node = rclcpp::Node::make_shared("collision_checker_node");
     // Paths to URDF and SRDF
-    std::string urdf_path = "/home/havard/git/vaffelgutta/collision_detection_demo/vx300s.urdf";
-    std::string srdf_path = "/home/havard/git/vaffelgutta/collision_detection_demo/vx300s.srdf";
+    std::filesystem::path source_dir = std::filesystem::path(__FILE__).parent_path().lexically_normal() ;
+    std::filesystem::path urdf_path =  source_dir / "../robot_models/vx300s.urdf";
+    std::filesystem::path srdf_path =  source_dir / "../robot_models/vx300s.srdf";
 
     try {
         // Load URDF and SRDF directly

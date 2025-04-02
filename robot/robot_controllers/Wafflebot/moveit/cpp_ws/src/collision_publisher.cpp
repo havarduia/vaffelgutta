@@ -17,19 +17,21 @@ using json = nlohmann::json;
 json open_boxes(int filechoice){
     std::string readbuffer;
     std::string text;
-    std::string filepath_add = "/home/havard/git/vaffelgutta/robot/assets/boundingboxes/publish/add.json";
-    std::string filepath_rm = "/home/havard/git/vaffelgutta/robot/assets/boundingboxes/publish/remove.json";
+    std::filesystem::path source_dir = std::filesystem::path(__FILE__).parent_path().lexically_normal() ;
+    std::filesystem::path filepath_add = "../../../../../assets/boundingboxes/publish/add.json";
+    std::filesystem::path filepath_rm = "../../../../../assets/boundingboxes/publish/remove.json";
+    std::filesystem::path filepath;
     if (filechoice == 0){
-        std::ifstream file(filepath_add);
+        filepath = (source_dir / filepath_add);
     }
     else{
-        std::ifstream file(filepath_rm);
+        filepath = (source_dir / filepath_rm);
     }
+    std::ifstream file(filepath);
     if (!file){
             std::cout << "EYO THE FILE IS MISSING CUH" << std::endl;
-            return -1;
+            return json();
         }
-    std::fstream dynamicboxes(filepath);
     while(getline(file,readbuffer)){
         text.append(readbuffer);
     }
@@ -90,9 +92,9 @@ int main(int argc, char** argv) {
     // Create MoveGroupInterface for the robot's planning group
     moveit::planning_interface::MoveGroupInterface move_group(node, "interbotix_arm");
     moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
-    rclcpp::spin_some(node)
+    rclcpp::spin_some(node);
 
-    for(int i = 0; i<1; i++){
+    for(int i = 0; i<=1; i++){
         json boxes_dict = open_boxes(i);
         std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
 
@@ -130,8 +132,10 @@ int main(int argc, char** argv) {
             collision_object.primitives.push_back(box);
             collision_object.primitive_poses.push_back(box_pose);
 
+            if (i == 0){
             collision_object.operation = moveit_msgs::msg::CollisionObject::ADD;
-            if (i == 1){
+            }
+            else{
                 collision_object.operation = moveit_msgs::msg::CollisionObject::REMOVE;
             }
             collision_objects.push_back(collision_object);    
@@ -141,7 +145,7 @@ int main(int argc, char** argv) {
     }
     RCLCPP_INFO(node->get_logger(), "Added collision object to the planning scene.");
 
-    rclcpp::spin_some(node)
+    rclcpp::spin_some(node);
 
     rclcpp::shutdown();
     return 0;

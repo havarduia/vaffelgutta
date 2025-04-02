@@ -1,10 +1,9 @@
-
-#include <rclcpp/rclcpp.hpp>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit_msgs/msg/collision_object.hpp>
 #include <shape_msgs/msg/solid_primitive.hpp>
 #include <geometry_msgs/msg/pose.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 #include <fstream>
 #include <sstream>
@@ -91,12 +90,14 @@ int main(int argc, char** argv) {
     rclcpp::sleep_for(std::chrono::seconds(2));
 
     json boxes_dict = open_boxes();
-    // Define a collision object (a box)
-    moveit_msgs::msg::CollisionObject collision_object;
-    collision_object.header.frame_id = move_group.getPlanningFrame();
-    collision_object.id ="collisionobjects";
+    std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
 
     for (auto mybox : boxes_dict.items()){
+        
+        // Define a collision object (a box)
+        moveit_msgs::msg::CollisionObject collision_object;
+        collision_object.header.frame_id = move_group.getPlanningFrame();
+        collision_object.id = mybox.key();
         
         std::array<std::array<float,3>,2> mybox_corners = mybox.value();
         std::array<float, 3> min_corner = mybox_corners[0];
@@ -124,13 +125,15 @@ int main(int argc, char** argv) {
         // Add the box shape and pose to the collision object
         collision_object.primitives.push_back(box);
         collision_object.primitive_poses.push_back(box_pose);
+
         collision_object.operation = moveit_msgs::msg::CollisionObject::ADD;
+        collision_objects.push_back(collision_object);    
     }
     // Add the collision object into the planning scene
-    planning_scene_interface.applyCollisionObjects(collision_object);
+    planning_scene_interface.applyCollisionObjects(collision_objects);
 
     RCLCPP_INFO(node->get_logger(), "Added collision object to the planning scene.");
-    rclcpp::sleep_for(std::chrono::seconds(2));
+    rclcpp::sleep_for(std::chrono::seconds(20));
     /*
     // Set a target pose for the end-effector (expressed in the planning frame)
     geometry_msgs::msg::Pose target_pose;

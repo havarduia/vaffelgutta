@@ -1,24 +1,57 @@
+
 #include <rclcpp/rclcpp.hpp>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit_msgs/msg/collision_object.hpp>
 #include <shape_msgs/msg/solid_primitive.hpp>
 #include <geometry_msgs/msg/pose.hpp>
+
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
-#include "collision_checker_helpers.cpp"
+#include <iostream>
 #include "json.hpp" 
 
-using json = nlohmann::json
 
+using json = nlohmann::json;
+// Function to load file conten
+json open_boxes(){
+    std::string readbuffer;
+    std::string text;
+    std::string filepath = "robot/assets/boundingboxes/testboxes.json";
+    std::ifstream file(filepath);
+
+    if (!file){
+            std::cout << "EYO THE FILE IS MISSING CUH" << std::endl;
+        }
+        return "{}";
+    std::fstream dynamicboxes(filepath);
+    while(getline(file,readbuffer)){
+        text.append(readbuffer);
+    }
+    file.close();
+    json j = json::parse(text);
+    return j;
+}
+
+
+
+std::string loadFileContent(const std::string &file_path) {
+    std::ifstream file(file_path);
+    if (!file.is_open()) {
+        throw std::runtime_error("Could not open file: " + file_path);
+    }
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+}
 
 int main(int argc, char** argv) {
     // Initialize ROS 2
     rclcpp::init(argc, argv);
-    
-    auto node = rclcpp::Node::make_shared("collision_checker_node");
 
+    auto node = rclcpp::Node::make_shared("collision_checker_node");
     // Paths to URDF and SRDF
     std::string urdf_path = "/home/havard/git/vaffelgutta/collision_detection_demo/vx300s.urdf";
     std::string srdf_path = "/home/havard/git/vaffelgutta/collision_detection_demo/vx300s.srdf";
@@ -45,35 +78,48 @@ int main(int argc, char** argv) {
     // Allow some time for the planning scene to update
     rclcpp::sleep_for(std::chrono::seconds(2));
 
-    boxes = loadboxes()
+    json boxes_dict = open_boxes();
     // Define a collision object (a box)
     moveit_msgs::msg::CollisionObject collision_object;
     collision_object.header.frame_id = move_group.getPlanningFrame();
-    collision_object.id = "environment_box";
+    collision_object.id ="collisionobjects";
 
-    // Define the box shape and dimensions
-    shape_msgs::msg::SolidPrimitive box;
-    box.type = shape_msgs::msg::SolidPrimitive::BOX;
-    box.dimensions = {0.2, 0.2, 0.2};  // x, y, z dimensions
+    for (auto mybox : boxes_dict.items()){
+        
+        std::array<std::array<float,3>,2> mybox_corners = mybox.value();
+        std::array<float, 3> min_corner = mybox_corners[0];
+        std::array<float, 3> max_corner = mybox_corners[1];
+        float size_x = max_corner[0] - min_corner[0];
+        float size_y = max_corner[1] - min_corner[1];
+        float size_z = max_corner[2] - min_corner[2];
+        
+        float origin_x = min_corner[0] + size_x/2;
+        float origin_y = min_corner[1] + size_y/2;
+        float origin_z = min_corner[2] + size_z/2;
+        
+        // Define the box shape and dimensions
+        shape_msgs::msg::SolidPrimitive box;
+        box.type = shape_msgs::msg::SolidPrimitive::BOX;
+        box.dimensions = {size_x, size_y, size_z};  // x, y, z dimensions
 
-    // Define the pose of the box (positioned in front of the robot)
-    geometry_msgs::msg::Pose box_pose;
-    box_pose.orientation.w = 1.0;  // No rotation
-    box_pose.position.x = 0.5;     // 0.8 meters in front of the robot
-    box_pose.position.y = 0.0;
-    box_pose.position.z = 0.15;    // So that the box sits on the ground
+        // Define the pose of the box (positioned in front of the robot)
+        geometry_msgs::msg::Pose box_pose;
+        box_pose.orientation.w = 1.0;  // No rotation
+        box_pose.position.x = origin_x;     
+        box_pose.position.y = origin_y;
+        box_pose.position.z = origin_z;    
 
-    // Add the box shape and pose to the collision object
-    collision_object.primitives.push_back(box);
-    collision_object.primitive_poses.push_back(box_pose);
-    collision_object.operation = moveit_msgs::msg::CollisionObject::ADD;
-
+        // Add the box shape and pose to the collision object
+        collision_object.primitives.push_back(box);
+        collision_object.primitive_poses.push_back(box_pose);
+        collision_object.operation = moveit_msgs::msg::CollisionObject::ADD;
+    }
     // Add the collision object into the planning scene
-    planning_scene_interface.applyCollisionObject(collision_object);
+    planning_scene_interface.applyCollisionObjects(collision_object);
 
     RCLCPP_INFO(node->get_logger(), "Added collision object to the planning scene.");
     rclcpp::sleep_for(std::chrono::seconds(2));
-
+    /*
     // Set a target pose for the end-effector (expressed in the planning frame)
     geometry_msgs::msg::Pose target_pose;
     target_pose.orientation.w = 1.0;
@@ -90,6 +136,7 @@ int main(int argc, char** argv) {
         RCLCPP_INFO(node->get_logger(), "Motion plan found that avoids the collision object!");
     else
         RCLCPP_WARN(node->get_logger(), "Motion planning failed.");
+    */
 
     rclcpp::shutdown();
     return 0;

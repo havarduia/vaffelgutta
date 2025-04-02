@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(env_collision_checker)
+project(collision_publisher)
 
 # Find dependencies first
 find_package(ament_cmake REQUIRED)
@@ -8,16 +8,16 @@ find_package(moveit_ros_planning_interface REQUIRED)
 find_package(moveit_visual_tools REQUIRED)
 
 # Declare the executable target
-add_executable(collision_checker_node src/collision_checker_node.cpp)
+add_executable(collision_publisher src/collision_publisher.cpp)
 
-ament_target_dependencies(collision_checker_node
+ament_target_dependencies(collision_publisher
   rclcpp
   moveit_ros_planning_interface
   moveit_visual_tools
 )
 
 install(TARGETS
-  collision_checker_node
+  collision_publisher
   DESTINATION lib/${PROJECT_NAME}
 )
 

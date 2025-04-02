@@ -14,16 +14,21 @@
 
 using json = nlohmann::json;
 // Function to load file conten
-json open_boxes(){
+json open_boxes(int filechoice){
     std::string readbuffer;
     std::string text;
-    std::string filepath = "robot/assets/boundingboxes/testboxes.json";
-    std::ifstream file(filepath);
-
+    std::string filepath_add = "robot/assets/boundingboxes/publish/add.json";
+    std::string filepath_rm = "robot/assets/boundingboxes/publish/remove.json";
+    if (filechoice == 0){
+        std::ifstream file(filepath_add);
+    }
+    else{
+        std::ifstream file(filepath_rm);
+    }
     if (!file){
             std::cout << "EYO THE FILE IS MISSING CUH" << std::endl;
+            return -1;
         }
-        return "{}";
     std::fstream dynamicboxes(filepath);
     while(getline(file,readbuffer)){
         text.append(readbuffer);
@@ -67,79 +72,64 @@ int main(int argc, char** argv) {
     } catch (const std::exception &e) {
         RCLCPP_ERROR(node->get_logger(), "Failed to load URDF/SRDF: %s", e.what());
         rclcpp::shutdown();
-        return 1;
+        return -1;
     }
 
     // Create MoveGroupInterface for the robot's planning group
     moveit::planning_interface::MoveGroupInterface move_group(node, "interbotix_arm");
     moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+    rclcpp::spin_some(node)
 
-    // Allow some time for the planning scene to update
-    rclcpp::sleep_for(std::chrono::seconds(2));
+    for(int i = 0; i<1; i++){
+        json boxes_dict = open_boxes(i);
+        std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
 
-    json boxes_dict = open_boxes();
-    std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
+        for (auto mybox : boxes_dict.items()){
+            
+            // Define a collision object (a box)
+            moveit_msgs::msg::CollisionObject collision_object;
+            collision_object.header.frame_id = move_group.getPlanningFrame();
+            collision_object.id = mybox.key();
+            
+            std::array<std::array<float,3>,2> mybox_corners = mybox.value();
+            std::array<float, 3> min_corner = mybox_corners[0];
+            std::array<float, 3> max_corner = mybox_corners[1];
+            float size_x = max_corner[0] - min_corner[0];
+            float size_y = max_corner[1] - min_corner[1];
+            float size_z = max_corner[2] - min_corner[2];
+            
+            float origin_x = min_corner[0] + size_x/2;
+            float origin_y = min_corner[1] + size_y/2;
+            float origin_z = min_corner[2] + size_z/2;
+            
+            // Define the box shape and dimensions
+            shape_msgs::msg::SolidPrimitive box;
+            box.type = shape_msgs::msg::SolidPrimitive::BOX;
+            box.dimensions = {size_x, size_y, size_z};  // x, y, z dimensions
 
-    for (auto mybox : boxes_dict.items()){
-        
-        // Define a collision object (a box)
-        moveit_msgs::msg::CollisionObject collision_object;
-        collision_object.header.frame_id = move_group.getPlanningFrame();
-        collision_object.id = mybox.key();
-        
-        std::array<std::array<float,3>,2> mybox_corners = mybox.value();
-        std::array<float, 3> min_corner = mybox_corners[0];
-        std::array<float, 3> max_corner = mybox_corners[1];
-        float size_x = max_corner[0] - min_corner[0];
-        float size_y = max_corner[1] - min_corner[1];
-        float size_z = max_corner[2] - min_corner[2];
-        
-        float origin_x = min_corner[0] + size_x/2;
-        float origin_y = min_corner[1] + size_y/2;
-        float origin_z = min_corner[2] + size_z/2;
-        
-        // Define the box shape and dimensions
-        shape_msgs::msg::SolidPrimitive box;
-        box.type = shape_msgs::msg::SolidPrimitive::BOX;
-        box.dimensions = {size_x, size_y, size_z};  // x, y, z dimensions
+            // Define the pose of the box (positioned in front of the robot)
+            geometry_msgs::msg::Pose box_pose;
+            box_pose.orientation.w = 1.0;  // No rotation
+            box_pose.position.x = origin_x;     
+            box_pose.position.y = origin_y;
+            box_pose.position.z = origin_z;    
 
-        // Define the pose of the box (positioned in front of the robot)
-        geometry_msgs::msg::Pose box_pose;
-        box_pose.orientation.w = 1.0;  // No rotation
-        box_pose.position.x = origin_x;     
-        box_pose.position.y = origin_y;
-        box_pose.position.z = origin_z;    
+            // Add the box shape and pose to the collision object
+            collision_object.primitives.push_back(box);
+            collision_object.primitive_poses.push_back(box_pose);
 
-        // Add the box shape and pose to the collision object
-        collision_object.primitives.push_back(box);
-        collision_object.primitive_poses.push_back(box_pose);
-
-        collision_object.operation = moveit_msgs::msg::CollisionObject::ADD;
-        collision_objects.push_back(collision_object);    
+            collision_object.operation = moveit_msgs::msg::CollisionObject::ADD;
+            if (i == 1){
+                collision_object.operation = moveit_msgs::msg::CollisionObject::REMOVE;
+            }
+            collision_objects.push_back(collision_object);    
+        }
+        // Add the collision object into the planning scene
+        planning_scene_interface.applyCollisionObjects(collision_objects);
     }
-    // Add the collision object into the planning scene
-    planning_scene_interface.applyCollisionObjects(collision_objects);
-
     RCLCPP_INFO(node->get_logger(), "Added collision object to the planning scene.");
-    rclcpp::sleep_for(std::chrono::seconds(20));
-    /*
-    // Set a target pose for the end-effector (expressed in the planning frame)
-    geometry_msgs::msg::Pose target_pose;
-    target_pose.orientation.w = 1.0;
-    target_pose.position.x = 0.4;  // Chosen so the robot must avoid the box
-    target_pose.position.y = -0.2;
-    target_pose.position.z = 0.5;
-    move_group.setPoseTarget(target_pose);
 
-    // Plan the motion
-    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-    moveit::core::MoveItErrorCode planning_result = move_group.plan(my_plan);
-
-    if (planning_result == moveit::core::MoveItErrorCode::SUCCESS)
-        RCLCPP_INFO(node->get_logger(), "Motion plan found that avoids the collision object!");
-    else
-        RCLCPP_WARN(node->get_logger(), "Motion planning failed.");
-    */
+    rclcpp::spin_some(node)
 
     rclcpp::shutdown();
     return 0;

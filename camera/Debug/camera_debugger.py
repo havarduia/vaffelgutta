@@ -42,18 +42,27 @@ class ArucoDebugger:
                 logging.error("No image received from camera.")
                 messagebox.showerror("Error", "No image received from camera.")
                 break
-            
+
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             corners, ids, _ = self.aruco.detector.detectMarkers(gray)
             if ids is not None:
                 cv2.aruco.drawDetectedMarkers(image, corners, ids)
                 transformations = self.aruco.estimate_pose()
+                
                 for i in range(len(ids)):
                     tag_id = int(ids[i])  # Convert NumPy array to integer
+                    
                     if tag_id in transformations:
                         T = transformations[tag_id]
-                        rvec, _ = cv2.Rodrigues(T[:3, :3])
-                        tvec = T[:3, 3].reshape(-1, 1)
+                        
+                        # Ensure T is a NumPy array
+                        T = numphy.array(T, dtype=numphy.float32)  # Convert from list to NumPy array if needed
+                        
+                        # Extract rotation and translation
+                        rvec, _ = cv2.Rodrigues(T[:3, :3])  # Convert rotation matrix to rotation vector
+                        tvec = T[:3, 3].reshape(-1, 1)  # Extract translation vector
+
+                        # Draw coordinate axes on detected markers
                         cv2.drawFrameAxes(
                             image,
                             self.aruco.camera.get_calibration()[0],
@@ -62,12 +71,13 @@ class ArucoDebugger:
                             tvec,
                             0.05
                         )
-                
+
             cv2.imshow("Detected Markers", image)
             if cv2.waitKey(1) & 0xFF == 27:  # Press ESC to close
                 break
+
         cv2.destroyAllWindows()
-    
+
     def debug_pose_estimation(self):
         try:
             while True: 

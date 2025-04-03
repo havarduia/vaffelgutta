@@ -2,8 +2,7 @@ import pyrealsense2 as rs
 import numpy as numphy
 numphy.set_printoptions(suppress=True, precision=4)
 from camera.Config.misc import print_blue, print_error, ConfigLoader
-
-
+import os
 class Camera:
     def __init__(self, config_loader):
 
@@ -32,26 +31,28 @@ class Camera:
         if not self.isStreaming:
             try:
                 profile = self.pipeline.start(self.config)
+                color_sensor = profile.get_device().query_sensors()[1]
+                color_sensor.set_option(rs.option.sharpness, 100) 
             except Exception as e:
                 print_error(f"Error starting pipeline: {e}")
                 raise e
             self.isStreaming = True
-
-            # Get intrinsics from the color stream.
-            intrinsics = (
+            self.data = numphy.load(os.path.expanduser('~/git/vaffelgutta/camera/camera_calibration.npz'))
+            self.intrinsics = (
                 profile.get_stream(rs.stream.color)
                 .as_video_stream_profile()
                 .get_intrinsics()
             )
-            self.intrinsics = intrinsics
-            self.camera_matrix = numphy.array(
-                [
-                    [intrinsics.fx, 0, intrinsics.ppx],
-                    [0, intrinsics.fy, intrinsics.ppy],
-                    [0, 0, 1],
-                ]
-            )
-            self.dist_coeffs = numphy.array(intrinsics.coeffs[:5])
+            self.camera_matrix = self.data['camera_matrix']
+            self.dist_coeffs = self.data['dist_coeffs']
+            #self.camera_matrix = numphy.array(
+            #    [
+            #        [intrinsics.fx, 0, intrinsics.ppx],
+            #        [0, intrinsics.fy, intrinsics.ppy],
+            #        [0, 0, 1],
+            #    ]
+            #)
+            #self.dist_coeffs = numphy.array(intrinsics.coeffs[:5])
 
     def stop_streaming(self):
         if self.isStreaming:

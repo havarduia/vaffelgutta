@@ -41,7 +41,7 @@ class CoordinateSystem:
             if tag_id == self.origin_id:
                 continue
 
-            origin_to_tag = numphy.dot(origin_inv, transformation)
+            origin_to_tag = origin_inv @ transformation
 
             xx, xy, xz = origin_to_tag[1][1], -origin_to_tag[0][1], origin_to_tag[2][1]
             yx, yy, yz = -origin_to_tag[1][0], origin_to_tag[0][0], -origin_to_tag[2][0]

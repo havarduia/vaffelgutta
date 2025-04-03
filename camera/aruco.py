@@ -1,11 +1,14 @@
 import cv2
-import numpy as numphy
+import numpy as np
 from camera.Config.misc import print_blue, print_error, smooth_data as smooth, ConfigLoader
 
 class Aruco:
     def __init__(self, camera, config_loader):
         self.camera = camera
+        # A default marker length (if a marker's id is not in the mapping)
         self.marker_length = config_loader.get("marker_length")
+        self.marker_sizes = config_loader.get("marker_sizes", {})
+        self.dictionary = config_loader.get("dictionary")
 
         if self.camera is None:
             raise ValueError("Camera instance not found. Ensure Camera is initialized first.")
@@ -13,7 +16,7 @@ class Aruco:
         self.detector = self._detector()
 
     def _detector(self):
-        aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+        aruco_dict = cv2.aruco.getPredefinedDictionary(getattr(cv2.aruco, self.dictionary))
         parameters = cv2.aruco.DetectorParameters()
         parameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
         parameters.cornerRefinementWinSize = 5  # Window size for corner refinement
@@ -23,14 +26,13 @@ class Aruco:
 
     @staticmethod
     def get_points(corner, marker_length):
-        objectPoints = numphy.array([
-            [-marker_length / 2, marker_length / 2, 0],
-            [marker_length / 2, marker_length / 2, 0],
-            [marker_length / 2, -marker_length / 2, 0],
+        objectPoints = np.array([
+            [-marker_length / 2,  marker_length / 2, 0],
+            [ marker_length / 2,  marker_length / 2, 0],
+            [ marker_length / 2, -marker_length / 2, 0],
             [-marker_length / 2, -marker_length / 2, 0],
-        ], dtype=numphy.float32)
-
-        imagePoints = numphy.array(corner, dtype=numphy.float32).reshape(-1, 2)
+        ], dtype=np.float32)
+        imagePoints = np.array(corner, dtype=np.float32).reshape(-1, 2)
         return objectPoints, imagePoints
 
     def _aruco_detection(self):
@@ -46,7 +48,7 @@ class Aruco:
             for i in range(len(corners)):
                 cv2.cornerSubPix(
                     gray,
-                    numphy.array(corners[i], dtype=numphy.float32),
+                    np.array(corners[i], dtype=np.float32),
                     (5, 5),
                     (-1, -1),
                     criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 30, 0.1)
@@ -56,11 +58,10 @@ class Aruco:
 
     def get_homo_matrix(self, rvec, tvec):
         R, _ = cv2.Rodrigues(rvec)
-        T = numphy.eye(4, dtype=R.dtype)
+        T = np.eye(4, dtype=R.dtype)
         T[:3, :3] = R
         T[:3, 3] = tvec.ravel()  
         return T
-
 
     def estimate_pose(self):
         camera_matrix, distcoeffs = self.camera.get_calibration()
@@ -72,7 +73,9 @@ class Aruco:
 
         raw_poses = []
         for tag_id, corner in zip(ids, corners):
-            objectPoints, imagePoints = self.get_points(corner, self.marker_length)
+            # Choose marker size for this tag id if available; otherwise, use default.
+            marker_length = self.marker_sizes.get(tag_id, self.marker_length)
+            objectPoints, imagePoints = self.get_points(corner, marker_length)
 
             success, rvec, tvec = cv2.solvePnP(
                 objectPoints, imagePoints, camera_matrix, distcoeffs,
@@ -89,6 +92,7 @@ class Aruco:
             return {}
 
         tag_ids, rvecs, tvecs = zip(*raw_poses)
-        rvecs, tvecs = smooth(numphy.array(rvecs)), smooth(numphy.array(tvecs))
+        rvecs, tvecs = smooth(np.array(rvecs)), smooth(np.array(tvecs))
 
-        return {tag_id: self.get_homo_matrix(rvec, tvec) for tag_id, rvec, tvec in zip(tag_ids, rvecs, tvecs)}
+        return {tag_id: self.get_homo_matrix(rvec, tvec) 
+                for tag_id, rvec, tvec in zip(tag_ids, rvecs, tvecs)}

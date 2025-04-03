@@ -5,10 +5,9 @@ from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 import rclpy
 from time import sleep
 from robot.robot_controllers.path_planner import list_multiply, list_sum
-from robot.tools.timekeeper import read_times, record_time
 from robot.robot_controllers.Wafflebot.moveit.MotionPlanner import MotionPlanner
 from camera.coordinatesystem import CoordinateSystem
-from robot.robot_controllers.Wafflebot.read_collisionobjects import read_collisionobjects
+from robot.robot_controllers.Wafflebot.add_collisionobjects import add_collisionobjects
 
 class Wafflebot:
     def __init__(
@@ -17,8 +16,6 @@ class Wafflebot:
         debug_print: bool = False,
         use_rviz: bool = True,
     ):
-        # Include launch arguments
-        use_real_robot = argumentparser.read_input_args()
         # Initialize robot:
         interbotix_process = robot_boot_manager.robot_launch(use_rviz)
         self.bot = InterbotixManipulatorXS(
@@ -93,12 +90,12 @@ class Wafflebot:
         self.exit()
 
     def move(self, target, ignore: list[str]=None, speed_scaling: float = 1.0):
-        if ignore is None:
-            ignore = []
         self.cam.start("all")
-        read_collisionobjects() 
-        self.motionplanner.move(target, speed_scaling, ignore)
-        return self.motionplanner.movement_success
-
+        success = add_collisionobjects(ignore)
+        if success:
+            self.motionplanner.move(target, speed_scaling)
+            return self.motionplanner.movement_success
+        elif self.debug_print:
+            print("Wafflebot: Collision publishing failed")
     def launch_emergency_stop_monitor(self):
         emergency_stop.run_emergency_stop_monitor(self.safe_stop)

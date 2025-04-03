@@ -8,7 +8,7 @@ import numpy as numphy
 from copy import deepcopy
 
 
-def read_collisionobjects() -> None:
+def read_collisionobjects() -> dict:
 
     reader = Jsonreader()
 
@@ -31,13 +31,17 @@ def read_collisionobjects() -> None:
             try:
                 offset_matrix = create_offset_matrix(corner_matrix, tags[tagid])
             except KeyError:
-                break
-            offset_vec = numphy.array(offset_matrix)[:3,3]    
+                break 
+            offset_vec = numphy.array(offset_matrix, dtype=float)[:3,3]    
+
             offset_corners.append(list(deepcopy(offset_vec)))
         if len(offset_corners) != 8:
             break
         box_endpoints = _endpoints_from_bb(offset_corners)
+        # Convert values to flaot for readability
+        box_endpoints = numphy.array(box_endpoints, dtype=float).tolist()
         updated_boxes.update({name: box_endpoints})
 
     reader.clear("dynamic")
     reader.write("dynamic", updated_boxes)
+    return updated_boxes

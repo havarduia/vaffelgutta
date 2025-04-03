@@ -4,3 +4,8 @@ nohup.out
 build/
 install/
 log/
+/robot/assets/boundingboxes/publish/
+/robot/assets/misc/time_recordings.json
+/robot/assets/position_data/camera_readings.json
+/robot/assets/position_data/offsets.json
+

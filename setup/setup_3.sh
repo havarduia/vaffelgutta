@@ -2,6 +2,14 @@
 
 set -e  # Exit on error
 
+current_dir=$(pwd)
+script_location=$(pwd)/$0
+script_dir=${script_location::(-11)}
+cd $script_dir
+
+cp ../robot/assets/misc/vx300s_joint_limits.yaml ~/interbotix_ws/install/interbotix_xsarm_moveit/share/interbotix_xsarm_moveit/config/joint_limits/vx300s_joint_limits.yaml 
+cp ../robot/assets/misc/vx300s_joint_limits.yaml ~/interbotix_ws/src/interbotix_ros_manipulators/interbotix_ros_xsarms/interbotix_xsarm_moveit/config/joint_limits/vx300s_joint_limits.yaml 
+
 cd ~/
 
 # Install necessary dependencies
@@ -45,4 +53,21 @@ colcon build --mixin release --executor sequential
 echo 'source ~/ws_moveit/install/setup.bash' >> ~/.bashrc
 source ~/.bashrc
 
-cd ~/git/vaffelgutta
+cd $script_dir
+cd ../robot/robot_controllers/Wafflebot/moveit/cpp_ws/
+colcon build    
+echo "source $script_dir/../robot/robot_controllers/Wafflebot/moveit/cpp_ws/install/setup.bash" >> ~/.bashrc
+
+cd $script_dir
+cd ../robot/assets/boundingboxes/
+mkdir publish
+cd publish
+touch add.json
+touch remove.json
+cd ../../misc
+touch time_recordings.json
+cd ../position_data
+touch camera_readings.json
+touch offsets.json
+
+cd $current_dir

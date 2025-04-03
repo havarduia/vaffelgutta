@@ -15,7 +15,7 @@ def read_collisionobjects() -> dict:
     tags = reader.read("camera_readings")
 
     reader.update_filedirectory("robot/assets/boundingboxes/")
-    boxdata = reader.read("dynamic_origins")
+    boxdata = reader.read("dynamic")
 
     updated_boxes = dict()
 
@@ -42,6 +42,4 @@ def read_collisionobjects() -> dict:
         box_endpoints = numphy.array(box_endpoints, dtype=float).tolist()
         updated_boxes.update({name: box_endpoints})
 
-    reader.clear("dynamic")
-    reader.write("dynamic", updated_boxes)
     return updated_boxes

@@ -1,6 +1,5 @@
 import pyrealsense2 as rs
 import numpy as np
-np.set_printoptions(suppress=True, precision=4)
 from camera.Config.misc import print_blue, print_error, ConfigLoader
 import os
 
@@ -20,8 +19,8 @@ class Camera:
         camera_id = devices[0].get_info(rs.camera_info.serial_number)
         print_blue(f"Using RealSense camera with serial: {camera_id}")
 
-        resolution = config_loader.get("resolution")  # Default resolution
-        fps = config_loader.get("fps")  # Default FPS
+        resolution = config_loader.get("resolution") 
+        fps = config_loader.get("fps") 
 
         self.config.enable_device(camera_id)
         self.config.enable_stream(rs.stream.color, resolution[0], resolution[1], rs.format.bgr8, fps)

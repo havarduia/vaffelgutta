@@ -1,16 +1,16 @@
 resolution: [1280, 800]
 fps: 30
 dictionary: DICT_4X4_50
-marker_length: 0.05  # default marker length
+marker_length: 0.04750  # default marker length
 marker_sizes:
-  25: 0.047        # marker 25 has a size of 0.08 m
-  33: 0.033        # marker 23 has a size of 0.06 m
-  0: 0.047
+  25: 0.0480        # marker 25 has a size of 0.08 m
+  33: 0.0330        # marker 23 has a size of 0.06 m
+  0: 0.0470
 origin_id: 0
-offset_x: 0.00
-offset_y: 0.00
-offset_z: 0.00
-bias_x: -0.01
-bias_y: -0.0085
-bias_z: -0.015
+offset_x: -0.1800
+offset_y: -0.1800
+offset_z: 0.0000
+bias_x: 0.0000
+bias_y: 0.0000
+bias_z: 0.0000
 

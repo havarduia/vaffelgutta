@@ -4,6 +4,7 @@
 #include <shape_msgs/msg/solid_primitive.hpp>
 #include <geometry_msgs/msg/pose.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include "std_srvs/srv/trigger.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -21,24 +22,29 @@ json open_boxes(int filechoice){
   std::filesystem::path filepath_add = "../../../../../assets/boundingboxes/publish/add.json";
   std::filesystem::path filepath_rm = "../../../../../assets/boundingboxes/publish/remove.json";
   std::filesystem::path filepath;
+
   if (filechoice == 0){
     filepath = (source_dir / filepath_add);
   }
   else{
     filepath = (source_dir / filepath_rm);
   }
-  std::ifstream file(filepath);
-  if (!file){
-    std::cout << "EYO THE FILE IS MISSING CUH" << std::endl;
-    return json();
+
+  bool is_loaded = false;
+  while (!is_loaded) {
+    std::ifstream file(filepath);
+    if (file){
+      std::stringstream buffer;
+      buffer << file.rdbuf();
+      text = buffer.str();
+      if (!text.empty()){
+        file.loaded = true;
+      }  
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    json j = json::parse(text);
+    return j;
   }
-  while(getline(file,readbuffer)){
-    text.append(readbuffer);
-  }
-  file.close();
-  json j = json::parse(text);
-  return j;
-}
 
 
 
@@ -52,6 +58,45 @@ std::string loadFileContent(const std::string &file_path) {
   buffer << file.rdbuf();
   return buffer.str();
 }
+bool update_collision(){
+
+
+}
+
+
+
+class CollisionChecker : public rclcpp::Node
+{
+public:
+    CollisionChecker() : Node("collision_checker_node")
+    {
+        service_ = this->create_service<std_srvs::srv::Trigger>(
+            "publish_boxes", std::bind(&CollisionChecker::handle_service, this, std::placeholders::_1, std::placeholders::_2));
+    }
+
+private:
+    void handle_service(const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+                        std::shared_ptr<std_srvs::srv::Trigger::Response> response)
+    {
+        if (request->trigger) {
+            response->success = !update_collision();  // Update response based on the collision check
+        } else {
+            RCLCPP_INFO(this->get_logger(), "Collision trigger was FALSE");
+            response->success = false;
+        }
+    }
+
+    bool update_collision() {
+        // Implement your collision checking logic here
+        return true;  // Example return value
+    }
+
+private:
+    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr service_;
+
+
+};
+
 
 int main(int argc, char** argv) {
   // Initialize ROS 2

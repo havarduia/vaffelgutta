@@ -3,7 +3,7 @@ from robot.tools.file_manipulation import *
 
 def record_time(name: str) -> None:
     reader = Jsonreader()
-    reader.update_filedirectory("robot/assets/")
+    reader.update_filedirectory("robot/assets/misc/")
     data = {name:time()}
     if name.lower() == "start":
         reader.clear("time_recordings")
@@ -12,7 +12,7 @@ def record_time(name: str) -> None:
 
 def read_times(): 
     reader = Jsonreader()
-    reader.update_filedirectory("robot/assets/")
+    reader.update_filedirectory("robot/assets/misc/")
     data = reader.read("time_recordings")
     list_of_items = []
     prev_time = data["start"]

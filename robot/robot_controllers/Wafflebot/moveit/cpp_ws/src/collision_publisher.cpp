@@ -80,9 +80,7 @@ int main(int argc, char** argv) {
     }
 
     // Create MoveGroupInterface for the robot's planning group
-    moveit::planning_interface::MoveGroupInterface move_group(node, "interbotix_arm");
     moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
-    rclcpp::spin_some(node);
 
     for(int i = 0; i<=1; i++){
         json boxes_dict = open_boxes(i);
@@ -92,7 +90,7 @@ int main(int argc, char** argv) {
             
             // Define a collision object (a box)
             moveit_msgs::msg::CollisionObject collision_object;
-            collision_object.header.frame_id = move_group.getPlanningFrame();
+            collision_object.header.frame_id = "world" 
             collision_object.id = mybox.key();
             
             std::array<std::array<float,3>,2> mybox_corners = mybox.value();
@@ -134,8 +132,6 @@ int main(int argc, char** argv) {
         planning_scene_interface.applyCollisionObjects(collision_objects);
     }
     RCLCPP_INFO(node->get_logger(), "Added collision object to the planning scene.");
-
-    rclcpp::spin_some(node);
 
     rclcpp::shutdown();
     return 0;

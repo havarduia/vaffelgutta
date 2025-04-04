@@ -3,7 +3,7 @@ from time import sleep
 from robot.robot_controllers.robot_boot_manager import robot_launch, robot_close
 from robot.tools.errorhandling import handle_error
 from robot.robot_controllers.Wafflebot.moveit.create_motion_plan_request import create_motion_plan_request
-from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
+#from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
 from robot.tools.file_manipulation import Jsonreader
 
 import rclpy
@@ -32,7 +32,7 @@ class MotionPlanner(Node):
         self.joint_state_subscriber = self.create_subscription(
             JointState, "/vx300s/joint_states", self._update_joint_state, 10
             )
-        self.collision_publisher = CollisionObjectPublisher()
+        #self.collision_publisher = CollisionObjectPublisher()
         # Check if clients have loaded successfully
         if not self.planning_client.wait_for_service(timeout_sec=10.0):
             raise RuntimeError ("Planning service would not load. Please restart. If problem persists, please reboot.")
@@ -62,7 +62,7 @@ class MotionPlanner(Node):
         self.gripper_state = list(joint_states.position)[-1]
         return
 
-    def update_collisionobjects(self, ignore):
+    #def update_collisionobjects(self, ignore):
         reader = Jsonreader()
         reader.update_filedirectory("robot/assets/boundingboxes/")
         collisionobjects: dict = reader.read("static")
@@ -80,7 +80,7 @@ class MotionPlanner(Node):
             self.movement_success = False
             return
         self.moving = True
-        self.update_collisionobjects(ignore)
+        #self.update_collisionobjects(ignore)
         self.update_joint_states()
         start_state = self.joint_states
    

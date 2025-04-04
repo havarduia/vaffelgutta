@@ -4,7 +4,7 @@ from robot.executable_scripts.common import directory_fixer
 directory_fixer.fix_directiory()
 class Jsonreader:
     def __init__(self, 
-            directory_path: str = "robot/assets/position_data/"
+            directory_path: str = "robot/assets/misc/position_data/"
         ):
         self.directory_path = directory_path
         return

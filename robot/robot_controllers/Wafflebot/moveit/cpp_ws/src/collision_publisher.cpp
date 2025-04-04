@@ -58,27 +58,25 @@ int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
 
   auto node = rclcpp::Node::make_shared("collision_checker_node");
-    auto node = rclcpp::Node::make_shared("collision_checker_node");
+  auto node = rclcpp::Node::make_shared("collision_checker_node");
 
-    try {
-      // Load URDF and SRDF directly
-      std::string robot_description = loadFileContent(urdf_path);
-      std::string robot_description_semantic = loadFileContent(srdf_path);
+  try {
+    // Load URDF and SRDF directly
+    std::string robot_description = loadFileContent(urdf_path);
+    std::string robot_description_semantic = loadFileContent(srdf_path);
 
-      node->declare_parameter("robot_description", robot_description);
-      node->declare_parameter("robot_description_semantic", robot_description_semantic);
+    node->declare_parameter("robot_description", robot_description);
+    node->declare_parameter("robot_description_semantic", robot_description_semantic);
 
-      RCLCPP_INFO(node->get_logger(), "URDF and SRDF loaded successfully.");
-    } catch (const std::exception &e) {
-      RCLCPP_ERROR(node->get_logger(), "Failed to load URDF/SRDF: %s", e.what());
-      rclcpp::shutdown();
-      return -1;
-    }
+    RCLCPP_INFO(node->get_logger(), "URDF and SRDF loaded successfully.");
+  } catch (const std::exception &e) {
+    RCLCPP_ERROR(node->get_logger(), "Failed to load URDF/SRDF: %s", e.what());
+    rclcpp::shutdown();
+    return -1;
+  }
 
   // Create MoveGroupInterface for the robot's planning group
-  moveit::planning_interface::MoveGroupInterface move_group(node, "interbotix_arm");
   moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
-  rclcpp::spin_some(node);
 
   for(int i = 0; i<=1; i++){
     json boxes_dict = open_boxes(i);
@@ -88,8 +86,8 @@ int main(int argc, char** argv) {
 
       // Define a collision object (a box)
       moveit_msgs::msg::CollisionObject collision_object;
-      collision_object.header.frame_id = move_group.getPlanningFrame();
-      collision_object.id = mybox.key();
+      collision_object.header.frame_id = "world" 
+        collision_object.id = mybox.key();
 
       std::array<std::array<float,3>,2> mybox_corners = mybox.value();
       std::array<float, 3> min_corner = mybox_corners[0];
@@ -106,6 +104,7 @@ int main(int argc, char** argv) {
       shape_msgs::msg::SolidPrimitive box;
       box.type = shape_msgs::msg::SolidPrimitive::BOX;
       box.dimensions = {size_x, size_y, size_z};  // x, y, z dimensions
+
 
       // Define the pose of the box (positioned in front of the robot)
       geometry_msgs::msg::Pose box_pose;

@@ -54,5 +54,5 @@ class CollisionObjectPublisher(Node):
         self.collisionobjects = collisionobjects
         self.ignored_objects = ignore
         self._publish_collision_objects()
-        self.ignored_objects = None 
+        self.ignored_objects = None
 

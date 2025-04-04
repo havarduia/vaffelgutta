@@ -21,7 +21,13 @@ class Aruco:
         parameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
         parameters.cornerRefinementWinSize = 5  # Window size for corner refinement
         parameters.cornerRefinementMaxIterations = 30  # Max iterations for refinement
-        parameters.cornerRefinementMinAccuracy = 0.1  # Minimum accuracy for refinement
+        parameters.cornerRefinementMinAccuracy = 0.01  # Minimum accuracy for refinement
+        parameters.polygonalApproxAccuracyRate = 0.03
+        parameters.relativeCornerRefinmentWinSize = 0.15
+        parameters.minCornerDistanceRate = 0.05
+        parameters.minDistanceToBorder = 3
+        parameters.useAruco3Detection = True
+        
         return cv2.aruco.ArucoDetector(aruco_dict, parameters)
 
     @staticmethod

@@ -6,6 +6,7 @@ from robot.tools.update_tagoffsets import create_offset_matrix
 # user libraries: 
 from time import sleep
 from typing import Literal
+import keyboard
 import numpy as numphy
 
 
@@ -54,7 +55,7 @@ def playposition(bot: Wafflebot, data_type: Literal["joints", "matrix"]):
         sleep(1)
     return    
 
-def recordposition(bot: InterbotixManipulatorXS):
+def recordposition(bot: Wafflebot):
     # detorque arm
     bot.core.robot_torque_enable("group", "arm", False)
     sleep(0.25)    
@@ -92,8 +93,48 @@ def recordposition(bot: InterbotixManipulatorXS):
         print(f'Successfully written "{name}" to recordings.')
     return name
 
+def recordtrajectory(bot: Wafflebot):
+    # initialize values:
+    i = 0
+    poses = dict()
+    poseindex = 0
+    reader = Jsonreader()
+
+    bot.core.robot_torque_enable("group", "arm", False)
+    pose_name = input("Enter pose name to begin recording. press enter to cancel.")
+    if pose_name == "":
+        return
+    print("press S to stop recording")
+    while True:
+        if keyboard.is_pressed("s"):
+            break;
+        i+=1
+        sleep(0.01)
+        if i == 100:
+            i = 0
+
+            # Record position
+            bot.arm.capture_joint_positions()
+            position_joints = bot.arm.get_joint_positions()
+            # Test for valid position
+            if bot.arm._check_joint_limits(position_joints):
+                position_mat = bot.arm.get_ee_pose().tolist()
+            else:
+                print("Joints are not within their limits. Try again bozo.")
+                bot.core.robot_torque_enable("group", "arm", True)
+                return
+            poses.update({f"{pose_name}_{poseindex}" : position_mat})
+            poseindex+=1
+
+
+
+
+        
+        
+
 def pop_item()->None:
     reader = Jsonreader()
+    
     print_stored_positions(reader.read("recordings"))
     key = input("Tell me what position to remove, little boy: ")
     if reader.pop("recordings",key):
@@ -107,6 +148,7 @@ def record_offset(bot:Wafflebot):
 
     reader = Jsonreader()
     robot_postions = reader.read("recordings")
+    reader.pop("recordings", name)
     tags = reader.read("camera_readings")
 
     robot_position = robot_postions[name]["matrix"]
@@ -119,6 +161,7 @@ def record_offset(bot:Wafflebot):
     reader.write("offsets", data)     
     print("successfully recorded offset.")
     return None
+
 
 def main():
     # boot bot

@@ -16,7 +16,7 @@ class Jsonreader:
         """
         self.directory_path  = directory
 
-    def read(self, filename: str)->dict | None:
+    def read(self, filename: str)->dict:
         """reads the specified file contents as .json"""    
         try:
             with open((self.directory_path+filename+".json"), "r+") as file:
@@ -29,7 +29,7 @@ class Jsonreader:
             print(f"""file manipulation:
                  \rfile \"{filename}.json\" not found in \"{self.directory_path}\". 
                 \rNo action taken.""")
-            return None
+            return dict()
         
     def write(self, filename: str, data: dict) -> None:
         """
@@ -118,7 +118,7 @@ def table_print(text_items: list[str], words_per_line: int = 3, skip_sort: bool 
                 print_line(line, word_length)
                 line = []
     if len(line) != 0:
-        for i in range(words_per_line-len(line)):
+        for _ in range(words_per_line-len(line)):
             line.append("")
         print_line(line, word_length)
     for word in big_words:

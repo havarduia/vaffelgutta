@@ -3,7 +3,7 @@ from time import sleep
 from robot.robot_controllers.robot_boot_manager import robot_launch, robot_close
 from robot.tools.errorhandling import handle_error
 from robot.robot_controllers.Wafflebot.moveit.create_motion_plan_request import create_motion_plan_request
-#from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
+from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
 from robot.tools.file_manipulation import Jsonreader
 
 import rclpy
@@ -15,6 +15,7 @@ from moveit_msgs.srv import GetMotionPlan
 from sensor_msgs.msg import JointState
 from control_msgs.action import FollowJointTrajectory
 from trajectory_msgs.msg import JointTrajectory
+    
 
 
 class MotionPlanner(Node):
@@ -32,7 +33,6 @@ class MotionPlanner(Node):
         self.joint_state_subscriber = self.create_subscription(
             JointState, "/vx300s/joint_states", self._update_joint_state, 10
             )
-        #self.collision_publisher = CollisionObjectPublisher()
         # Check if clients have loaded successfully
         if not self.planning_client.wait_for_service(timeout_sec=10.0):
             raise RuntimeError ("Planning service would not load. Please restart. If problem persists, please reboot.")
@@ -62,25 +62,17 @@ class MotionPlanner(Node):
         self.gripper_state = list(joint_states.position)[-1]
         return
 
-    #def update_collisionobjects(self, ignore):
-        reader = Jsonreader()
-        reader.update_filedirectory("robot/assets/boundingboxes/")
-        collisionobjects: dict = reader.read("static")
-        collisionobjects.update(reader.read("dynamic"))
-        self.collision_publisher.publish_collisionobjects(collisionobjects, ignore)
-        rclpy.spin_once(self)
-
+    
     def move(self, 
              target: list[list[float]],
              speed_scaling: float = 1.0,
-             ignore: list[str] = None
              ) -> None: 
         if self.moving:
             print("already moving")
             self.movement_success = False
             return
+            
         self.moving = True
-        #self.update_collisionobjects(ignore)
         self.update_joint_states()
         start_state = self.joint_states
    
@@ -156,6 +148,7 @@ class MotionPlanner(Node):
 
 
 def main():
+
 
     rclpy.init()
     interbotix_moveit_process = robot_launch(use_real_robot=0)

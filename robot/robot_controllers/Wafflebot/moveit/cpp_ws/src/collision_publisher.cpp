@@ -10,60 +10,49 @@
 #include <sstream>
 #include <cstdlib>
 #include <iostream>
-#include "json.hpp" 
-
+#include "json.hpp"
 
 using json = nlohmann::json;
 // Function to load file conten
-json open_boxes(int filechoice){
-  std::string readbuffer;
-  std::string text;
-  std::filesystem::path source_dir = std::filesystem::path(__FILE__).parent_path().lexically_normal() ;
-  std::filesystem::path filepath_add = "../../../../../assets/boundingboxes/publish/add.json";
-  std::filesystem::path filepath_rm = "../../../../../assets/boundingboxes/publish/remove.json";
-  std::filesystem::path filepath;
+json open_boxes(int filechoice)
+{
+    std::string readbuffer;
+    std::string text;
+    std::filesystem::path source_dir = std::filesystem::path(__FILE__).parent_path().lexically_normal();
+    std::filesystem::path filepath_add = "../../../../../assets/boundingboxes/publish/add.json";
+    std::filesystem::path filepath_rm = "../../../../../assets/boundingboxes/publish/remove.json";
+    std::filesystem::path filepath;
 
-  if (filechoice == 0){
-    filepath = (source_dir / filepath_add);
-  }
-  else{
-    filepath = (source_dir / filepath_rm);
-  }
+    if (filechoice == 0)
+    {
+        filepath = (source_dir / filepath_add);
+    }
+    else
+    {
+        filepath = (source_dir / filepath_rm);
+    }
 
-  bool is_loaded = false;
-  while (!is_loaded) {
-    std::ifstream file(filepath);
-    if (file){
-      std::stringstream buffer;
-      buffer << file.rdbuf();
-      text = buffer.str();
-      if (!text.empty()){
-        file.loaded = true;
-      }  
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    bool file_loaded = false;
+    int retries_timer = 0;
+    while (!file_loaded && retries_timer <=50)
+    {
+        retries_timer++;
+        std::ifstream file(filepath);
+        if (file)
+        {
+            std::stringstream buffer;
+            buffer << file.rdbuf();
+            text = buffer.str();
+            if (!text.empty())
+            {
+                file_loaded = true;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
     }
     json j = json::parse(text);
     return j;
-  }
-
-
-
-std::string loadFileContent(const std::string &file_path) {
-    std::ifstream file(file_path);
-    if (!file.is_open()) {
-        throw std::runtime_error("Could not open file: " + file_path);
-    }
-
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
 }
-bool update_collision(){
-
-
-}
-
-
 
 class CollisionChecker : public rclcpp::Node
 {
@@ -71,61 +60,18 @@ public:
     CollisionChecker() : Node("collision_checker_node")
     {
         service_ = this->create_service<std_srvs::srv::Trigger>(
-            "publish_boxes", std::bind(&CollisionChecker::handle_service, this, std::placeholders::_1, std::placeholders::_2));
+            "publish_boxes", std::bind(&CollisionChecker::handle_service, this, std::placeholders::_1, std::placeholders::_2));    
     }
 
 private:
     void handle_service(const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
                         std::shared_ptr<std_srvs::srv::Trigger::Response> response)
     {
-        if (request->trigger) {
-            response->success = !update_collision();  // Update response based on the collision check
-        } else {
-            RCLCPP_INFO(this->get_logger(), "Collision trigger was FALSE");
-            response->success = false;
-        }
+        response->success = !update_collision();  // Update response based on the collision check
     }
+    
 
     bool update_collision() {
-        // Implement your collision checking logic here
-        return true;  // Example return value
-    }
-
-private:
-    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr service_;
-
-
-};
-
-
-
-int main(int argc, char** argv) {
-    // Initialize ROS 2
-    rclcpp::init(argc, argv);
-
-    auto node = rclcpp::Node::make_shared("collision_checker_node");
-    // Paths to URDF and SRDF
-    std::filesystem::path source_dir = std::filesystem::path(__FILE__).parent_path().lexically_normal() ;
-    std::filesystem::path urdf_path =  source_dir / "../robot_models/vx300s.urdf";
-    std::filesystem::path srdf_path =  source_dir / "../robot_models/vx300s.srdf";
-
-    try {
-        // Load URDF and SRDF directly
-        std::string robot_description = loadFileContent(urdf_path);
-        std::string robot_description_semantic = loadFileContent(srdf_path);
-
-        node->declare_parameter("robot_description", robot_description);
-        node->declare_parameter("robot_description_semantic", robot_description_semantic);
-
-        RCLCPP_INFO(node->get_logger(), "URDF and SRDF loaded successfully.");
-    } catch (const std::exception &e) {
-        RCLCPP_ERROR(node->get_logger(), "Failed to load URDF/SRDF: %s", e.what());
-        rclcpp::shutdown();
-        return -1;
-    }
-
-    // Create MoveGroupInterface for the robot's planning group
-    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
 
     for(int i = 0; i<=1; i++){
         json boxes_dict = open_boxes(i);
@@ -135,7 +81,7 @@ int main(int argc, char** argv) {
             
             // Define a collision object (a box)
             moveit_msgs::msg::CollisionObject collision_object;
-            collision_object.header.frame_id = "world" 
+            collision_object.header.frame_id = "world";
             collision_object.id = mybox.key();
             
             std::array<std::array<float,3>,2> mybox_corners = mybox.value();
@@ -175,8 +121,24 @@ int main(int argc, char** argv) {
         }
         // Add the collision object into the planning scene
         planning_scene_interface.applyCollisionObjects(collision_objects);
+        }
+    return true;
     }
-    RCLCPP_INFO(node->get_logger(), "Added collision object to the planning scene.");
+
+private:
+    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr service_;
+    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+};
+
+
+
+int main(int argc, char** argv) {
+    // Initialize ROS 2
+    rclcpp::init(argc, argv);
+    
+    auto node = std::make_shared<CollisionChecker>();
+
+    rclcpp::spin(node)
 
     rclcpp::shutdown();
     return 0;

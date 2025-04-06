@@ -12,7 +12,7 @@ joint_limits:
     has_acceleration_limits: true
     max_acceleration: 5.0
   shoulder:
-    min_position: -0.3
+    min_position: -0.785398
     has_velocity_limits: true
     max_velocity: 3.14
     has_acceleration_limits: true
@@ -23,8 +23,8 @@ joint_limits:
     has_acceleration_limits: true
     max_acceleration: 5.0
   forearm_roll:
-    max_position: 1.5666
-    min_position: -1.5666
+    max_position: 1.55
+    min_position: -1.55
     has_velocity_limits: true
     max_velocity: 3.14
     has_acceleration_limits: true
@@ -35,8 +35,8 @@ joint_limits:
     has_acceleration_limits: true
     max_acceleration: 5.0
   wrist_rotate:
-    max_position: 1.5666
-    min_position: -1.5666
+    max_position: 1.55
+    min_position: -1.55
     has_velocity_limits: true
     max_velocity: 3.14
     has_acceleration_limits: true

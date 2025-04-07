@@ -1,10 +1,7 @@
 from robot.tools.file_manipulation import Jsonreader
 from camera.Config.misc import print_blue, print_error, ConfigLoader
 import numpy as np
-
-np.set_printoptions(precision=4)
-
-
+np.set_printoptions(formatter={'float': lambda x: f"{x:.4f}"})
 class CoordinateSystem:
     def __init__(self, aruco, config_loader):
         if aruco is None:

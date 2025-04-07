@@ -8,6 +8,7 @@ from robot.robot_controllers.path_planner import list_multiply, list_sum
 from robot.robot_controllers.Wafflebot.moveit.MotionPlanner import MotionPlanner
 from camera.coordinatesystem import CoordinateSystem
 from robot.robot_controllers.Wafflebot.add_collisionobjects import add_collisionobjects
+from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
 
 class Wafflebot:
     def __init__(
@@ -24,6 +25,7 @@ class Wafflebot:
             gripper_name="gripper",
         )
         self.motionplanner = MotionPlanner(interbotix_process)
+        self.collision_publisher = CollisionObjectPublisher()
         robot_startup()
 
         # Keep a look out for the emergency stop
@@ -91,11 +93,13 @@ class Wafflebot:
 
     def move(self, target, ignore: list[str]=None, speed_scaling: float = 1.0):
         self.cam.start("all")
-        success = add_collisionobjects(ignore)
+        add_collisionobjects(ignore)
+        success = self.collision_publisher.publish_collisionobjects() 
         if success:
-            self.motionplanner.move(target, speed_scaling)
+            self.motionplanner.move(target, speed_scaling*self.speed)
             return self.motionplanner.movement_success
         elif self.debug_print:
             print("Wafflebot: Collision publishing failed")
+
     def launch_emergency_stop_monitor(self):
         emergency_stop.run_emergency_stop_monitor(self.safe_stop)

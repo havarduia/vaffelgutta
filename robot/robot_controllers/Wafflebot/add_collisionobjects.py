@@ -1,12 +1,10 @@
 #Todo
 from robot.robot_controllers.Wafflebot.read_collisionobjects import read_collisionobjects
 from robot.tools.file_manipulation import Jsonreader
-from subprocess import run, CalledProcessError
 
 def add_collisionobjects(ignore: list[str] = None)-> None:
     
     dynamic_boxes = read_collisionobjects()  
-    
     
     reader = Jsonreader()
     reader.update_filedirectory("robot/assets/boundingboxes/")
@@ -30,11 +28,6 @@ def add_collisionobjects(ignore: list[str] = None)-> None:
     reader.write("add", add_objects)
     reader.clear("remove")
     reader.write("remove", rm_objects)
-    try:
-        run(["bash", "-c", "ros2 run collision_publisher collision_publisher"], check=True)
-        return True
-    except CalledProcessError:
-        return False
 
 if __name__ == "__main__":
     add_collisionobjects("test")

@@ -4,64 +4,77 @@
 #include <shape_msgs/msg/solid_primitive.hpp>
 #include <geometry_msgs/msg/pose.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include "std_srvs/srv/trigger.hpp"
 
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
 #include <iostream>
-#include "json.hpp" 
-
+#include "json.hpp"
 
 using json = nlohmann::json;
 // Function to load file conten
-json open_boxes(int filechoice){
+json open_boxes(int filechoice)
+{
     std::string readbuffer;
     std::string text;
-    std::filesystem::path source_dir = std::filesystem::path(__FILE__).parent_path().lexically_normal() ;
+    std::filesystem::path source_dir = std::filesystem::path(__FILE__).parent_path().lexically_normal();
     std::filesystem::path filepath_add = "../../../../../assets/boundingboxes/publish/add.json";
     std::filesystem::path filepath_rm = "../../../../../assets/boundingboxes/publish/remove.json";
     std::filesystem::path filepath;
-    if (filechoice == 0){
+
+    if (filechoice == 0)
+    {
         filepath = (source_dir / filepath_add);
     }
-    else{
+    else
+    {
         filepath = (source_dir / filepath_rm);
     }
-    std::ifstream file(filepath);
-    if (!file){
-            std::cout << "EYO THE FILE IS MISSING CUH" << std::endl;
-            return json();
+
+    bool file_loaded = false;
+    int retries_timer = 0;
+    while (!file_loaded && retries_timer <=50)
+    {
+        retries_timer++;
+        std::ifstream file(filepath);
+        if (file)
+        {
+            std::stringstream buffer;
+            buffer << file.rdbuf();
+            text = buffer.str();
+            if (!text.empty())
+            {
+                file_loaded = true;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
-    while(getline(file,readbuffer)){
-        text.append(readbuffer);
     }
-    file.close();
     json j = json::parse(text);
     return j;
 }
 
-
-
-std::string loadFileContent(const std::string &file_path) {
-    std::ifstream file(file_path);
-    if (!file.is_open()) {
-        throw std::runtime_error("Could not open file: " + file_path);
+class CollisionChecker : public rclcpp::Node
+{
+public:
+    CollisionChecker() : Node("collision_checker_node")
+    {
+        service_ = this->create_service<std_srvs::srv::Trigger>(
+            "publish_boxes", std::bind(&CollisionChecker::handle_service, this, std::placeholders::_1, std::placeholders::_2));    
     }
 
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
 }
 
 
-int main(int argc, char** argv) {
-    // Initialize ROS 2
-    rclcpp::init(argc, argv);
+private:
+    void handle_service(const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+                        std::shared_ptr<std_srvs::srv::Trigger::Response> response)
+    {
+        response->success = !update_collision();  // Update response based on the collision check
+    }
+    
 
-    auto node = rclcpp::Node::make_shared("collision_checker_node");
-
-    // Create MoveGroupInterface for the robot's planning group
-    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+    bool update_collision() {
 
     for(int i = 0; i<=1; i++){
         json boxes_dict = open_boxes(i);
@@ -111,8 +124,24 @@ int main(int argc, char** argv) {
         }
         // Add the collision object into the planning scene
         planning_scene_interface.applyCollisionObjects(collision_objects);
+        }
+    return true;
     }
-    RCLCPP_INFO(node->get_logger(), "Added collision object to the planning scene.");
+
+private:
+    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr service_;
+    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+};
+
+
+
+int main(int argc, char** argv) {
+    // Initialize ROS 2
+    rclcpp::init(argc, argv);
+    
+    auto node = std::make_shared<CollisionChecker>();
+
+    rclcpp::spin(node)
 
     rclcpp::shutdown();
     return 0;

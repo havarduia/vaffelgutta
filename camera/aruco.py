@@ -18,15 +18,15 @@ class Aruco:
     def _detector(self):
         aruco_dict = cv2.aruco.getPredefinedDictionary(getattr(cv2.aruco, self.dictionary))
         parameters = cv2.aruco.DetectorParameters()
-        parameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
-        parameters.cornerRefinementWinSize = 5  # Window size for corner refinement
-        parameters.cornerRefinementMaxIterations = 30  # Max iterations for refinement
-        parameters.cornerRefinementMinAccuracy = 0.01  # Minimum accuracy for refinement
-        parameters.polygonalApproxAccuracyRate = 0.03
-        parameters.relativeCornerRefinmentWinSize = 0.15
-        parameters.minCornerDistanceRate = 0.05
-        parameters.minDistanceToBorder = 3
-        parameters.useAruco3Detection = True
+        #parameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
+        #parameters.cornerRefinementWinSize = 5  # Window size for corner refinement
+        #parameters.cornerRefinementMaxIterations = 30  # Max iterations for refinement
+        #parameters.cornerRefinementMinAccuracy = 0.01  # Minimum accuracy for refinement
+        #parameters.polygonalApproxAccuracyRate = 0.03
+        #parameters.relativeCornerRefinmentWinSize = 0.15
+        #parameters.minCornerDistanceRate = 0.05
+        #parameters.minDistanceToBorder = 3
+        #parameters.useAruco3Detection = True
         
         return cv2.aruco.ArucoDetector(aruco_dict, parameters)
 

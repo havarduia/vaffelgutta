@@ -49,7 +49,7 @@ def goToTag(bot: Wafflebot, tagid:str, camera, pre_offset):
     while i<int(5/0.2):
         i+=1
         record_time("(buffer)")
-        camera.start(25)
+        camera.start("all")
         record_time(f"camera_frame_no_{i}")
         tag_pos = reader.read("camera_readings")[tagid]
         if pre_offset is not None:
@@ -104,7 +104,7 @@ def main(bot: Wafflebot, camera_display, throwaway2, camera_coordsys):
             print("That was not a number😡") # 😡
         match choice:
             case 1:
-                camera_coordsys.start(25) 
+                camera_coordsys.start("all") 
                 recordOffset(bot, tagid, pub)
             case 2:
                 os.system("clear")

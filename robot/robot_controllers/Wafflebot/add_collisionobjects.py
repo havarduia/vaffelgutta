@@ -1,11 +1,11 @@
 #Todo
 from robot.robot_controllers.Wafflebot.read_collisionobjects import read_collisionobjects
 from robot.tools.file_manipulation import Jsonreader
-
+import os
 def add_collisionobjects(ignore: list[str] = None)-> None:
     
     dynamic_boxes = read_collisionobjects()  
-    
+
     reader = Jsonreader()
     reader.update_filedirectory("robot/assets/boundingboxes/")
     static_boxes = reader.read("static")

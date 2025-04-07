@@ -1,11 +1,12 @@
 placeholder = 1
 
+
 def empty_cup(state: "State", bot: "Wafflebot"):
     if placeholder == 1:
         state.set(State.RETURN_CUP)
     elif placeholder == 2:
         state.set(State.ERROR)
-    
+
 
 if __name__ == "__main__":
     # to resolve type annotation

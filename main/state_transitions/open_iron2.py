@@ -1,11 +1,12 @@
 placeholder = 1
 
+
 def open_iron2(state: "State", bot: "Wafflebot"):
     if placeholder == 1:
         state.set(State.PICK_UP_WAFFLE)
     elif placeholder == 2:
         state.set(State.ERROR)
-    
+
 
 if __name__ == "__main__":
     # to resolve type annotation

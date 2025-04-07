@@ -1,11 +1,14 @@
-placeholder = 1
+from ai.timmy_detector import Timmydetector
+
 
 def place_cup_to_stat(state: "State", bot: "Wafflebot"):
-    if placeholder == 1:
+    timmy_alarm = Timmydetector()
+    if timmy_alarm == False:
+        fill_cup()
         state.set(State.FILL_CUP)
-    elif placeholder == 2:
+    else:
         state.set(State.ERROR)
-    
+
 
 if __name__ == "__main__":
     # to resolve type annotation

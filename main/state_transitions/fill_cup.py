@@ -1,7 +1,14 @@
+from ai.timmy_detector import Timmydetector
+
+
 def fill_cup(state: "State", bot: "Wafflebot"):
-    if not False:# TODO add some test for if the robot is closing up shop.
-        pass 
-    
+    timmy_alarm = Timmydetector()
+
+    if timmy_alarm == False:
+        bot.move(bottle)
+        bot.move(pick_up_bottle)
+        bot.move
+
 
 if __name__ == "__main__":
     # to resolve type annotation

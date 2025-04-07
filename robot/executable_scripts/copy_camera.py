@@ -1,7 +1,7 @@
 from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
 from robot.tools.errorhandling import handle_error
 from rclpy._rclpy_pybind11 import RCLError
-from time import sleep
+from time import sleep, time
 from robot.tools.file_manipulation import Jsonreader
 from robot.tools.visualizers.tf_publisher import TFPublisher
 from robot.tools.update_tagoffsets import create_offset_matrix, abs_position_from_offset
@@ -46,10 +46,12 @@ def show_camera(camera):
 def goToTag(bot: Wafflebot, tagid:str, camera, pre_offset):
     i = 0
     reader = Jsonreader()
-    while i<int(5/0.2):
-        i+=1
+    starttime = time()
+    endtime = time()
+    while endtime - starttime <= 10:
+        endtime = time()
         record_time("(buffer)")
-        camera.start("all")
+        bot.cam.start("all")
         record_time(f"camera_frame_no_{i}")
         tag_pos = reader.read("camera_readings")[tagid]
         if pre_offset is not None:
@@ -58,12 +60,13 @@ def goToTag(bot: Wafflebot, tagid:str, camera, pre_offset):
             offset = reader.read("offsets")["copy_camera"]
         target = abs_position_from_offset(tag_pos, offset)
 
+        print("Moving robot")
         # plan a:
-        bot.move(target, speed_scaling=4.0)
+        print(f"movement success? {bot.move(target, speed_scaling=4.0)}")
         record_time(f"robot_frame_no_{i}")
         # plan b:
         #bot.arm.set_ee_pose_matrix(target, blocking=False)
-        print("Moving robot")
+
         sleep(0.2)
     return
 
@@ -71,7 +74,7 @@ def follow_tag(bot, tagid, camera):
     offset =[
     [0.0,0.0,1.0,0.0],
     [0.0,1.0,0.0,0.0],
-    [-1.0,0.0,0.0,0.20],
+    [-1.0,0.0,0.0,0.25],
     [0.0,0.0,0.0,1.0]
     ]
     goToTag(bot,tagid,camera, offset)

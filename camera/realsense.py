@@ -46,13 +46,20 @@ class Camera:
             
             self.isStreaming = True
             self.data = np.load(os.path.expanduser('~/git/vaffelgutta/camera/camera_calibration.npz'))
-            self.intrinsics = (
+            intrinsics = (
                 profile.get_stream(rs.stream.color)
                 .as_video_stream_profile()
                 .get_intrinsics()
             )
-            self.camera_matrix = self.data['camera_matrix']
-            self.dist_coeffs = self.data['dist_coeffs']
+            self.intrinsics = intrinsics
+            self.camera_matrix = np.array(
+                [
+                    [intrinsics.fx, 0, intrinsics.ppx],
+                    [0, intrinsics.fy, intrinsics.ppy],
+                    [0, 0, 1],
+                ]
+            )
+            self.dist_coeffs = np.array(intrinsics.coeffs[:5])
 
     def stop_streaming(self):
         if self.isStreaming:

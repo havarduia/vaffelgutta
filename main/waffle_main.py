@@ -3,10 +3,12 @@ This script outlines main()
 
 It should however be viewed as a template and not funtional
 """
+
 from camera.init_camera import initalize_system as init_camera
 from robot.tools.errorhandling import handle_error
 from robot.robot_controllers.Wafflebot import Wafflebot
 from main.waffle_states.waffle_states import State, CurrentState
+
 
 def init():
     bot = Wafflebot()
@@ -32,7 +34,6 @@ def main() -> None:
         running = execute(everything)
 
     return None
-
 
 
 if __name__ == "__main__":

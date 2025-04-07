@@ -5,7 +5,7 @@ class State(Enum):
     REST = 1
     HOME = 2
     SLEEP = 3
-    OPEN_IRON = 4 
+    OPEN_IRON = 4
     PICK_UP_SPRAY = 5
     SPRAY = 6
     PUT_DOWN_SPRAY = 7
@@ -21,7 +21,7 @@ class State(Enum):
     SERVE_WAFFLE = 17
     RETURN_STICK = 18
     ERROR = 666
-    #...fill in states here
+    # ...fill in states here
 
 
 class CurrentState:
@@ -30,6 +30,6 @@ class CurrentState:
 
     def set(self, new_state: State) -> None:
         self.state = new_state
-        
+
     def get(self) -> State:
         return self.state

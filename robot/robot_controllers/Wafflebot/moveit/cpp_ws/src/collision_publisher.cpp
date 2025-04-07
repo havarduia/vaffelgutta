@@ -59,25 +59,6 @@ int main(int argc, char** argv) {
     rclcpp::init(argc, argv);
 
     auto node = rclcpp::Node::make_shared("collision_checker_node");
-    // Paths to URDF and SRDF
-    std::filesystem::path source_dir = std::filesystem::path(__FILE__).parent_path().lexically_normal() ;
-    std::filesystem::path urdf_path =  source_dir / "../robot_models/vx300s.urdf";
-    std::filesystem::path srdf_path =  source_dir / "../robot_models/vx300s.srdf";
-
-    try {
-        // Load URDF and SRDF directly
-        std::string robot_description = loadFileContent(urdf_path);
-        std::string robot_description_semantic = loadFileContent(srdf_path);
-
-        node->declare_parameter("robot_description", robot_description);
-        node->declare_parameter("robot_description_semantic", robot_description_semantic);
-
-        RCLCPP_INFO(node->get_logger(), "URDF and SRDF loaded successfully.");
-    } catch (const std::exception &e) {
-        RCLCPP_ERROR(node->get_logger(), "Failed to load URDF/SRDF: %s", e.what());
-        rclcpp::shutdown();
-        return -1;
-    }
 
     // Create MoveGroupInterface for the robot's planning group
     moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
@@ -90,7 +71,7 @@ int main(int argc, char** argv) {
             
             // Define a collision object (a box)
             moveit_msgs::msg::CollisionObject collision_object;
-            collision_object.header.frame_id = "world" 
+            collision_object.header.frame_id = "world";
             collision_object.id = mybox.key();
             
             std::array<std::array<float,3>,2> mybox_corners = mybox.value();

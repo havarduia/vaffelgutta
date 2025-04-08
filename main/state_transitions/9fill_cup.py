@@ -7,7 +7,10 @@ def fill_cup(state: "State", bot: "Wafflebot"):
     if timmy_alarm == False:
         bot.move(bottle)
         bot.move(pick_up_bottle)
-        bot.move
+        bot.move(iron)
+        state.set(State.CUP_TO_IRON)
+    else:       
+        state.set(State.ERROR)
 
 
 if __name__ == "__main__":

@@ -1,12 +1,16 @@
-placeholder = 1
+from timmy import Timmydetector
 
 
 def return_cup(state: "State", bot: "Wafflebot"):
-    if placeholder == 1:
+    timmy_alarm = Timmydetector()
+    
+    if timmy_alarm == False:
+        bot.move(iron)
+        bot.move(close_iron)
+        bot.move(home)
         state.set(State.CLOSE_IRON)
-    elif placeholder == 2:
+    else:
         state.set(State.ERROR)
-
 
 if __name__ == "__main__":
     # to resolve type annotation

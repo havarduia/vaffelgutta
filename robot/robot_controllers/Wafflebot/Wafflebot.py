@@ -15,8 +15,10 @@ from rclpy.logging import LoggingSeverity
 from robot.tools.file_manipulation import Jsonreader
 import numpy as numphy
 
-class cameraplaceholder():
-    def start(*args):
+class cameraplaceholder:
+    def __init__(self):
+        pass
+    def start(self, *args):
         reader = Jsonreader()
         reader.write("camera_readings", {100: numphy.identity(4).tolist()})
 
@@ -51,9 +53,12 @@ class Wafflebot:
         self.speed = 1.0
         
         self.cam = cam
-        if self.cam == None:
+        if self.cam is None:
+            print("foo")
             self.cam = cameraplaceholder()
+            
         # initialize joint positions
+        print(self.cam)
         self.motionplanner.update_joint_states()
 
     # return the methods of the child class (interbotixmanipulatorxs)

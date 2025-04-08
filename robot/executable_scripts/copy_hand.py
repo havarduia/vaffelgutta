@@ -25,7 +25,7 @@ def move_robot_to_hand(bot: Wafflebot, reader: Jsonreader, json_filename: str):
         print("No hand transformation data available. Please run hand detection first.")
         return
     transform = np.array(data["hand"])
-    target_position = transform[0:3, 3]
+    target_position = transform.tolist()
     print(f"Moving robot to hand position: {target_position}")
     # You can use bot.move() or any other movement command as appropriate.
     success = bot.move(target_position, speed_scaling=4.0)
@@ -99,7 +99,7 @@ if __name__ == '__main__':
         camera = Camera(config_loader)
 
         # Initialize the robot – here we assume that the robot uses the camera with depth capabilities.
-        bot = Wafflebot(camera, use_rviz=False)
+        bot = Wafflebot(use_rviz=False)
 
         # Create a JSON reader instance for reading/writing transformation matrices.
         json_reader = Jsonreader()

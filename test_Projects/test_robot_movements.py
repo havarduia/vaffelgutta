@@ -5,14 +5,18 @@ from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
+import rclpy._rclpy_pybind11
+from robot.tools.errorhandling import handle_error
 from time import sleep
 from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
+from camera.init_camera import initalize_system as init_camera
+from rclpy.exceptions import InvalidHandle
 
-def main():
+def main(**kwargs):
     # Init robot
-    bot = Wafflebot()
     # Not required but recommended:
-    bot.arm.go_to_home_pose()
+    #bot.go_to_home_pose()
+    bot.go_to_sleep_pose()
 
     # Put your code here:
     """
@@ -28,21 +32,21 @@ def main():
     """
 
 
-    bot.arm.go_to_home_pose()
-    bot.gripper.grasp()
-    bot.gripper.release()
-
-    sleep(20)
 
 
-    # Footer:
-    bot.safe_stop()
-def handle_error(signum, frame):raise KeyboardInterrupt
+    bot.exit()
+# footer:
+
+#    bot.safe_stop()
+
+
 if __name__ == '__main__':
-    from signal import signal, SIGINT; signal(SIGINT, handle_error)
     try:
-        main()
+        cam, aruco, coordsys = init_camera()
+        bot = Wafflebot(coordsys)
+        main(bot=bot,cam=cam,aruco=aruco,coordsys=coordsys)
     # if error detected, run the error handler
+    except (InvalidHandle):
+        pass
     except (KeyboardInterrupt, Exception) as error_program_closed_message:
-        with open("robot/backend_controllers/errorhandling.py") as errorhandler: exec(errorhandler.read())
-    
+        handle_error(error_program_closed_message)

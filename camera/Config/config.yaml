@@ -1,4 +1,5 @@
-resolution: [1280, 800]
+resolution: [1280, 720]
+resolution_d: [1280, 720]
 fps: 30
 dictionary: DICT_4X4_50
 marker_length: 0.04750  # default marker length

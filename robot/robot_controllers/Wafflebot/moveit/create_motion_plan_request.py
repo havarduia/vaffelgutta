@@ -6,8 +6,8 @@ def create_motion_plan_request(start_state, goal_state, speed_scaling) -> GetMot
     # Boilerplate
     request = GetMotionPlan.Request()
     request.motion_plan_request.group_name = "interbotix_arm"
-    request.motion_plan_request.num_planning_attempts = 10
-    request.motion_plan_request.allowed_planning_time = 5.0
+    request.motion_plan_request.num_planning_attempts = 8
+    request.motion_plan_request.allowed_planning_time = 2.0
     request.motion_plan_request.max_acceleration_scaling_factor = min(0.1*speed_scaling, 1.0)
     request.motion_plan_request.max_velocity_scaling_factor = min(0.1*speed_scaling, 1.0)
     # Create robot start state

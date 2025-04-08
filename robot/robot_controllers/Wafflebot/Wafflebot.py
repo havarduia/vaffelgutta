@@ -1,3 +1,4 @@
+from types import NoneType
 from robot.robot_controllers.Wafflebot import *
 from robot.robot_controllers import robot_boot_manager
 from interbotix_common_modules.common_robot.robot import robot_startup, robot_shutdown
@@ -11,10 +12,14 @@ from robot.robot_controllers.Wafflebot.add_collisionobjects import add_collision
 from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
 from rclpy.logging import LoggingSeverity
 
+class cameraplaceholder():
+    def start():
+        pass
+
 class Wafflebot:
     def __init__(
         self,
-        cam: CoordinateSystem,
+        cam: CoordinateSystem = None,
         debug_print: bool = False,
         use_rviz: bool = True,
     ):
@@ -40,8 +45,10 @@ class Wafflebot:
         self.home_pose = self.arm.robot_des.M
         self.debug_print = debug_print
         self.speed = 1.0
+        
         self.cam = cam
-
+        if self.cam = None:
+            self.cam = cameraplaceholder()
         # initialize joint positions
         self.motionplanner.update_joint_states()
 
@@ -95,7 +102,7 @@ class Wafflebot:
             self.go_to_sleep_pose()
         self.exit()
 
-    def move(self, target, ignore: list[str]=None, speed_scaling: float = 1.0):
+    def move(self, target, ignore: list[str]=None, speed_scaling: float = 1.0): 
         self.cam.start("all")
         add_collisionobjects(ignore)
         success = self.collision_publisher.publish_collisionobjects() 

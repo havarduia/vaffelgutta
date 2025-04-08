@@ -12,6 +12,7 @@ from robot.tools.file_manipulation import Jsonreader
 from camera.realsense import Camera
 # Import your new class – adjust the import if the HandDetector class is in a different module
 from ai.hand_detection import HandDetector
+from camera.Config.misc import ConfigLoader
 
 
 def move_robot_to_hand(bot: Wafflebot, reader: Jsonreader, json_filename: str):
@@ -94,7 +95,8 @@ if __name__ == '__main__':
         # Initialize the camera system.
         # (Assumes init_camera returns (camera_display, throwaway_variable, camera_coordsys)
         # and that camera_coordsys supports the get_image(), get_depth_image(), and get_calibration() methods.)
-        camera = Camera()
+        config_loader = ConfigLoader()
+        camera = Camera(config_loader)
 
         # Initialize the robot – here we assume that the robot uses the camera with depth capabilities.
         bot = Wafflebot(camera, use_rviz=False)

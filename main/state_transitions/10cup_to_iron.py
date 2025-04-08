@@ -1,11 +1,13 @@
-placeholder = 1
-
+from timmy import Timmydetector
 
 def cup_to_iron(state: "State", bot: "Wafflebot"):
-    if placeholder == 1:
+    timmy_alarm = Timmydetector()
+    
+    if timmy_alarm == False:
+        bot.move(empty_cup)
         state.set(State.EMPTY_CUP)
-    elif placeholder == 2:
-        state.set(State.ERROR)
+    else:  
+        state.set(State.ERROR)                           
 
 
 if __name__ == "__main__":

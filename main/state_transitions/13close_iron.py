@@ -1,12 +1,14 @@
-placeholder = 1
+from timmy import Timmydetector
 
 
 def close_iron(state: "State", bot: "Wafflebot"):
-    if placeholder == 1:
+    timmy_alarm = Timmydetector()
+    
+    if timmy_alarm == False:
+        do_funtime()
         state.set(State.FUN_TIME)
-    elif placeholder == 2:
+    else:
         state.set(State.ERROR)
-
 
 if __name__ == "__main__":
     # to resolve type annotation

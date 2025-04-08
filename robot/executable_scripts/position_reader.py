@@ -3,7 +3,6 @@ from robot.robot_controllers.Wafflebot.Wafflebot import *
 from robot.tools.file_manipulation import Jsonreader, table_print
 from robot.tools.errorhandling import handle_error
 from robot.tools.update_tagoffsets import create_offset_matrix
-from camera.init_camera import initalize_system as init_camera
 from camera.coordinatesystem import CoordinateSystem
 # user libraries: 
 from time import sleep
@@ -178,12 +177,9 @@ def record_offset(bot:Wafflebot, cam: CoordinateSystem):
     print("successfully recorded offset.")
     return None
 
-
-def main():
+def main(bot,cam,aruco,coordsys):
     # boot bot
-    bot =  Wafflebot()
-    camera_display,throwaway2,camera_coordsys = init_camera()
-    bot.arm.go_to_sleep_pose()
+    bot.go_to_sleep_pose()
     #print menu and listen for keystrokes:
     while True:
         printmenu()
@@ -208,10 +204,18 @@ def main():
     bot.safe_stop()
     return
 
-# Footer:
 if __name__ == '__main__':
+    from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
+    from camera.init_camera import initalize_system as init_camera
+    from rclpy.exceptions import InvalidHandle
+    from robot.tools.errorhandling import handle_error
     try:
-        main()
+        cam, aruco, coordsys = init_camera()
+        bot = Wafflebot(coordsys)
+        main(bot=bot,cam=cam,aruco=aruco,coordsys=coordsys)
     # if error detected, run the error handler
+    except (InvalidHandle):
+        pass
     except (KeyboardInterrupt, Exception) as error_program_closed_message:
         handle_error(error_program_closed_message)
+        

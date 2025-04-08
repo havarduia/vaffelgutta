@@ -35,8 +35,7 @@ def do_an_action(bot: Wafflebot):
         print(f"No action {user_action}.\n" +
               "Maybe try something more Real™️ next time.") # Realsense moment -Håvard
  
-def main():
-    bot = Wafflebot()
+def main(bot,cam,aruco,coordsys):
     bot.arm.go_to_home_pose(blocking=False)
     while True:
         printmenu()
@@ -57,8 +56,17 @@ def main():
                 print(f"invalid input {choice}. Try again.")
     bot.safe_stop()
    
-if __name__ == "__main__":
+if __name__ == '__main__':
+    from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
+    from camera.init_camera import initalize_system as init_camera
+    from rclpy.exceptions import InvalidHandle
+    from robot.tools.errorhandling import handle_error
     try:
-        main()
-    except (Exception, KeyboardInterrupt) as error:
-        handle_error(error) 
+        cam, aruco, coordsys = init_camera()
+        bot = Wafflebot(coordsys)
+        main(bot=bot,cam=cam,aruco=aruco,coordsys=coordsys)
+    # if error detected, run the error handler
+    except (InvalidHandle):
+        pass
+    except (KeyboardInterrupt, Exception) as error_program_closed_message:
+        handle_error(error_program_closed_message)

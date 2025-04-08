@@ -1,20 +1,16 @@
-from robot.tools.file_manipulation import Jsonreader
-from ai.timmy_detector import Timmydetector
+from waffle_states.waffle_states import State
+from robot.robot_controllers.movements.action_header import Actions
 
 
-def spray(state: "State", bot: "Wafflebot"):
+def spray(state: "CurrentState", bot: "Wafflebot"):
+    actions = Actions(bot)
 
-    timmy_alarm = Timmydetector()
-    if timmy_alarm == False:
-
-        bot.move(tool_station)
-        bot.move(remove_cup)
-        state.set(State.PUT_DOWN_SPRAY)
-    else:
-        state.set(State.ERROR)
+    bot.move("front_of_tool_station")
+    actions.put_down_lube()
+    state.set(State.PUT_DOWN_SPRAY)
 
 
 if __name__ == "__main__":
     # to resolve type annotation
-    from robot.robot_controllers.Wafflebot import Wafflebot
-    from waffle_states.waffle_states import State
+    from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
+    from waffle_states.waffle_states import CurrentState 

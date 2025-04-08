@@ -9,6 +9,7 @@ from robot.robot_controllers.Wafflebot.moveit.MotionPlanner import MotionPlanner
 from camera.coordinatesystem import CoordinateSystem
 from robot.robot_controllers.Wafflebot.add_collisionobjects import add_collisionobjects
 from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
+from rclpy.logging import LoggingSeverity
 
 class Wafflebot:
     def __init__(
@@ -23,10 +24,11 @@ class Wafflebot:
             robot_model="vx300s",
             group_name="arm",
             gripper_name="gripper",
+            logging_level=LoggingSeverity.ERROR
         )
+        robot_startup()
         self.motionplanner = MotionPlanner(interbotix_process)
         self.collision_publisher = CollisionObjectPublisher()
-        robot_startup()
 
         # Keep a look out for the emergency stop
         self.launch_emergency_stop_monitor()
@@ -73,8 +75,10 @@ class Wafflebot:
             sleep(0.012)
         sleep(0.4)
 
+    
     def exit(self):
         if rclpy.ok():
+            self.collision_publisher.destroy_node()
             self.motionplanner.destroy_node()
             robot_shutdown()
             robot_boot_manager.robot_close()

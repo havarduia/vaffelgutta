@@ -20,9 +20,13 @@ def robot_launch(use_rviz = True):
   )
   
   process = Popen(["bash", "-c", command],
+                   stderr=DEVNULL,
+                   stdout=DEVNULL,
                    preexec_fn=setpgrp
                    )
   process2 = Popen(["bash", "-c", "ros2 run collision_publisher collision_publisher"],
+                   stderr=DEVNULL,
+                   stdout=DEVNULL,
                    preexec_fn=setpgrp
                    )
   global boot_manager_pid; boot_manager_pid = process.pid
@@ -31,7 +35,6 @@ def robot_launch(use_rviz = True):
   print("Boot Manager: Process started with pid: " + str(process.pid))
   return process  
 
-@atexit.register
 def robot_close():
     try:
       killpg(getpgid(boot_manager_pid), SIGTERM)

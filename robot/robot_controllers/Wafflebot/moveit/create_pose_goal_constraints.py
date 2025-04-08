@@ -11,7 +11,7 @@ from tf_transformations import quaternion_from_matrix
 def get_pose_goal_from_matrix(homo_matrix) -> PoseStamped:
     # Convert the homogeneous matrix into a PoseStamped.
     pose_goal = PoseStamped()
-    pose_goal.header.frame_id = "base_link"  # Adjust if needed.
+    pose_goal.header.frame_id = "world"  # Adjust if needed.
     pose_goal.pose.position.x = homo_matrix[0][3]
     pose_goal.pose.position.y = homo_matrix[1][3]
     pose_goal.pose.position.z = homo_matrix[2][3]

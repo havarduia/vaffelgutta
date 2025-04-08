@@ -20,11 +20,14 @@ class Camera:
         print_blue(f"Using RealSense camera with serial: {camera_id}")
 
         resolution = config_loader.get("resolution") 
+        resolution_d = config_loader.get("resolution_d")
         fps = config_loader.get("fps") 
 
+        # Enable both color and depth streams
         self.config.enable_device(camera_id)
         self.config.enable_stream(rs.stream.color, resolution[0], resolution[1], rs.format.bgr8, fps)
-        
+        self.config.enable_stream(rs.stream.depth, resolution_d[0], resolution_d[1], rs.format.z16, fps)
+
         self.color_frame = None
         self.intrinsics = None
         self.camera_matrix = None
@@ -38,6 +41,7 @@ class Camera:
         if not self.isStreaming:
             try:
                 profile = self.pipeline.start(self.config)
+                # Change the sensor settings if needed
                 color_sensor = profile.get_device().query_sensors()[1]
                 color_sensor.set_option(rs.option.sharpness, 100) 
             except Exception as e:
@@ -73,6 +77,18 @@ class Camera:
             return None
         image = np.asanyarray(color_frame.get_data())
         return image
+
+    def get_depth_image(self):
+        """
+        Fetch and return the depth image as a NumPy array.
+        Returns None if no depth frame is available.
+        """
+        frames = self.pipeline.wait_for_frames()
+        depth_frame = frames.get_depth_frame()
+        if not depth_frame:
+            return None
+        depth_image = np.asanyarray(depth_frame.get_data())
+        return depth_image
 
     def get_calibration(self):
         """Return the camera matrix and distortion coefficients."""

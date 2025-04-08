@@ -5,18 +5,12 @@ from sys import path as syspath
 chdir(ospath.expanduser("~/git/vaffelgutta"))
 syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
-import rclpy._rclpy_pybind11
-from robot.tools.errorhandling import handle_error
 from time import sleep
-from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
-from camera.init_camera import initalize_system as init_camera
-from rclpy.exceptions import InvalidHandle
 
 def main(**kwargs):
     # Init robot
     # Not required but recommended:
-    #bot.go_to_home_pose()
-    bot.go_to_sleep_pose()
+    bot.go_to_home_pose()
 
     # Put your code here:
     """
@@ -34,13 +28,16 @@ def main(**kwargs):
 
 
 
-    bot.exit()
 # footer:
 
-#    bot.safe_stop()
+    bot.safe_stop()
 
 
 if __name__ == '__main__':
+    from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
+    from camera.init_camera import initalize_system as init_camera
+    from rclpy.exceptions import InvalidHandle
+    from robot.tools.errorhandling import handle_error
     try:
         cam, aruco, coordsys = init_camera()
         bot = Wafflebot(coordsys)

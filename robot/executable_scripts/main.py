@@ -5,8 +5,7 @@ from robot.robot_controllers import movements
 from time import sleep
 import numpy as numphy
 
-def main():
-    bot = Wafflebot()
+def main(bot,cam,aruco,coordsys):
 
     bot.arm.go_to_home_pose()
 
@@ -39,8 +38,16 @@ def main():
     
     
 if __name__ == '__main__':
+    from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
+    from camera.init_camera import initalize_system as init_camera
+    from rclpy.exceptions import InvalidHandle
+    from robot.tools.errorhandling import handle_error
     try:
-        main()
+        cam, aruco, coordsys = init_camera()
+        bot = Wafflebot(coordsys)
+        main(bot=bot,cam=cam,aruco=aruco,coordsys=coordsys)
     # if error detected, run the error handler
+    except (InvalidHandle):
+        pass
     except (KeyboardInterrupt, Exception) as error_program_closed_message:
         handle_error(error_program_closed_message)

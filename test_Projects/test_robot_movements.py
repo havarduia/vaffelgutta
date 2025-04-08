@@ -7,8 +7,7 @@ syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
 from time import sleep
 
-def main(**kwargs):
-    # Init robot
+def main(bot,cam,aruco,coordsys):
     # Not required but recommended:
     bot.go_to_home_pose()
 

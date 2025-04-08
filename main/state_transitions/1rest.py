@@ -1,2 +1,0 @@
-def rest(state):
-    pass

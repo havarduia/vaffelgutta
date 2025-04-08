@@ -12,9 +12,13 @@ from robot.robot_controllers.Wafflebot.add_collisionobjects import add_collision
 from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
 from rclpy.logging import LoggingSeverity
 
+from robot.tools.file_manipulation import Jsonreader
+import numpy as numphy
+
 class cameraplaceholder():
-    def start():
-        pass
+    def start(*args):
+        reader = Jsonreader()
+        reader.write("camera_readings", {100: numphy.identity(4).tolist()})
 
 class Wafflebot:
     def __init__(
@@ -47,7 +51,7 @@ class Wafflebot:
         self.speed = 1.0
         
         self.cam = cam
-        if self.cam = None:
+        if self.cam == None:
             self.cam = cameraplaceholder()
         # initialize joint positions
         self.motionplanner.update_joint_states()

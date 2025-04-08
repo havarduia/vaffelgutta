@@ -1,10 +1,14 @@
 import cv2
 import mediapipe as mp
 import numpy as np
+import json
+from robot.tools.file_manipulation import Jsonreader
 
 class HandDetector:
-    def __init__(self, camera):
+    def __init__(self, camera, json_writer: Jsonreader, json_filename: str):
         self.camera = camera
+        self.json_writer = json_writer
+        self.json_filename = json_filename
 
         self.mp_hands = mp.solutions.hands
         self.mp_drawing = mp.solutions.drawing_utils
@@ -14,23 +18,13 @@ class HandDetector:
             min_tracking_confidence=0.5
         )
 
-        # Use stable points: wrist and finger bases (0, 5, 9, 13, 17)
         self.landmark_ids_for_position = [0, 5, 9, 13, 17]
-
-        # Get camera calibration (camera matrix and distortion coefficients)
         self.camera_matrix, self.dist_coeffs = self.camera.get_calibration()
 
     def depth_to_meters(self, u, v, z):
-        """ Convert depth image coordinates to 3D world coordinates in meters. """
         fx, fy = self.camera_matrix[0, 0], self.camera_matrix[1, 1]
         cx, cy = self.camera_matrix[0, 2], self.camera_matrix[1, 2]
-
-        # Convert depth (z) from pixels to real-world coordinates (meters)
-        # In this formula, Z is the depth value from the depth image, which is in millimeters
-        # Z should be converted to meters here
-        Z_in_meters = z / 1000  # Convert depth from mm to meters
-
-        # Convert pixel coordinates (u, v) to world coordinates (X, Y, Z) in meters
+        Z_in_meters = z / 1000
         X = (u - cx) * Z_in_meters / fx
         Y = (v - cy) * Z_in_meters / fy
         return np.array([X, Y, Z_in_meters])
@@ -46,15 +40,25 @@ class HandDetector:
             if 0 <= cx < depth_frame.shape[1] and 0 <= cy < depth_frame.shape[0]:
                 z = depth_frame[cy, cx]
                 if z > 0:
-                    # Convert depth (z) to meters using the camera's intrinsic parameters
                     point_in_meters = self.depth_to_meters(cx, cy, z)
                     points.append(point_in_meters)
 
         if not points:
             return None
 
-        # Average the valid 3D points to estimate hand position
         return np.mean(points, axis=0)
+
+    def save_transform_matrix(self, position: np.ndarray):
+        """ Save 4x4 matrix with identity rotation and hand position to JSON file. """
+        transform = np.eye(4)
+        transform[0:3, 3] = position  # Set translation part
+
+        transform_dict = {
+            "hand": transform.tolist()
+        }
+
+        self.json_writer.write(self.json_filename, transform_dict)
+        print(f"Transformation matrix written to {self.json_writer.directory_path}{self.json_filename}.json")
 
     def start(self):
         print("Starting hand detection...")
@@ -88,8 +92,15 @@ class HandDetector:
                     if pos is not None:
                         x, y, z = pos
                         print(f"Hand position: x={x:.3f} m, y={y:.3f} m, z={z:.3f} m")
-                        cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)
-                        cv2.putText(frame, f"{z:.3f}m", (int(x), int(y) - 10),
+
+                        # Save matrix to file
+                        self.save_transform_matrix(pos)
+
+                        # Optional visualization
+                        u = int(hand_landmarks.landmark[0].x * frame.shape[1])
+                        v = int(hand_landmarks.landmark[0].y * frame.shape[0])
+                        cv2.circle(frame, (u, v), 5, (0, 255, 0), -1)
+                        cv2.putText(frame, f"{z:.3f}m", (u, v - 10),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
             cv2.imshow("AI Hand Detection", frame)

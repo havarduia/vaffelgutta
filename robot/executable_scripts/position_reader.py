@@ -163,6 +163,9 @@ def record_offset(bot:Wafflebot, cam: CoordinateSystem):
     robot_joints = robot_positions[name]["joints"]
     tag = tags[tagid]
 
+    robot_position = data[name]["matrix"]    
+    robot_joints = data[name]["joints"]
+
     offset = create_offset_matrix(robot_position, tag)
 
     newdata = {

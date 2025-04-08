@@ -106,9 +106,13 @@ def recordtrajectory(bot: Wafflebot):
     if pose_name == "":
         return
     print("press S to stop recording")
+    print("press Q to abort")
     while True:
         if keyboard.is_pressed("s"):
             break;
+        if keyboard.is_pressed("q")
+            bot.core.robot_torque_enable("group", "arm", True)
+            return
         i+=1
         sleep(0.01)
         if i == 100:
@@ -126,6 +130,9 @@ def recordtrajectory(bot: Wafflebot):
                 return
             poses.update({f"{pose_name}_{poseindex}" : position_mat})
             poseindex+=1
+    bot.core.robot_torque_enable("group", "arm", True)
+    reader.write("recordings", poses)
+
 
 
 

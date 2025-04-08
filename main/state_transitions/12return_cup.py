@@ -1,18 +1,17 @@
-from timmy import Timmydetector
+from waffle_states.waffle_states import State
+from robot.robot_controllers.movements.action_header import Actions
 
+def return_cup(state: "CurrentState", bot: "Wafflebot"):
 
-def return_cup(state: "State", bot: "Wafflebot"):
-    timmy_alarm = Timmydetector()
+    actions = Actions(bot)
     
-    if timmy_alarm == False:
-        bot.move(iron)
-        bot.move(close_iron)
-        bot.move(home)
-        state.set(State.CLOSE_IRON)
-    else:
-        state.set(State.ERROR)
+    bot.move("front_of_waffle_iron")
+    actions.close_waffle_iron()
+
+    state.set(State.CLOSE_IRON)
+
 
 if __name__ == "__main__":
     # to resolve type annotation
-    from robot.robot_controllers.Wafflebot import Wafflebot
-    from waffle_states.waffle_states import State
+    from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
+    from waffle_states.waffle_states import CurrentState 

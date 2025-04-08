@@ -1,35 +1,25 @@
 from robot.tools.file_manipulation import Jsonreader
-from ai.timmy_detector import Timmydetector
+from robot.robot_controllers.movements.action_header import Actions
+from waffle_states.waffle_states import State
 
+def open_iron(state: "CurrentState", bot: "Wafflebot"):
+    actions = Actions(bot)
 
-def open_iron(state: "State", bot: "Wafflebot"):
-    timmy_alarm = Timmydetector()
     reader = Jsonreader()
-
     reader.pop("camera_readings", "1")
-    bot.camera_start()
+    bot.cam.start("all")
     tags = reader.read("camera_readings")
 
-    if timmy_alarm == False:
+    if "1" in tags.keys():
+        bot.move("waffle_iron")
+        actions.open_waffle_iron() # Todo implenment this as a movement sequence
+        state.set(State.OPEN_IRON)
 
-        if 1 in tags.keys():
-            jern_lukket = True
-
-        if jern_lukket == True:
-            bot.move(jern)
-            bot.sequence(
-                open_iron_plan
-            )  # Trenger ikke å være en function, bare en lettere måte å si at
-            # du må gjøre flere bevegelser.
-            jern_lukket = False
-            state.set(State.OPEN_IRON)
-        else:
-            state.set(State.OPEN_IRON)
     else:
-        state.set(State.ERROR)
+        state.set(State.OPEN_IRON)
 
 
 if __name__ == "__main__":
     # to resolve type annotation
-    from robot.robot_controllers.Wafflebot import Wafflebot
-    from waffle_states.waffle_states import State
+    from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
+    from waffle_states.waffle_states import CurrentState

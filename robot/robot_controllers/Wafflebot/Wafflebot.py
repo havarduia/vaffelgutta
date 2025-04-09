@@ -1,4 +1,5 @@
 from types import NoneType
+from typing import Optional
 from robot.robot_controllers.Wafflebot import *
 from robot.robot_controllers import robot_boot_manager
 from interbotix_common_modules.common_robot.robot import robot_startup, robot_shutdown
@@ -23,7 +24,7 @@ class cameraplaceholder():
 class Wafflebot:
     def __init__(
         self,
-        cam: CoordinateSystem = None,
+        cam: Optional[CoordinateSystem] = None,
         debug_print: bool = False,
         use_rviz: bool = True,
     ):
@@ -106,7 +107,34 @@ class Wafflebot:
             self.go_to_sleep_pose()
         self.exit()
 
-    def move(self, target, ignore: list[str]=None, speed_scaling: float = 1.0): 
+    def move(self, target, ignore: Optional[list[str]] = None, speed_scaling: float = 1.0):
+        """
+        checks the input type and moves to a position.
+        input can be either of:
+        pose matrix - 4x4
+        string - name of the pose in the recordings folder
+        joints - joint states.
+        """
+        isjointsPlaceholder = False
+        self.cam.start("all")
+        (target, returncode) = interpret_target_command.interpret_target_command(target, isjointsPlaceholder,self.debug_print)
+        if returncode == -1:
+            raise RuntimeError("Invalid pose passed")
+        elif returncode == 0:
+            self.move_to_joints(None)
+        elif returncode == 1:
+            self.move_to_matrix(target, ignore, speed_scaling) 
+        else:
+            raise RuntimeError("I f-ed up. check for invalid returns in interpret_target_command.")
+
+    def move_to_joints(self, target):
+        raise NotImplementedError("Chill out cuh")
+
+    def move_to_matrix(self, target: list[list[float]], ignore: Optional[list[str]], speed_scaling: float = 1.0) -> bool: 
+        """
+        moves the bot to a given pose matrix.
+        the "move" function should be used instend for robustness.
+        """
         self.cam.start("all")
         add_collisionobjects(ignore)
         success = self.collision_publisher.publish_collisionobjects() 
@@ -115,6 +143,7 @@ class Wafflebot:
             return self.motionplanner.movement_success
         elif self.debug_print:
             print("Wafflebot: Collision publishing failed")
+        return False
 
     def launch_emergency_stop_monitor(self):
         emergency_stop.run_emergency_stop_monitor(self.safe_stop)

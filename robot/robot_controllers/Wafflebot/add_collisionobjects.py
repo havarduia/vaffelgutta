@@ -1,8 +1,9 @@
 #Todo
+from typing import Optional
 from robot.robot_controllers.Wafflebot.read_collisionobjects import read_collisionobjects
 from robot.tools.file_manipulation import Jsonreader
-import os
-def add_collisionobjects(ignore: list[str] = None)-> None:
+
+def add_collisionobjects(ignore: Optional[list[str]] = None)-> None:
     
     dynamic_boxes = read_collisionobjects()  
 

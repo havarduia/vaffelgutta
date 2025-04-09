@@ -1,8 +1,7 @@
 from os import killpg, getpgid, setpgrp
-from subprocess import Popen 
+from subprocess import Popen, DEVNULL
 from signal import SIGTERM
 from time import sleep
-import atexit
 
 
 def robot_launch(use_rviz = True): 

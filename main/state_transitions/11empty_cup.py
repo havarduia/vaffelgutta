@@ -4,8 +4,8 @@ from robot.robot_controllers.movements.action_header import Actions
 def empty_cup(state: "State", bot: "Wafflebot"):
 
     actions = Actions(bot)
-    bot.move("front_of_filling_station")
-    actions.place_cup(True)
+    bot.move("front_of_bowl") #TODO several tags, go to closest
+    actions.place_cup() #TODO Reprogram to remove ladle
 
     state.set(State.RETURN_CUP)
 

@@ -1,17 +1,18 @@
 from robot.tools.file_manipulation import Jsonreader
-from waffle_states.waffle_states import State
+from main.waffle_states.waffle_states import State
 from robot.robot_controllers.movements.action_header import Actions
+from main.tag_enum.tags import Tags
 
-def open_iron(state: "CurrentState", bot: "Wafflebot"):
+def open_iron(state: "CurrentState", bot: "Wafflebot", tag: "CurrentTag"):
     
     actions = Actions(bot)
     reader = Jsonreader()
     
-    reader.pop("camera_readings", "2")
+    reader.pop("camera_readings", Tags.SPRAY_TAG)
     bot.cam.start("all")
     tags = reader.read("camera_readings")
     
-    if "2" in tags.keys():
+    if Tags.SPRAY_TAG in tags.keys(): # tag 3 is the lube
         bot.move("front_of_tool_station")
         actions.pick_up_lube() # Todo implenment this as a movement sequence
         state.set(State.PICK_UP_SPRAY)  
@@ -22,4 +23,5 @@ def open_iron(state: "CurrentState", bot: "Wafflebot"):
 if __name__ == "__main__":
     # to resolve type annotation
     from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
-    from waffle_states.waffle_states import CurrentState 
+    from main.waffle_states.waffle_states import CurrentState 
+    from main.tag_enum.tags import CurrentTag

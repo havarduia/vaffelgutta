@@ -1,11 +1,13 @@
 from robot.tools.file_manipulation import Jsonreader
 from robot.tools.update_tagoffsets import abs_position_from_offset
+from typing import Union, List, Tuple, Optional
 
 def interpret_target_command(
-                            target: str | list[float] | list[list[float]],
-                            return_joints: bool = False,
-                            debug_print: bool = False
-                            ) -> tuple[ list[list[float]] | [list[float] | None] , int]:
+    target: Union[str, List[float], List[List[float]]],
+    return_joints: bool = False,
+    debug_print: bool = False
+) -> Tuple[Union[List[List[float]], Optional[List[float]]], int]:
+
     """
     ### Converts a guess from a arbitrary input to either a set of joints or a matrix.
 

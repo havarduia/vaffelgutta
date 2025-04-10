@@ -18,7 +18,7 @@ class HandDetector:
         self.landmark_ids_for_position = [0, 5, 9, 13, 17]
 
         # Get camera calibration (camera matrix and distortion coefficients)
-        self.camera_matrix, self.dist_coeffs = self.camera.get_calibration()
+        self.camera_matrix, self.dist_coeffs = self.camera._get_calibration()
 
     def depth_to_meters(self, u, v, z):
         """ Convert depth image coordinates to 3D world coordinates in meters. """
@@ -58,13 +58,10 @@ class HandDetector:
 
     def start(self):
         print("Starting hand detection...")
-        while True:
-            frame = self.camera.get_image()
-            depth_frame = self.camera.get_depth_image()
+        frame = self.camera._get_image()
+        depth_frame = self.camera._get_depth_image()
 
-            if frame is None or depth_frame is None:
-                print("No frame received from camera.")
-                continue
+        if frame is not None or depth_frame is not None:
 
             frame = cv2.flip(frame, 1)
             depth_frame = cv2.flip(depth_frame, 1)
@@ -93,8 +90,5 @@ class HandDetector:
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
             cv2.imshow("AI Hand Detection", frame)
-
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
-        cv2.destroyAllWindows()
+        else:  
+            print("No image!")

@@ -29,7 +29,7 @@ def smooth_data(pose_data, window_length=5, polyorder=2):
     return savgol_filter(pose_data, window_length, polyorder, axis=0)
 
 class ConfigLoader:
-    def __init__(self, config_path=os.path.expanduser('~/git/vaffelgutta/camera/Config/config.yaml')):
+    def __init__(self, config_path=os.path.expanduser('~/git/vaffelgutta/camera/config/config.yaml')):
         with open(config_path, 'r') as file:
             self.config = yaml.safe_load(file)
     

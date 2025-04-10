@@ -146,7 +146,8 @@ def main(bot,vision,pose):
 if __name__ == '__main__':
     bot = None
     config = ConfigLoader()
-    vision = Vision(config)
+    json = Jsonreader()
+    vision = Vision(config, json)
     pose = pose_loop(vision)
     try:
         

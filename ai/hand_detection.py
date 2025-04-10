@@ -57,7 +57,6 @@ class HandDetector:
         return np.mean(points, axis=0)
 
     def start(self):
-        print("Starting hand detection...")
         frame = self.camera._get_image()
         depth_frame = self.camera._get_depth_image()
 

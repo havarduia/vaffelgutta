@@ -12,8 +12,9 @@ from ai.hand_detection import HandDetector
 from robot.tools.file_manipulation import Jsonreader
 
 class Vision:
-    def __init__(self, config_loader: ConfigLoader):
+    def __init__(self, config_loader: ConfigLoader, jsonreader: Jsonreader):
         self.config_loader = config_loader
+        self.jsonreader = jsonreader
 
         # -----------------------
         # Camera Setup
@@ -215,13 +216,9 @@ class Vision:
 
         tag_ids, rvecs, tvecs = zip(*raw_poses)
         rvecs, tvecs = smooth(np.array(rvecs)), smooth(np.array(tvecs))
-
-        pose_dict = {
-            tag_id: self._get_homo_matrix(rvec, tvec).tolist()
-            for tag_id, rvec, tvec in zip(tag_ids, rvecs, tvecs)
-        }
-
-        return pose_dict, pose_image
+        
+        return {tag_id: self._get_homo_matrix(rvec, tvec).tolist()
+            for tag_id, rvec, tvec in zip(tag_ids, rvecs, tvecs)}, pose_image
 
 
     # =====================================================
@@ -232,83 +229,97 @@ class Vision:
         Computes the transformation from the origin marker (specified by origin_id)
         to all other detected markers, applying offsets and bias corrections.
         """
-        new_transformations = _estimate_pose
+        # Check if _estimate_pose is a tuple, and if so, extract the dictionary part.
+        if isinstance(_estimate_pose, tuple) and len(_estimate_pose) > 0:
+            new_transformations = _estimate_pose[0]
+        else:
+            new_transformations = _estimate_pose
 
-        # Use last known origin transformation if origin marker is not currently detected.
-        origin_inv = self.last_origin_inv
-        if self.origin_id in new_transformations:
+        # Ensure that new_transformations is a dictionary
+        if not isinstance(new_transformations, dict):
+            print_error("Expected a dictionary of transformations.")
+            return {}
+
+        # If the keys in new_transformations might be strings, ensure proper comparison.
+        if str(self.origin_id) in new_transformations:
+            origin_inv = np.linalg.inv(new_transformations[str(self.origin_id)])
+            self.last_origin_inv = origin_inv
+        elif self.origin_id in new_transformations:
             origin_inv = np.linalg.inv(new_transformations[self.origin_id])
             self.last_origin_inv = origin_inv
         else:
             print_error("Could not find origin 👺")
+            return {}
 
         if origin_inv is None:
             return {}
 
         tags = {}
-        for tag_id, transformation in new_transformations.items():
-            tag_id = int(tag_id)
+        for tag_key, transformation in new_transformations.items():
+            # Coerce the key to int in case they're strings.
+            try:
+                tag_id = int(tag_key)
+            except ValueError:
+                print_error(f"Invalid tag key type: {tag_key}")
+                continue
+
             if tag_id == self.origin_id:
                 continue
 
             o_to_t = origin_inv @ np.array(transformation)
-            transformed_matrix = np.array(
+            transformed_matrix = np.array([
                 [
-                    [
-                        o_to_t[1, 1],
-                        -o_to_t[1, 0],
-                        o_to_t[1, 2],
-                        o_to_t[1, 3] + self.bias_x - self.offset_x,
-                    ],
-                    [
-                        -o_to_t[0, 1],
-                        o_to_t[0, 0],
-                        -o_to_t[0, 2],
-                        -o_to_t[0, 3] + self.bias_y - self.offset_y,
-                    ],
-                    [
-                        o_to_t[2, 1],
-                        -o_to_t[2, 0],
-                        o_to_t[2, 2],
-                        o_to_t[2, 3] + self.bias_z - self.offset_z,
-                    ],
-                    [0, 0, 0, 1],
-                ]
-            ).tolist()
+                    o_to_t[1, 1],
+                    -o_to_t[1, 0],
+                    o_to_t[1, 2],
+                    o_to_t[1, 3] + self.bias_x - self.offset_x,
+                ],
+                [
+                    -o_to_t[0, 1],
+                    o_to_t[0, 0],
+                    -o_to_t[0, 2],
+                    -o_to_t[0, 3] + self.bias_y - self.offset_y,
+                ],
+                [
+                    o_to_t[2, 1],
+                    -o_to_t[2, 0],
+                    o_to_t[2, 2],
+                    o_to_t[2, 3] + self.bias_z - self.offset_z,
+                ],
+                [0, 0, 0, 1],
+            ]).tolist()
 
             tags[tag_id] = transformed_matrix
 
         return tags
 
-    def start(self, tag_data: dict, *allowed_tags: str | int) -> dict:
+    def _init_tags(self, tags: str | int):
+        all_tags = []
+        for tag in tags:
+            all_tags.append(str(tag))
+        return all_tags
 
-        """
-        Runs coordinate system transformation and returns the tag transformations.
-        If allowed_tags are provided, only those tags will be kept; otherwise,
-        by default, all detected tags are returned.
-
-        :param allowed_tags: Tags (as str or int) allowed to be returned.
-                             Use "all" to return everything.
-        :return: A dictionary mapping tag ids to their transformation matrices.
-        """
-        # Prepare allowed tags as strings.
-        
-        allowed_tags = [str(tag) for tag in allowed_tags]
+    def start(self, tag_data: dict, *allowed_tags: str | int) -> list[str]:
+        config_loader = self.config_loader
+        reader = self.jsonreader
         tags = self._transformation_to_tag(tag_data)
+
+        allowed_tags = self._init_tags(allowed_tags)
+        for id in tags.keys():
+            id = str(id)
+
+        reader.write("camera_readings", tags)
+        data = reader.read("camera_readings")
         if "all" not in allowed_tags:
-            filtered = {}
-            for k, v in tags.items():
-                if str(k) in allowed_tags:
-                    filtered[k] = v
-                else:
-                    print(f"Removed hallucinated tag, id: {k}")
-            return filtered
-        return tags
+            for key in data.keys():
+                #print(key)
+                if not key in allowed_tags:
+                    print(f"removed hallucinated tag, id: {key}")
+                    reader.pop("camera_readings", key)
     
     def show_image(self, img):
-        image = img
-        if image is not None:
-            cv2.imshow("Camera window:", image)
+        if img is not None:
+            cv2.imshow("Camera window:", img)
             
     
 # =====================================================
@@ -317,25 +328,22 @@ class Vision:
 if __name__ == "__main__":
     # Assume that ConfigLoader is properly set up to read configuration values.
     config_loader = ConfigLoader()
-    
+    json = Jsonreader()
     # Create an instance of VisionSystem.
-    vision = Vision(config_loader)
-    handdetector = HandDetector(vision)
-    
+  
+    vision = Vision(config_loader, json)
+
     while True: 
-        handdetector.start()
-        dict, img = vision._estimate_pose()
-        tags = vision.start(dict, "all")
+        pose_dict, img = vision._estimate_pose()
+        vision.start(pose_dict, "all")
         vision.show_image(img)   
-        for id, pose in tags.items():
-            print(f"Tag ID: {id} Transformation:\n{pose}\n")
         if cv2.waitKey(1) & 0xFF == 27:
                 cv2.destroyAllWindows()
                 break
     
     
-            
-                
+    
+        
         
         
         

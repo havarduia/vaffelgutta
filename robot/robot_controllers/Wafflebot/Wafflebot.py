@@ -8,7 +8,7 @@ import rclpy
 from time import sleep
 from robot.robot_controllers.path_planner import list_multiply, list_sum
 from robot.robot_controllers.Wafflebot.moveit.MotionPlanner import MotionPlanner
-from camera.coordinatesystem import CoordinateSystem
+from camera.vision import Vision
 from robot.robot_controllers.Wafflebot.add_collisionobjects import add_collisionobjects
 from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
 from rclpy.logging import LoggingSeverity
@@ -24,7 +24,8 @@ class cameraplaceholder():
 class Wafflebot:
     def __init__(
         self,
-        cam: Optional[CoordinateSystem] = None,
+        pose,
+        cam: Optional[Vision] = None,
         debug_print: bool = False,
         use_rviz: bool = True,
     ):
@@ -52,6 +53,7 @@ class Wafflebot:
         self.speed = 1.0
         
         self.cam = cam
+        self.pose = pose
         if self.cam == None:
             self.cam = cameraplaceholder()
         # initialize joint positions
@@ -107,7 +109,7 @@ class Wafflebot:
             self.go_to_sleep_pose()
         self.exit()
 
-    def move(self, target, ignore: Optional[list[str]] = None, speed_scaling: float = 1.0):
+    def move(self, target, ignore: Optional[list[str]] = None, speed_scaling: float = 1.0 ):
         """
         checks the input type and moves to a position.
         input can be either of:
@@ -116,7 +118,7 @@ class Wafflebot:
         joints - joint states.
         """
         isjointsPlaceholder = False
-        self.cam.start("all")
+        self.cam.start(self.pose, "all")
         (target, returncode) = interpret_target_command.interpret_target_command(target, isjointsPlaceholder,self.debug_print)
         if returncode == -1:
             raise RuntimeError("Invalid pose passed")

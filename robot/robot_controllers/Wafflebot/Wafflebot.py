@@ -1,3 +1,4 @@
+from enum import Enum
 from types import NoneType
 from typing import Optional
 from robot.robot_controllers.Wafflebot import *
@@ -16,29 +17,25 @@ from rclpy.logging import LoggingSeverity
 from robot.tools.file_manipulation import Jsonreader
 import numpy as numphy
 
-class cameraplaceholder():
-    def start(*args):
-        reader = Jsonreader()
-        reader.write("camera_readings", {100: numphy.identity(4).tolist()})
-
 class Wafflebot:
     def __init__(
         self,
         cam: Optional[CoordinateSystem] = None,
-        debug_print: bool = False,
+        automatic_mode: bool = False,
         use_rviz: bool = True,
+        debug_print: bool = False,
     ):
         # Initialize robot:
-        interbotix_process = robot_boot_manager.robot_launch(use_rviz)
+        interbotix_process = robot_boot_manager.robot_launch(use_rviz=use_rviz, use_moveit = automatic_mode)
+
         self.bot = InterbotixManipulatorXS(
             robot_model="vx300s",
             group_name="arm",
             gripper_name="gripper",
-            logging_level=LoggingSeverity.ERROR
+            logging_level=LoggingSeverity.ERROR # may or may not do something
         )
+        
         robot_startup()
-        self.motionplanner = MotionPlanner(interbotix_process)
-        self.collision_publisher = CollisionObjectPublisher()
 
         # Keep a look out for the emergency stop
         self.launch_emergency_stop_monitor()
@@ -47,31 +44,42 @@ class Wafflebot:
         self.gripper = self.bot.gripper
         self.core = self.bot.core
         # misc inits
-        self.home_pose = self.arm.robot_des.M
+        self.home_pose = self.arm.robot_des.M if automatic_mode else [0]*6
         self.debug_print = debug_print
         self.speed = 1.0
-        
-        self.cam = cam
-        if self.cam == None:
-            self.cam = cameraplaceholder()
-        # initialize joint positions
+        self.automatic_mode = automatic_mode
+
+        self.motionplanner = MotionPlanner(interbotix_process)
         self.motionplanner.update_joint_states()
 
+        if self.automatic_mode:
+            if cam is None:
+                raise RuntimeError("Camera is not provided for automatic mode")
+            else:
+                self.cam = cam
+            self.collision_publisher = CollisionObjectPublisher()
     # return the methods of the child class (interbotixmanipulatorxs)
     def __getattr__(self, name):
         return getattr(self.bot, name)
 
+
     def go_to_home_pose(self):
-        self.move(self.arm.robot_des.M)
-        start_joints = self.motionplanner.update_joint_states()
-        for i in range(1, 51):
-            self.arm.set_joint_positions(list_multiply(start_joints, (1 - i / 50)), blocking=False)
-            sleep(0.02)
-        sleep(0.2)
+        if self.automatic_mode:
+            self.move(self.home_pose)
+            start_joints = self.motionplanner.update_joint_states()
+            for i in range(1, 51):
+                self.arm.set_joint_positions(list_multiply(start_joints, (1 - i / 50)), blocking=False)
+                sleep(0.02)
+            sleep(0.2)
+        else:
+            self.arm.set_joint_positions(self.home_pose)
 
     def go_to_sleep_pose(self):
-        start_joints = self.motionplanner.update_joint_states()
         sleep_joints = [0.0, -1.80, 1.59, 0.0, 0.5959, 0.0]
+        if not self.automatic_mode:
+            self.arm.set_joint_positions(sleep_joints)
+            return
+        start_joints = self.motionplanner.update_joint_states()
         for i in range(1, 51):
             # sleep = start + (start-sleep)*T/dt
             self.arm.set_joint_positions(
@@ -115,9 +123,14 @@ class Wafflebot:
         string - name of the pose in the recordings folder
         joints - joint states.
         """
-        isjointsPlaceholder = False
-        self.cam.start("all")
-        (target, returncode) = interpret_target_command.interpret_target_command(target, isjointsPlaceholder,self.debug_print)
+        use_joints = not self.automatic_mode
+        if self.automatic_mode:
+            self.cam.start("all")
+        (target, returncode) = interpret_target_command.interpret_target_command(
+                target,
+                use_joints,
+                self.debug_print
+                )
         if returncode == -1:
             raise RuntimeError("Invalid pose passed")
         elif returncode == 0:
@@ -127,23 +140,29 @@ class Wafflebot:
         else:
             raise RuntimeError("I f-ed up. check for invalid returns in interpret_target_command.")
 
-    def move_to_joints(self, target):
-        raise NotImplementedError("Chill out cuh")
 
     def move_to_matrix(self, target: list[list[float]], ignore: Optional[list[str]], speed_scaling: float = 1.0) -> bool: 
         """
         moves the bot to a given pose matrix.
         the "move" function should be used instend for robustness.
         """
-        self.cam.start("all")
-        add_collisionobjects(ignore)
-        success = self.collision_publisher.publish_collisionobjects() 
-        if success:
-            self.motionplanner.move(target, speed_scaling*self.speed)
-            return self.motionplanner.movement_success
-        elif self.debug_print:
-            print("Wafflebot: Collision publishing failed")
-        return False
+        if self.automatic_mode:
+            self.cam.start("all")
+            add_collisionobjects(ignore)
+            success = self.collision_publisher.publish_collisionobjects() 
+            if success:
+                self.motionplanner.move(target, speed_scaling*self.speed)
+                return self.motionplanner.movement_success
+            elif self.debug_print:
+                print("Wafflebot: Collision publishing failed")
+            return False
+        else:
+            raise RuntimeError("This feature is only avaliable in automatic mode")
+            return False
+
+    def move_to_joints(self, target):
+        assert (not self.automatic_mode), "This function is intended for manual mode only"
+        self.arm.set_joint_positions(target)
 
     def launch_emergency_stop_monitor(self):
         emergency_stop.run_emergency_stop_monitor(self.safe_stop)

@@ -3,6 +3,8 @@ from waffle_states.waffle_states import State
 
 def close_iron(state: "CurrentState", bot: "Wafflebot"):
     bot.go_to_home_pose()
+    # if waffle_count > 0:
+    #   ...
     waffle_ready = Wafflereadier() #Har en bool
      
     if waffle_ready == True:

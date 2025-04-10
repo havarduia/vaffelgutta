@@ -13,11 +13,14 @@ def open_iron(state: "CurrentState", bot: "Wafflebot", tag: "CurrentTag"):
     tags = reader.read("camera_readings")
 
     if Tags.CLOSED_IRON_TAG in tags.keys():
-        bot.move("front_of_waffle_iron")
-        actions.apply_lube() # make it so it clears away from iron
-        bot.move("front_of_waffle_iron")
-        state.set(State.SPRAY)
-
+        try:
+            bot.move("front_of_waffle_iron")
+            actions.apply_lube() # make it so it clears away from iron
+            bot.move("front_of_waffle_iron")
+            state.set(State.SPRAY)
+        except FloatingPointError: # unused error used as signal.
+            state.set(State.ERROR)
+            return
     else:
         state.set(State.ERROR)
 

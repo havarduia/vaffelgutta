@@ -9,15 +9,20 @@ def return_cup(state: "CurrentState", bot: "Wafflebot", tag: "CurrentTag"):
     reader.pop("camera_readings",Tags.OPENED_IRON_TAG)
     bot.cam.start("all")
     tags = reader.read("camera_readings")
-    if Tags.OPENED_IRON_TAG in tags.keys():     
-        bot.move("front_of_waffle_iron")
-        actions.close_waffle_iron()
-        bot.move("front_of_waffle_iron")
-        state.set(State.CLOSE_IRON)
-    elif Tags.CLOSED_IRON_TAG in tags.keys():
-        state.set(State.CLOSE_IRON) 
-    else:
+    try:
+        if Tags.OPENED_IRON_TAG in tags.keys():     
+            bot.move("front_of_waffle_iron")
+            actions.close_waffle_iron()
+            bot.move("front_of_waffle_iron")
+            state.set(State.CLOSE_IRON)
+        elif Tags.CLOSED_IRON_TAG in tags.keys():
+            state.set(State.CLOSE_IRON) 
+        else:
+            state.set(State.ERROR)
+    except FloatingPointError: # unused error used as signal.
         state.set(State.ERROR)
+        return
+    
     
 
 

@@ -10,11 +10,15 @@ def put_down_spray(state: "CurrentState", bot: "Wafflebot", tag: "CurrentTag"):
     tags = reader.read("camera_readings")
 
     if Tags.LADLE_TAG in tags.keys(): # tag id 4 is ladle
-        bot.move("front_of_bowl") #make it go to tag that is closer
-        bot.move("front_of_ladle")
-        actions.pick_up_cup() # rename to pick_up_ladle
-        bot.move("front_of_waffleiron")
-        state.set(State.CUP_TO_IRON)
+        try:
+            bot.move("front_of_bowl") #make it go to tag that is closer
+            bot.move("front_of_ladle")
+            actions.pick_up_cup() # rename to pick_up_ladle
+            bot.move("front_of_waffleiron")
+            state.set(State.CUP_TO_IRON)
+        except FloatingPointError: # unused error used as signal.
+            state.set(State.ERROR)
+            return
     else:
         print("Ladle is not in camera_readings")
         state.set(State.ERROR)

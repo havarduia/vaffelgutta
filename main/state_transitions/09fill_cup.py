@@ -4,6 +4,10 @@ from robot.robot_controllers.movements.action_header import Actions
 
 def fill_cup(state: "CurrentState", bot: "Wafflebot"):
 
+
+        except FloatingPointError: # unused error used as signal.
+            state.set(State.ERROR)
+            return
     actions = Actions(bot)
     bot.move("front_of_filling_station")
     actions.pick_up_cup()

@@ -3,8 +3,12 @@ from robot.robot_controllers.movements.action_header import Actions
 
 def cup_to_iron(state: "State", bot: "Wafflebot"):
     actions = Actions(bot)
-    actions.pour_batter()   
-    state.set(State.EMPTY_CUP)
+    try:
+        actions.pour_batter()   
+        state.set(State.EMPTY_CUP)
+    except FloatingPointError: # unused error used as signal.
+        state.set(State.ERROR)
+        return
 
 
 if __name__ == "__main__":

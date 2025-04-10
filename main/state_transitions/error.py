@@ -3,8 +3,11 @@ from robot.tools.file_manipulation import Jsonreader
 from robot.robot_controllers.movements.action_header import Actions
 
 def error(state: "CurrentState", bot: "Wafflebot"):
-    bot.stop #TODO not implented 
+    # bot.stop #TODO not implented 
+    # This is very hard to implement on a per movement basis.
+    # Should be repeatedly checked between movements instead.
     user_input = input("Do you want to continue where you stopped? (y/n) \n")
+    bot.clear_error()
     
     if user_input == "y":
         ... # Gå til previous state
@@ -18,7 +21,7 @@ def error(state: "CurrentState", bot: "Wafflebot"):
             except NameError:
                 print("Invalid state, try again!")
     else:   
-        bot.safe_stop()
+        bot.safe_stop(slow=True)
 
 if __name__ == "__main__":
     # to resolve type annotation

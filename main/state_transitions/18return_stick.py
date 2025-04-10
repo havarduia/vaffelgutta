@@ -13,11 +13,14 @@ def return_stick(state: "CurrentState", bot: "Wafflebot", tag: "CurrentTag"):
     reader.clear("camera_readings")
     bot.cam.start("all")
     tags = reader.read("camera_readings")
-    
-    if Tags.CLOSED_IRON_TAG in tags.keys():
-        state.set(State.HOME)
-    elif Tags.OPENED_IRON_TAG in tags.keys():
-        state.set(State.OPEN_IRON)
+    try:  
+        if Tags.CLOSED_IRON_TAG in tags.keys():
+            state.set(State.HOME)
+        elif Tags.OPENED_IRON_TAG in tags.keys():
+            state.set(State.OPEN_IRON)
+    except FloatingPointError: # unused error used as signal.
+        state.set(State.ERROR)
+        return
     
     
     

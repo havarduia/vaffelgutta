@@ -5,7 +5,11 @@ def sleepstate(state: "CurrentState", bot: "Wafflebot"):
 
     if not False:  # TODO add some test for if the robot is closing up shop.
         pass
-    bot.go_to_home_pose()
+    try:
+        bot.go_to_home_pose()
+    except FloatingPointError: # unused error used as signal.
+        state.set(State.ERROR)
+        return
 
     state.set(State.HOME)
 

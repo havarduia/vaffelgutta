@@ -13,10 +13,13 @@ def open_iron(state: "CurrentState", bot: "Wafflebot", tag: "CurrentTag"):
     tags = reader.read("camera_readings")
     
     if Tags.SPRAY_TAG in tags.keys(): # tag 3 is the lube
-        bot.move("front_of_tool_station")
-        actions.pick_up_lube() # Todo implenment this as a movement sequence
-        state.set(State.PICK_UP_SPRAY)  
-
+        try:
+            bot.move("front_of_tool_station")
+            actions.pick_up_lube() # Todo implenment this as a movement sequence
+            state.set(State.PICK_UP_SPRAY)  
+        except FloatingPointError: # unused error used as signal.
+            state.set(State.ERROR)
+            return
     else:
         state.set(State.HOME)
 

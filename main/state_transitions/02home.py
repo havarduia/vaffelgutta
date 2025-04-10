@@ -13,9 +13,13 @@ def home(state: "CurrentState", bot: "Wafflebot", tag: "CurrentTag"):
     tags = reader.read("camera_readings")
     
     if Tags.CLOSED_IRON_TAG in tags.keys():
-        bot.move("waffle_iron")
-        actions.open_waffle_iron() # Todo implenment this as a movement sequence
-        #Todo ensure arm moves away from iron ^^ 
+        try:
+            bot.move("waffle_iron")
+            actions.open_waffle_iron() # Todo implenment this as a movement sequence
+            #Todo ensure arm moves away from iron ^^ 
+        except FloatingPointError: # unused error used as signal.
+            state.set(State.ERROR)
+            return
 
     state.set(State.OPEN_IRON)
 

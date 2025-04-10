@@ -1,13 +1,17 @@
 from waffle_states.waffle_states import State 
 from robot.robot_controllers.movements.action_header import Actions
 
-def empty_cup(state: "State", bot: "Wafflebot"):
+def empty_cup(state: "CurrentState", bot: "Wafflebot"):
 
     actions = Actions(bot)
-    bot.move("front_of_bowl") #TODO several tags, go to closest
-    actions.place_cup() #TODO Reprogram to remove ladle
+    try:
+        bot.move("front_of_bowl") #TODO several tags, go to closest
+        actions.place_cup() #TODO Reprogram to remove ladle
+        state.set(State.RETURN_CUP)
+    except FloatingPointError: # unused error used as signal.
+        state.set(State.ERROR)
+        return
 
-    state.set(State.RETURN_CUP)
 
 
 if __name__ == "__main__":

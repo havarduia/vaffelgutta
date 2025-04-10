@@ -7,13 +7,14 @@ def open_iron(state: "CurrentState", bot: "Wafflebot"):
     actions = Actions(bot)
     reader = Jsonreader()
 
-    reader.pop("camera_readings", "2")
+    reader.pop("camera_readings", "2") # tag id 2 is opened iron
     bot.cam.start("all")
     tags = reader.read("camera_readings")
 
     if "2" in tags.keys():
         bot.move("front_of_waffle_iron")
-        actions.apply_lube()
+        actions.apply_lube() # make it so it clears away from iron
+        bot.move("front_of_waffle_iron")
         state.set(State.SPRAY)
 
     else:

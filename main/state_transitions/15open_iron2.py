@@ -12,18 +12,10 @@ def open_iron2(state: "CurrentState", bot: "Wafflebot"):
     bot.cam.start("all")
     tags = reader.read("camera_readings")
     
-    
     bot.move("sticks")
     actions.put_away_sticks()
     bot.move("front_of_waffle_iron")
     state.set(State.PICK_UP_WAFFLE)
-        
-    
-    if placeholder == 1:
-        state.set(State.PICK_UP_WAFFLE)
-    elif placeholder == 2:
-        state.set(State.ERROR)
-
 
 if __name__ == "__main__":
     # to resolve type annotation

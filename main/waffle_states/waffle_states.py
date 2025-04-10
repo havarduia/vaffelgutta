@@ -25,9 +25,11 @@ class State(Enum):
 
 
 class CurrentState:
-    def __init__(self):
-        self.state = State.SLEEP
-
+    def __init__(self, startstate):
+        
+        self.state = startstate
+        self.target = None
+    
     def set(self, new_state: State) -> None:
         self.state = new_state
 

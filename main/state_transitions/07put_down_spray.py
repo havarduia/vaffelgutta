@@ -9,12 +9,12 @@ def put_down_spray(state: "CurrentState", bot: "Wafflebot"):
     bot.cam.start("all")
     tags = reader.read("camera_readings")
 
-    if "4" in tags.keys():
-        bot.move("front_of_cup") 
-        actions.pick_up_cup()
-        bot.move("front_of_filling_station")
-        actions.place_cup(True)
-        state.set(State.PLACE_CUP_TO_STAT)
+    if "4" in tags.keys(): # tag id 4 is ladle
+        bot.move("front_of_bowl") #make it go to tag that is closer
+        bot.move("front_of_ladle")
+        actions.pick_up_cup() # rename to pick_up_ladle
+        bot.move("front_of_waffleiron")
+        state.set(State.CUP_TO_IRON)
     else:
         print("Bottle is not in camera_readings")
         state.set(State.ERROR)

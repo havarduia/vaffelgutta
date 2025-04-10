@@ -2,10 +2,15 @@ from waffle_states.waffle_states import State
 
 
 def close_iron(state: "CurrentState", bot: "Wafflebot"):
-
-    bot.go_to_home_pose() 
-    do_funtime()
-    state.set(State.FUN_TIME)
+    bot.go_to_home_pose()
+    waffle_ready = Wafflereadier() #Har en bool
+     
+    if waffle_ready == True:
+        state.set(State.FUN_TIME) 
+    else:
+        do_funtime() #ask for prompt and do prompt
+        
+        
 
 
 if __name__ == "__main__":

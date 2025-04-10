@@ -1,4 +1,4 @@
-
+#TODO KILL SCRIPT 👺
 from waffle_states.waffle_states import State 
 
 def place_cup_to_stat(state: "CurrentState", bot: "Wafflebot"):

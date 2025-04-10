@@ -9,7 +9,7 @@ import rclpy
 from time import sleep
 from robot.robot_controllers.path_planner import list_multiply, list_sum
 from robot.robot_controllers.Wafflebot.moveit.MotionPlanner import MotionPlanner
-from camera.coordinatesystem import CoordinateSystem
+from camera.vision import Vision
 from robot.robot_controllers.Wafflebot.add_collisionobjects import add_collisionobjects
 from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
 from rclpy.logging import LoggingSeverity
@@ -122,7 +122,7 @@ class Wafflebot:
             self.go_to_sleep_pose()
         self.exit()
 
-    def move(self, target, ignore: Optional[list[str]] = None, speed_scaling: float = 1.0):
+    def move(self, target, ignore: Optional[list[str]] = None, speed_scaling: float = 1.0 ):
         """
         checks the input type and moves to a position.
         input can be either of:

@@ -150,10 +150,10 @@ if __name__ == '__main__':
     pose = pose_loop()
     try:
         
-        bot = Wafflebot(vision, use_rviz=False)
-        
+        bot = Wafflebot(pose=pose, cam=vision, use_rviz=False)
         main(bot, vision, pose)
         bot.exit()
+        
     # if error detected, run the error handler
     except (Exception, KeyboardInterrupt, RCLError) as e:
         handle_error(e, bot)

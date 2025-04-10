@@ -147,7 +147,7 @@ if __name__ == '__main__':
     bot = None
     config = ConfigLoader()
     vision = Vision(config)
-    pose = pose_loop()
+    pose = pose_loop(vision)
     try:
         
         bot = Wafflebot(pose=pose, cam=vision, use_rviz=False)

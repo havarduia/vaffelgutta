@@ -2,19 +2,18 @@ import cv2
 import logging
 import customtkinter as ctk
 import tkinter.messagebox as messagebox
-from camera.init_camera import initalize_system
-from camera.Config.misc import print_blue, print_error
+from camera.vision import *
 import numpy as numphy
+from camera.config.misc import ConfigLoader
 
 class ArucoDebugger:
-    def __init__(self, aruco, coord_sys):
-        self.coord_sys = coord_sys
-        self.aruco = aruco
+    def __init__(self, vision):
+        self.vision = vision
         logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
     
     def check_camera_feed(self):
         while True:
-            image = self.aruco.camera.get_image()
+            image = self.vision._get_image()
             if image is None:
                 logging.error("Camera feed is not available. Check camera connection.")
                 messagebox.showerror("Error", "Camera feed is not available.")
@@ -27,7 +26,7 @@ class ArucoDebugger:
         cv2.destroyAllWindows()
     
     def validate_marker_detection(self):
-        corners, ids = self.aruco._aruco_detection()
+        corners, ids = self.vision._aruco_detection()
         if ids is None:
             logging.warning("No markers detected.")
             messagebox.showwarning("Warning", "No markers detected.")
@@ -37,51 +36,17 @@ class ArucoDebugger:
     
     def visualize_markers(self):
         while True:
-            image = self.aruco.camera.get_image()
-            if image is None:
-                logging.error("No image received from camera.")
-                messagebox.showerror("Error", "No image received from camera.")
-                break
-
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            corners, ids, _ = self.aruco.detector.detectMarkers(gray)
-            if ids is not None:
-                cv2.aruco.drawDetectedMarkers(image, corners, ids)
-                transformations = self.aruco.estimate_pose()
-                
-                for i in range(len(ids)):
-                    tag_id = int(ids[i])  # Convert NumPy array to integer
-                    
-                    if tag_id in transformations:
-                        T = transformations[tag_id]
-                        
-                        # Ensure T is a NumPy array
-                        T = numphy.array(T, dtype=numphy.float32)  # Convert from list to NumPy array if needed
-                        
-                        # Extract rotation and translation
-                        rvec, _ = cv2.Rodrigues(T[:3, :3])  # Convert rotation matrix to rotation vector
-                        tvec = T[:3, 3].reshape(-1, 1)  # Extract translation vector
-
-                        # Draw coordinate axes on detected markers
-                        cv2.drawFrameAxes(
-                            image,
-                            self.aruco.camera.get_calibration()[0],
-                            self.aruco.camera.get_calibration()[1],
-                            rvec,
-                            tvec,
-                            0.05
-                        )
-
-            cv2.imshow("Detected Markers", image)
+            _, img = self.vision._estimate_pose()
+            self.vision.show_image(img)
             if cv2.waitKey(1) & 0xFF == 27:  # Press ESC to close
                 break
-
         cv2.destroyAllWindows()
 
     def debug_pose_estimation(self):
         try:
             while True: 
-                tags = self.coord_sys.transformation_origin_to_tag()
+                pose, _ = self.vision._estimate_pose()
+                tags = self.vision._transformation_to_tag(pose)
                 for tag, T in tags.items():
                     print_blue(f"Tag ID: {tag} Transformation: \n{numphy.array(T)}\n")
         except KeyboardInterrupt:
@@ -131,6 +96,7 @@ def create_gui(debugger):
     root.mainloop()
 
 if __name__ == "__main__":
-    camera, aruco, coord_sys = initalize_system()
-    debugger = ArucoDebugger(aruco, coord_sys)
+    config = ConfigLoader()
+    vision = Vision(config)
+    debugger = ArucoDebugger(vision)
     create_gui(debugger)

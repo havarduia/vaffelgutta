@@ -1,27 +1,26 @@
 from robot.tools.file_manipulation import Jsonreader
 from robot.robot_controllers.movements.action_header import Actions
-from waffle_states.waffle_states import State
+from main.waffle_states.waffle_states import State
+from main.tag_enum.tags import Tags
 
-def home(state: "CurrentState", bot: "Wafflebot"):
+def home(state: "CurrentState", bot: "Wafflebot", tag: "CurrentTag"):
     
     actions = Actions(bot)
 
     reader = Jsonreader()
-    reader.pop("camera_readings", "1")
+    reader.pop("camera_readings", Tags.CLOSED_IRON_TAG)
     bot.cam.start("all")
     tags = reader.read("camera_readings")
     
-    if "1" in tags.keys():
+    if Tags.CLOSED_IRON_TAG in tags.keys():
         bot.move("waffle_iron")
         actions.open_waffle_iron() # Todo implenment this as a movement sequence
         #Todo ensure arm moves away from iron ^^ 
-        state.set(State.OPEN_IRON)
 
-    else:
-        state.set(State.OPEN_IRON)
-
+    state.set(State.OPEN_IRON)
 
 if __name__ == "__main__":
     # to resolve type annotation
     from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
-    from waffle_states.waffle_states import CurrentState
+    from main.waffle_states.waffle_states import CurrentState
+    from main.tag_enum.tags import CurrentTag

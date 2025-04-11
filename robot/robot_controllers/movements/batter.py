@@ -71,38 +71,24 @@ def pick_up_ladle(bot: Wafflebot):
     bot.move(front_of_bowl_pos, ignore=["ladle"])
 
 
-def pour_batter(bot: Wafflebot) -> bool:
+def pour_batter(bot: Wafflebot): 
     """
     pours the batter from a held cup into the waffle iron
-    
-    :returns bool: True if movement success, False if movement failed. 
     """
-    """
-    if not _check_if_waffle_iron_open():
-        print("robot_movements/batter/pour_batter:\nWaffle iron not open. cancelling movement")
-        return False
-    """
-
     reader = Jsonreader()
-    offsets = reader.read("offsets") 
-    waffle_iron_origin = get_tag_from_camera("waffle_iron")
+    positions = reader.read("recordings")
     
-    front_of_waffle_iron_offset = numphy.matrix(offsets["front_of_waffle_iron"])
-    pour_offsets = [
-        numphy.matrix(offsets["pour_a"]),
-        numphy.matrix(offsets["pour_b"]),
-        numphy.matrix(offsets["pour_c"]),
-        numphy.matrix(offsets["pour_d"])
+    bot.move("front_of_waffle_iron", ignore=["ladle"])
+
+    pose_type = "basepose" if bot.automatic_mode else "joints"
+    pour_positions = [
+        positions["pour_0"][pose_type],
+        positions["pour_1"][pose_type],
+        positions["pour_2"][pose_type],
+        positions["pour_3"][pose_type],
     ]
+    for pose in pour_positions:
+        bot.move(pose, ignore=["ladle","waffle_iron"])
 
-    front_of_waffle_iron_pos = waffle_iron_origin * front_of_waffle_iron_offset    
-    
-    pour_positions = []
-    for offset in pour_offsets:
-        pour_positions.append(waffle_iron_origin * offset)
+    bot.move("front_of_waffle_iron", ignore=["ladle","waffle_iron"])
 
-    bot.move_old(front_of_waffle_iron_pos, ["cup"])
-    for position in pour_positions:
-        bot.move_old(position, ["cup", "waffle_iron"])
-    bot.move_old(front_of_waffle_iron_pos, ["cup", "waffle_iron"])
-    return True

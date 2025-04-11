@@ -1,12 +1,12 @@
 from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
-from robot.robot_controllers.movements.waffle_iron import _check_if_waffle_iron_open
-from robot.tools.camera_interface import get_tag_from_camera
 from robot.tools.file_manipulation import Jsonreader
+from robot.tools.update_tagoffsets import position_from_name
+
 
 import numpy as numphy
 
 
-def pick_up_lube(bot: Wafflebot, reverse: bool = False)-> bool:
+def pick_up_lube(bot: Wafflebot, reverse: bool = False):
     """
     picks up the lube from the tool station OR 
     places the lube back in the tool station.
@@ -17,38 +17,33 @@ def pick_up_lube(bot: Wafflebot, reverse: bool = False)-> bool:
     :returns bool: True if movement success, False if movement failed. 
     """
     reader = Jsonreader()
-    offsets = reader.read("offsets")
-    static_objects = reader.read("static_objects")
+    positions = reader.read("recordings")
 
-    if reverse:
-        lube_origin = static_objects["lube_toolstation"]
-    else:
-        lube_origin = get_tag_from_camera("lube")
-
-    # todo call update_offsets() or sumn
-    lube_prep_offset = numphy.matrix(offsets["lube_prep"])
-    lube_grab_offset = numphy.matrix(offsets["lube_grab"])
-    
-    lube_prep_pos = lube_origin * lube_prep_offset
-
-    
-    # calculate where to go to:
-    lube_prep_pos = lube_origin * lube_prep_offset
-    # move to prep
-    bot.move_old(lube_prep_pos, ["lube"])
+    #ensure gripper is open for the movement 
     if not reverse:
         bot.gripper.release()
-        # update target
-        lube_origin = get_tag_from_camera("lube")
-        lube_prep_pos = lube_origin * lube_prep_offset
-    lube_grab_pos = lube_origin * lube_grab_offset
+    # move to prep
+    if bot.automatic_mode:
+        top_of_lube_pos = position_from_name("top_of_lube") 
+    else:
+        top_of_lube_pos = positions["top_of_lube"]["joints"]
+
+    bot.move(top_of_lube_pos, ["lube", "toolstation"])
+
     # Go to lube
-    bot.move_old(lube_grab_pos, ["lube"])
+    if bot.automatic_mode:
+        lube_toolstation_pos = position_from_name("lube_toolstation") 
+    else:
+        lube_toolstation_pos = positions["lube_toolstation"]["joints"]
+
+    bot.move(lube_toolstation_pos, ["lube", "toolstation"])
+
     if reverse:
         bot.gripper.release()
     else:
         bot.gripper.grasp()    
-    bot.move_old(lube_prep_pos, ["lube"])
+
+    bot.move(top_of_lube_pos, ["lube", "toolstation"])
 
 def spray_lube(bot:Wafflebot) -> bool:
     """

@@ -1,6 +1,8 @@
 from robot.robot_controllers.safety_functions import check_collisions, fix_joint_limits
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 import numpy as numphy
+from typing import Literal
+from robot.tools.file_manipulation import Jsonreader
 
 def calculate_biggest_joint(joints):    
     biggest_joint = 0
@@ -156,3 +158,27 @@ def plan_path(
         waypoints.append(next_position)   
   
     return waypoints, True
+
+def get_trajectory_any(movement_name: str, pose_type: Literal["basepose", "joints", "offset"]):
+    reader = Jsonreader()
+    positions = reader.read("recordings")
+    waypoints = list()
+    i = 0
+    try:
+        while True:
+            waypoints.append(positions[f"{movement_name}_{i}"][pose_type])
+            i+=1
+    except KeyError:
+        if i < 2: # needs at least a start and a stop
+            raise RuntimeError(f"{movement_name} is not properly defined")
+    return waypoints
+
+def get_trajectory_joints(movement_name: str):
+    return get_trajectory_any(movement_name, "joints")
+
+def get_trajectory_matrix(movement_name: str):
+    return get_trajectory_any(movement_name, "basepose")
+
+def get_trajectory_offset(movement_name: str):
+    return get_trajectory_any(movement_name, "offset")
+

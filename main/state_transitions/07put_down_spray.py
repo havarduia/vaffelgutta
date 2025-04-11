@@ -11,10 +11,7 @@ def put_down_spray(state: "CurrentState", bot: "Wafflebot", tag: "CurrentTag"):
 
     if Tags.LADLE_TAG in tags.keys(): # tag id 4 is ladle
         try:
-            bot.move("front_of_bowl") #make it go to tag that is closer
-            bot.move("front_of_ladle")
-            actions.pick_up_ladle() # rename to pick_up_ladle
-            bot.move("front_of_waffleiron")
+            actions.pick_up_ladle() 
             state.set(State.CUP_TO_IRON)
         except FloatingPointError: # unused error used as signal.
             state.set(State.ERROR)

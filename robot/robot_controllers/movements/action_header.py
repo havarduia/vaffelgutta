@@ -71,7 +71,7 @@ class Actions:
         self.put_ladle_in_bowl(True)
 
     def put_ladle_in_bowl(self, is_holding_cup):
-        batter.put_ladle_in_bowl(self.bot, is_holding_cup)
+        batter.put_ladle_in_bowl(self.bot)
     
     def fill_cup(self):
         try:

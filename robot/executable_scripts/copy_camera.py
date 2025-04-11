@@ -132,7 +132,7 @@ if __name__ == '__main__':
     vision = Vision(config, json)
     try:
         
-        bot = Wafflebot(cam=vision, use_rviz=False)
+        bot = Wafflebot(vision=vision, use_rviz=False)
         main(bot)
         bot.exit()
         

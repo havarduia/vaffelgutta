@@ -64,14 +64,14 @@ class Actions:
         waffle_iron.put_away_sticks(self.bot) 
     
     def fill_batter_on_iron(self):
-        self.place_cup()
+        self.put_ladle_in_bowl()
         self.fill_cup()
-        self.pick_up_cup()
+        self.pick_up_ladle()
         self.pour_batter()
-        self.place_cup(True)
+        self.put_ladle_in_bowl(True)
 
-    def place_cup(self, is_holding_cup):
-        batter.place_cup_at_filling_station(self.bot, is_holding_cup)
+    def put_ladle_in_bowl(self, is_holding_cup):
+        batter.put_ladle_in_bowl(self.bot, is_holding_cup)
     
     def fill_cup(self):
         try:
@@ -79,8 +79,8 @@ class Actions:
         except NotImplementedError:
             print("Not implemented yet.")
 
-    def pick_up_cup(self):
-        batter.pick_up_cup_from_filling_station(self.bot)
+    def pick_up_ladle(self):
+        batter.pick_up_ladle(self.bot)
 
     def pour_batter(self):
         batter.pour_batter(self.bot)

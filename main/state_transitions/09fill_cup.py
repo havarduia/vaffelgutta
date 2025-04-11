@@ -10,7 +10,7 @@ def fill_cup(state: "CurrentState", bot: "Wafflebot"):
             return
     actions = Actions(bot)
     bot.move("front_of_filling_station")
-    actions.pick_up_cup()
+    actions.pick_up_ladle()
     bot.move("front_of_waffle_iron")
     state.set(State.CUP_TO_IRON)
 

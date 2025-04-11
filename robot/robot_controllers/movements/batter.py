@@ -1,34 +1,12 @@
+from robot.robot_controllers.path_planner import get_trajectory_joints, get_trajectory_matrix
 from robot.tools.file_manipulation import Jsonreader
 from robot.tools.camera_interface import get_tag_from_camera
 from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
-from robot.robot_controllers.movements.waffle_iron import _check_if_waffle_iron_open
+from robot.tools.update_tagoffsets import position_from_name 
 import numpy as numphy
 
-def _test_if_cup_is_upright(cup_origin, cup_offset, cup_pos) -> bool:
-    # Use tag detection to determine orientation...
-    raise NotImplementedError
-    return False
 
-def _check_if_holding_cup() -> bool:
-    # Todo: use a camera check to see if cup is within a distance threshold
-    # of the expected position.
-    # Expected output:
-    # True if bot is holding cup
-    # True (false positive) if cup is laying very close by
-    # False if cup not detected or not within threshold of distance from expected (once measured)
-    return True
-
-def pickup_fallen_cup(bot: Wafflebot) -> bool:
-    """
-    Attempts to pick up the cup from the ground
-
-    :returns bool: True if movement success, False if movement failed. 
-    """
-    print("robot_movements/batter: pickup_fallen_cup is not implemented")
-    raise NotImplementedError
-    # Todo in future implement a function to pick up a cup that has fallen on its side 
-
-def place_cup_at_filling_station(bot: Wafflebot, is_holding_cup : bool) -> bool:
+def put_ladle_in_bowl(bot: Wafflebot):
     """
     Takes the cup and places it at the filling station.
     
@@ -38,83 +16,60 @@ def place_cup_at_filling_station(bot: Wafflebot, is_holding_cup : bool) -> bool:
     :returns bool: True if movement success, False if movement failed. 
     """
     reader = Jsonreader()
-    static_objects  = reader.read("static_objects")
-    offsets         = reader.read("offsets")
+    positions = reader.read("recordings")
 
-    filling_station_origin          = get_tag_from_camera("filling_station")
-    cup_origin                      = get_tag_from_camera("cup")
-    
-    cam_pos                         = numphy.matrix(static_objects["cam"])
+    if bot.automatic_mode:
+        top_of_bowl_pos = position_from_name("top_of_bowl")
+        inside_bowl_pos = position_from_name("inside_bowl")
+        front_of_bowl_pos= positions["front_of_bowl"]["basepose"]
+    else:
+        top_of_bowl_pos = positions["top_of_bowl"]["joints"]
+        inside_bowl_pos = positions["inside_bowl"]["joints"]
+        front_of_bowl_pos= positions["front_of_bowl"]["joints"]
 
-    front_of_filling_station_offset = numphy.matrix(offsets["front_of_waffle_iron"])
-    filling_station_offset          = numphy.matrix(offsets["filling_station"])
-    cup_offset                      = numphy.matrix(offsets["cup"])
-
-    front_of_filling_station_pos    = filling_station_origin * front_of_filling_station_offset
-    filling_station_pos             = filling_station_origin * filling_station_offset
-    cup_pos                         =             cup_origin * cup_offset
-    if not is_holding_cup:
-        try:
-            if not _test_if_cup_is_upright(cup_origin, cup_offset, cup_pos):
-                # seems tricky... probably just return an error instead
-                pickup_fallen_cup(bot)
-        except NotImplementedError:
-            print ("robot_movements/batter.py:\nfunction to test upright cup not made yet. Assuming success.")
-            
-        bot.gripper.release()
-        bot.move_old(cup_pos, ["cup", "filling_station", "waffle_iron"])
-        bot.gripper.grasp()
-    
-        bot.move_old(cam_pos,["cup", "filling_station"])
-        if not _check_if_holding_cup():
-            raise Exception("Bot failed to grasp the cup.\nMANUAL INTERVENTION NEEDED!!")
-            return False
-        return True
-    
-    bot.move_old(front_of_filling_station_pos, ["cup"])
-    bot.move_old(filling_station_pos, ["cup", "filling_station"])
+    bot.move(front_of_bowl_pos, ignore=["ladle"])
+    bot.move(top_of_bowl_pos, ignore=["ladle"])
+    bot.move(inside_bowl_pos, ignore= ["ladle", "bowl"])
     bot.gripper.release()
-    bot.move_old(front_of_filling_station_pos, ["cup", "filling_station"])
-    return True
+    bot.move(top_of_bowl_pos, ignore=["ladle", "bowl"])
+    bot.move(front_of_bowl_pos, ignore=["ladle"])
 
-def fill_cup(bot: Wafflebot) -> bool:
-    """
-    Interface with Aleksanders mystery box hardware. 
-    Since the interface for the valve does not exist yet, this does nothing 
-    but raise an error.
-    """
-    print("robot_movements/batter.py:\npickup_fallen_cup is not implemented")
-    raise NotImplementedError
+def thug_shake(bot: Wafflebot):
+    poses =(
+        get_trajectory_matrix("thug_shake")
+        if bot.automatic_mode else
+        get_trajectory_joints("thug_shake")
+        )
+    for pose in poses:
+        bot.move(pose, ignore=["ladle"], speed_scaling=3.0) # TODO adjust speed_scaling
 
-def pick_up_cup_from_filling_station(bot: Wafflebot) -> bool:
+
+def pick_up_ladle(bot: Wafflebot):
     """
     picks up cup from filling station 
     and moves it to the front of the waffle iron.
-
-    :returns bool: True if movement success, False if movement failed. 
     """
 
+    bot.gripper.release()
     reader = Jsonreader()
-    offsets = reader.read("offsets")
+    positions = reader.read("recordings")
 
-    cup_origin                      = get_tag_from_camera("cup") 
-    waffle_iron_origin              = get_tag_from_camera("waffle_iron")
-    filling_station_origin          = get_tag_from_camera("filling_station")
+    if bot.automatic_mode:
+        front_of_bowl_pos= positions["front_of_bowl"]["basepose"]
+        inside_bowl_pos = position_from_name("inside_bowl")
+        top_of_bowl_pos = position_from_name("top_of_bowl")
+    else:
+        front_of_bowl_pos= positions["front_of_bowl"]["joints"]
+        inside_bowl_pos= positions["inside_bowl"]["joints"]
+        top_of_bowl_pos= positions["top_of_bowl"]["joints"]
 
-    cup_offset                      = numphy.matrix(offsets["cup"])
-    front_of_waffle_iron_offset     = numphy.matrix(offsets["front_of_waffle_iron"])
-    front_of_filling_station_offset = numphy.matrix(offsets["front_of_filling_station"])
-
-    cup_pos                         = cup_origin * cup_offset
-    front_of_waffle_iron_pos        = waffle_iron_origin * front_of_waffle_iron_offset
-    front_of_filling_station_pos    = filling_station_origin * front_of_filling_station_offset
-
-    bot.gripper.release() 
-    bot.move_old(cup_pos, ["cup", "filling_station"])
+    bot.move(front_of_bowl_pos)
+    bot.move(inside_bowl_pos, ignore= ["ladle", "bowl"])
     bot.gripper.grasp()
-    bot.move_old(front_of_filling_station_pos, ["cup", "filling_station"])
-    bot.move_old(front_of_waffle_iron_pos, ["cup"])
-    return True
+    bot.move(top_of_bowl_pos, ignore=["ladle", "bowl"])
+    thug_shake(bot)
+    bot.move(front_of_bowl_pos, ignore=["ladle"])
+
 
 def pour_batter(bot: Wafflebot) -> bool:
     """

@@ -6,7 +6,7 @@ def empty_cup(state: "CurrentState", bot: "Wafflebot"):
     actions = Actions(bot)
     try:
         bot.move("front_of_bowl") #TODO several tags, go to closest
-        actions.place_cup() #TODO Reprogram to remove ladle
+        actions.put_ladle_in_bowl() #TODO Reprogram to remove ladle
         state.set(State.RETURN_CUP)
     except FloatingPointError: # unused error used as signal.
         state.set(State.ERROR)

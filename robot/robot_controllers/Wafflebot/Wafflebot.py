@@ -52,7 +52,6 @@ class Wafflebot:
         self.speed = 1.0
         
         self.vision = vision
-        self.pose = pose
         if self.vision == None:
             self.vision = cameraplaceholder()
         # initialize joint positions

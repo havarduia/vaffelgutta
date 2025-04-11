@@ -1,16 +1,9 @@
 import pyrealsense2 as rs
 import numpy as np
 import cv2
-import os
-from camera.config.misc import (
-    print_blue,
-    print_error,
-    smooth_data as smooth,
-    ConfigLoader,
-)
-from ai.hand_detection import HandDetector
+from camera.config.configloader import ConfigLoader
 from robot.tools.file_manipulation import Jsonreader
-
+from typing import Union
 class Vision:
     def __init__(self, config_loader: ConfigLoader, jsonreader: Jsonreader):
         self.config_loader = config_loader
@@ -27,11 +20,10 @@ class Vision:
         ctx = rs.context()
         devices = ctx.query_devices()
         if len(devices) == 0:
-            print_error("No RealSense camera detected.")
             raise RuntimeError("No RealSense camera found.")
 
         camera_id = devices[0].get_info(rs.camera_info.serial_number)
-        print_blue(f"Using RealSense camera with serial: {camera_id}")
+        print(f"Using RealSense camera with serial: {camera_id}")
 
         resolution = self.config_loader.get("resolution")
         resolution_d = self.config_loader.get("resolution_d")
@@ -93,7 +85,7 @@ class Vision:
                 color_sensor = profile.get_device().query_sensors()[1]
                 color_sensor.set_option(rs.option.sharpness, 100)
             except Exception as e:
-                print_error(f"Error starting pipeline: {e}")
+                print(f"Error starting pipeline: {e}")
                 raise e
 
             self.isStreaming = True
@@ -183,11 +175,11 @@ class Vision:
 
     def _estimate_pose(self):
         camera_matrix, dist_coeffs = self._get_calibration()
-        pose_image = self._get_image()  # You need to implement this if not already
+        pose_image = self._get_image()
         corners, ids = self._aruco_detection()
 
         if ids is None or not corners:
-            print_error("Marker not detected! 👺")
+            print("Marker not detected! 👺")
             return {}, pose_image  # Return the original frame even if no detection
 
         raw_poses = []
@@ -203,95 +195,78 @@ class Vision:
                 flags=cv2.SOLVEPNP_IPPE_SQUARE,
             )
             if not success:
-                print_error(f"Pose estimation failed for tag {tag_id}.")
+                print(f"Pose estimation failed for tag {tag_id}.")
                 continue
 
             # Draw axis on the marker
-            cv2.drawFrameAxes(pose_image, camera_matrix, dist_coeffs, rvec, tvec, marker_length * 0.5)
-
+            cv2.drawFrameAxes(
+                pose_image, camera_matrix, dist_coeffs, rvec, tvec, marker_length * 0.5
+            )
+            
+            cv2.aruco.drawDetectedMarkers(pose_image, corners, ids)
+            
             raw_poses.append((tag_id, rvec, tvec))
 
         if not raw_poses:
             return {}, pose_image
 
         tag_ids, rvecs, tvecs = zip(*raw_poses)
-        rvecs, tvecs = smooth(np.array(rvecs)), smooth(np.array(tvecs))
-        
-        return {tag_id: self._get_homo_matrix(rvec, tvec).tolist()
-            for tag_id, rvec, tvec in zip(tag_ids, rvecs, tvecs)}, pose_image
 
+        return {
+            tag_id: self._get_homo_matrix(rvec, tvec).tolist()
+            for tag_id, rvec, tvec in zip(tag_ids, rvecs, tvecs)
+        }, pose_image
 
     # =====================================================
     # Coordinate System Methods
     # =====================================================
-    def _transformation_to_tag(self, _estimate_pose):
+    def _coordinatesystem(self):
         """
-        Computes the transformation from the origin marker (specified by origin_id)
-        to all other detected markers, applying offsets and bias corrections.
+        Computes the transformation from the origin marker
         """
-        # Check if _estimate_pose is a tuple, and if so, extract the dictionary part.
-        if isinstance(_estimate_pose, tuple) and len(_estimate_pose) > 0:
-            new_transformations = _estimate_pose[0]
-        else:
-            new_transformations = _estimate_pose
 
-        # Ensure that new_transformations is a dictionary
-        if not isinstance(new_transformations, dict):
-            print_error("Expected a dictionary of transformations.")
-            return {}
+        pose , image = self._estimate_pose()
 
-        # If the keys in new_transformations might be strings, ensure proper comparison.
-        if str(self.origin_id) in new_transformations:
-            origin_inv = np.linalg.inv(new_transformations[str(self.origin_id)])
-            self.last_origin_inv = origin_inv
-        elif self.origin_id in new_transformations:
-            origin_inv = np.linalg.inv(new_transformations[self.origin_id])
+        if self.origin_id in pose:
+            origin_inv = np.linalg.inv(pose[self.origin_id])
             self.last_origin_inv = origin_inv
         else:
-            print_error("Could not find origin 👺")
             return {}
 
         if origin_inv is None:
             return {}
 
         tags = {}
-        for tag_key, transformation in new_transformations.items():
-            # Coerce the key to int in case they're strings.
-            try:
-                tag_id = int(tag_key)
-            except ValueError:
-                print_error(f"Invalid tag key type: {tag_key}")
-                continue
+        for id, pose in pose.items():
 
-            if tag_id == self.origin_id:
-                continue
-
-            o_to_t = origin_inv @ np.array(transformation)
-            transformed_matrix = np.array([
+            o_to_t = origin_inv @ np.array(pose)
+            transformed_matrix = np.array(
                 [
-                    o_to_t[1, 1],
-                    -o_to_t[1, 0],
-                    o_to_t[1, 2],
-                    o_to_t[1, 3] + self.bias_x - self.offset_x,
-                ],
-                [
-                    -o_to_t[0, 1],
-                    o_to_t[0, 0],
-                    -o_to_t[0, 2],
-                    -o_to_t[0, 3] + self.bias_y - self.offset_y,
-                ],
-                [
-                    o_to_t[2, 1],
-                    -o_to_t[2, 0],
-                    o_to_t[2, 2],
-                    o_to_t[2, 3] + self.bias_z - self.offset_z,
-                ],
-                [0, 0, 0, 1],
-            ]).tolist()
+                    [
+                        o_to_t[1, 1],
+                        -o_to_t[1, 0],
+                        o_to_t[1, 2],
+                        o_to_t[1, 3] + self.bias_x - self.offset_x,
+                    ],
+                    [
+                        -o_to_t[0, 1],
+                        o_to_t[0, 0],
+                        -o_to_t[0, 2],
+                        -o_to_t[0, 3] + self.bias_y - self.offset_y,
+                    ],
+                    [
+                        o_to_t[2, 1],
+                        -o_to_t[2, 0],
+                        o_to_t[2, 2],
+                        o_to_t[2, 3] + self.bias_z - self.offset_z,
+                    ],
+                    [0, 0, 0, 1],
+                ]
+            ).tolist()
 
-            tags[tag_id] = transformed_matrix
+            tags[id] = transformed_matrix
 
-        return tags
+        return tags, image
 
     def _init_tags(self, tags: str | int):
         all_tags = []
@@ -299,52 +274,44 @@ class Vision:
             all_tags.append(str(tag))
         return all_tags
 
-    def start(self, tag_data: dict, *allowed_tags: str | int) -> list[str]:
-        config_loader = self.config_loader
-        reader = self.jsonreader
-        tags = self._transformation_to_tag(tag_data)
+    from typing import Union
 
+    def run_once(self, *allowed_tags: Union[str, int], return_image: bool = False):
+        tags, image = self._coordinatesystem()
         allowed_tags = self._init_tags(allowed_tags)
-        for id in tags.keys():
-            id = str(id)
-
-        reader.write("camera_readings", tags)
-        data = reader.read("camera_readings")
-        if "all" not in allowed_tags:
-            for key in data.keys():
-                #print(key)
-                if not key in allowed_tags:
+        self.jsonreader.write("camera_readings", tags)
+        data = self.jsonreader.read("camera_readings")
+        
+        if not any(tag == "all" for tag in allowed_tags):
+            for key in list(data.keys()):
+                if key not in allowed_tags:
                     print(f"removed hallucinated tag, id: {key}")
-                    reader.pop("camera_readings", key)
+                    self.jsonreader.pop("camera_readings", key)
+        
+        if return_image:
+            return image
+        
+    def run(self, *allowed_tags: str | int, show_image: bool=False):
+        """
+        Continuously runs pose estimation, writes data, and shows video feed.
+        Press ESC to exit.
+        """
     
-    def show_image(self, img):
-        if img is not None:
-            cv2.imshow("Camera window:", img)
+        while True:
             
-    
+            img = self.run_once(*allowed_tags, return_image=True)
+            
+            if show_image == True:
+                if img is not None:
+                    cv2.imshow("Pose Estimation Feed", img)
+                    
+            if cv2.waitKey(1) & 0xFF == 27:  # ESC to break
+                cv2.destroyAllWindows()
+                break        
+
 # =====================================================
 # Example Usage
 # =====================================================
 if __name__ == "__main__":
-    # Assume that ConfigLoader is properly set up to read configuration values.
-    config_loader = ConfigLoader()
-    json = Jsonreader()
-    # Create an instance of VisionSystem.
-  
-    vision = Vision(config_loader, json)
-
-    while True: 
-        pose_dict, img = vision._estimate_pose()
-        vision.start(pose_dict, "all")
-        vision.show_image(img)   
-        if cv2.waitKey(1) & 0xFF == 27:
-                cv2.destroyAllWindows()
-                break
-    
-    
-    
-        
-        
-        
-        
-        
+    vision = Vision(ConfigLoader(), Jsonreader())
+    vision.run("all")

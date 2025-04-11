@@ -20,8 +20,8 @@ import numpy as numphy
 class Wafflebot:
     def __init__(
         self,
-        cam: Optional[CoordinateSystem] = None,
-        automatic_mode: bool = True,
+        vision: Optional[Vision] = None,
+        debug_print: bool = False,
         use_rviz: bool = True,
         debug_print: bool = False,
     ):
@@ -48,16 +48,11 @@ class Wafflebot:
         self.debug_print = debug_print
         self.speed = 1.0
         self.automatic_mode = automatic_mode
-
         self.motionplanner = MotionPlanner(interbotix_process)
+        
+        self.vision = vision
         self.motionplanner.update_joint_states()
 
-        if self.automatic_mode:
-            if cam is None:
-                raise RuntimeError("Camera is not provided for automatic mode")
-            else:
-                self.cam = cam
-            self.collision_publisher = CollisionObjectPublisher()
     # return the methods of the child class (interbotixmanipulatorxs)
     def __getattr__(self, name):
         return getattr(self.bot, name)
@@ -131,13 +126,8 @@ class Wafflebot:
         joints - joint states.
         """
         use_joints = not self.automatic_mode
-        if self.automatic_mode:
-            self.cam.start("all")
-        (target, returncode) = interpret_target_command.interpret_target_command(
-                target,
-                use_joints,
-                self.debug_print
-                )
+        self.vision.run_once("all")
+        (target, returncode) = interpret_target_command.interpret_target_command(target, use_joints,self.debug_print)
         if returncode == -1:
             raise RuntimeError("Invalid pose passed")
         elif returncode == 0:
@@ -154,7 +144,7 @@ class Wafflebot:
         the "move" function should be used instend for robustness.
         """
         if self.automatic_mode:
-            self.cam.start("all")
+            self.vision.run_once("all")
             add_collisionobjects(ignore)
             success = self.collision_publisher.publish_collisionobjects() 
             if success:

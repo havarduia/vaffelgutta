@@ -4,8 +4,9 @@ import customtkinter as ctk
 import tkinter.messagebox as messagebox
 from camera.vision import *
 import numpy as numphy
-from camera.config.misc import ConfigLoader
-
+from camera.config.configloader import ConfigLoader
+from robot.tools.file_manipulation import Jsonreader
+from PIL import Image
 class ArucoDebugger:
     def __init__(self, vision):
         self.vision = vision
@@ -35,68 +36,88 @@ class ArucoDebugger:
             messagebox.showinfo("Info", f"Detected markers: {ids}")
     
     def visualize_markers(self):
-        while True:
-            _, img = self.vision._estimate_pose()
-            self.vision.show_image(img)
-            if cv2.waitKey(1) & 0xFF == 27:  # Press ESC to close
-                break
-        cv2.destroyAllWindows()
+        vision.run(True, "all")
 
     def debug_pose_estimation(self):
         try:
             while True: 
                 pose, _ = self.vision._estimate_pose()
-                tags = self.vision._transformation_to_tag(pose)
+                tags = self.vision._coordinatesystem(pose)
                 for tag, T in tags.items():
-                    print_blue(f"Tag ID: {tag} Transformation: \n{numphy.array(T)}\n")
+                    print(f"Tag ID: {tag} Transformation: \n{numphy.array(T)}\n")
         except KeyboardInterrupt:
-            print_error("\nProcess interrupted by user. Exiting gracefully.")
+            print("\nProcess interrupted by user. Exiting... ")
 
 def create_gui(debugger):
-    # Initialize the customtkinter window
+    # Set appearance and theme
+    ctk.set_appearance_mode("System")  # Options: "System", "Dark", "Light"
+    ctk.set_default_color_theme("blue")  # Options: "blue", "green", "dark-blue"
+
+    # Initialize the window
     root = ctk.CTk()
-    root.title("Aruco Debugger GUI")
-    root.geometry("320x200")
-    
-    frame = ctk.CTkFrame(root, corner_radius=10)
-    frame.pack(padx=20, pady=20, fill="both", expand=True)
-    
-    btn_check_feed = ctk.CTkButton(
-        frame,
-        text="Check Camera Feed",
-        command=debugger.check_camera_feed,
-        width=200
+    root.title("Aruco Debugger")
+    root.geometry("700x500")
+    root.resizable(False, False)
+
+    # Load and set background image
+    bg_image = ctk.CTkImage(
+        light_image=Image.open("background.jpg"),  # Replace with your image path
+        dark_image=Image.open("background.jpg"),   # Replace with your image path
+        size=(700, 500)
     )
-    btn_check_feed.pack(pady=5)
-    
-    btn_validate_detection = ctk.CTkButton(
+    bg_label = ctk.CTkLabel(root, image=bg_image, text="")
+    bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+    # Main frame over background
+    frame = ctk.CTkFrame(root, corner_radius=20, fg_color="transparent")
+    frame.place(relx=0.5, rely=0.5, anchor="center")
+
+    # Title label
+    title_label = ctk.CTkLabel(
         frame,
-        text="Validate Marker Detection",
-        command=debugger.validate_marker_detection,
-        width=200
+        text="Aruco Marker Debugging Tool",
+        font=ctk.CTkFont(size=22, weight="bold")
     )
-    btn_validate_detection.pack(pady=5)
-    
-    btn_visualize_markers = ctk.CTkButton(
+    title_label.pack(pady=(10, 20))
+
+    # Button style helper
+    def make_button(text, command):
+        return ctk.CTkButton(
+            frame,
+            text=text,
+            command=command,
+            width=300,
+            height=40,
+            font=ctk.CTkFont(size=16)
+        )
+
+    # Buttons
+    make_button("Check Camera Feed", debugger.check_camera_feed).pack(pady=10)
+    make_button("Validate Marker Detection", debugger.validate_marker_detection).pack(pady=10)
+    make_button("Visualize Markers", debugger.visualize_markers).pack(pady=10)
+    make_button("Debug Pose Estimation", debugger.debug_pose_estimation).pack(pady=10)
+
+    # Appearance toggle (optional)
+    def toggle_theme():
+        current = ctk.get_appearance_mode()
+        ctk.set_appearance_mode("Dark" if current == "Light" else "Light")
+
+    theme_button = ctk.CTkButton(
         frame,
-        text="Visualize Markers",
-        command=debugger.visualize_markers,
-        width=200
+        text="Toggle Theme",
+        command=toggle_theme,
+        width=160,
+        font=ctk.CTkFont(size=14),
+        fg_color="gray",
+        hover_color="darkgray"
     )
-    btn_visualize_markers.pack(pady=5)
-    
-    btn_debug_pose = ctk.CTkButton(
-        frame,
-        text="Debug Pose Estimation",
-        command=debugger.debug_pose_estimation,
-        width=200
-    )
-    btn_debug_pose.pack(pady=5)
-    
+    theme_button.pack(pady=(20, 0))
+
     root.mainloop()
 
 if __name__ == "__main__":
     config = ConfigLoader()
-    vision = Vision(config)
+    json = Jsonreader()
+    vision = Vision(config, json)
     debugger = ArucoDebugger(vision)
     create_gui(debugger)

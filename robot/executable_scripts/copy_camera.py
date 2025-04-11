@@ -115,7 +115,7 @@ def main(bot):
                 os.system("clear")
                 record_time("start")
                 record_time(f"move_start_{movement_number}")
-                follow_tag(bot,tagid,vision)
+                follow_tag(bot,tagid)
                 record_time(f"move_end_{movement_number}")
                 movement_number +=1
                 read_times()

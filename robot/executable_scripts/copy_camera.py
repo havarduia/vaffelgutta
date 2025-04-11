@@ -5,7 +5,8 @@ from time import sleep, time
 from robot.tools.file_manipulation import Jsonreader
 from robot.tools.visualizers.tf_publisher import TFPublisher
 from robot.tools.update_tagoffsets import create_offset_matrix, abs_position_from_offset
-from camera.vision import *
+from camera.vision import Vision
+from camera.config.configloader import ConfigLoader
 from threading import Thread
 import cv2
 from robot.tools.timekeeper import record_time, read_times
@@ -28,22 +29,8 @@ def recordOffset(bot: Wafflebot, tagid: str, visualizer: TFPublisher = None):
 
     return
 
-def show_camera(vision):
-    cv2.namedWindow("RealSense Camera", cv2.WINDOW_NORMAL)  # Make window resizable 
-    while True:
-        image = vision._get_image()
-        
-        if image is not None:
-            cv2.imshow("RealSense Camera", image)
-        else:
-            print("No image captured")
-        
-        # Break on 'q' key press
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
 
-
-def goToTag(bot: Wafflebot, tagid:str, vision, pre_offset):
+def goToTag(bot: Wafflebot, tagid:str, pre_offset):
     i = 0
     reader = Jsonreader()
     starttime = time()
@@ -51,7 +38,7 @@ def goToTag(bot: Wafflebot, tagid:str, vision, pre_offset):
     while endtime - starttime <= 10:
         endtime = time()
         record_time("(buffer)")
-        bot.cam.start("all")
+        bot.vision.run_once("all")
         record_time(f"camera_frame_no_{i}")
         tag_pos = reader.read("camera_readings")[tagid]
         if pre_offset is not None:
@@ -70,14 +57,14 @@ def goToTag(bot: Wafflebot, tagid:str, vision, pre_offset):
         sleep(0.2)
     return
 
-def follow_tag(bot, tagid, vision):
+def follow_tag(bot, tagid):
     offset =[
     [0.0,0.0,1.0,0.0],
     [0.0,1.0,0.0,0.0],
     [-1.0,0.0,0.0,0.25],
     [0.0,0.0,0.0,1.0]
     ]
-    goToTag(bot,tagid,vision, offset)
+    goToTag(bot,tagid, offset)
 
 def printmenu():
     print("Press 1 to record offset")
@@ -88,12 +75,7 @@ def printmenu():
     print("press 6 to follow the tag like a silly lil goose")
     return 
 
-def pose_loop(vision):
-    while True:
-        pose, _ = vision._estimate_pose()
-        return pose
-
-def main(bot,vision,pose):
+def main(bot):
     # Init robot  
     
     #Thread(target=show_camera,daemon=True, args=[camera_display]).start()
@@ -112,7 +94,7 @@ def main(bot,vision,pose):
             print("That was not a number😡") # 😡
         match choice:
             case 1:
-                vision.start(pose, "all") 
+                bot.vision.run_once("all")
                 recordOffset(bot, tagid, pub)
             case 2:
                 os.system("clear")
@@ -148,11 +130,10 @@ if __name__ == '__main__':
     config = ConfigLoader()
     json = Jsonreader()
     vision = Vision(config, json)
-    pose = pose_loop(vision)
     try:
         
-        bot = Wafflebot(pose=pose, cam=vision, use_rviz=False)
-        main(bot, vision, pose)
+        bot = Wafflebot(cam=vision, use_rviz=False)
+        main(bot)
         bot.exit()
         
     # if error detected, run the error handler

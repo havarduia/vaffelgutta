@@ -25,7 +25,7 @@ class Wafflebot:
     def __init__(
         self,
         pose,
-        cam: Optional[Vision] = None,
+        vision: Optional[Vision] = None,
         debug_print: bool = False,
         use_rviz: bool = True,
     ):
@@ -52,10 +52,10 @@ class Wafflebot:
         self.debug_print = debug_print
         self.speed = 1.0
         
-        self.cam = cam
+        self.vision = vision
         self.pose = pose
-        if self.cam == None:
-            self.cam = cameraplaceholder()
+        if self.vision == None:
+            self.vision = cameraplaceholder()
         # initialize joint positions
         self.motionplanner.update_joint_states()
 
@@ -118,7 +118,7 @@ class Wafflebot:
         joints - joint states.
         """
         isjointsPlaceholder = False
-        self.cam.start(self.pose, "all")
+        self.vision.run_once("all")
         (target, returncode) = interpret_target_command.interpret_target_command(target, isjointsPlaceholder,self.debug_print)
         if returncode == -1:
             raise RuntimeError("Invalid pose passed")
@@ -137,7 +137,7 @@ class Wafflebot:
         moves the bot to a given pose matrix.
         the "move" function should be used instend for robustness.
         """
-        self.cam.start("all")
+        self.vision.run_once("all")
         add_collisionobjects(ignore)
         success = self.collision_publisher.publish_collisionobjects() 
         if success:

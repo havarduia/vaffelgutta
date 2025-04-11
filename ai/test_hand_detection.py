@@ -1,4 +1,4 @@
-from camera.config.misc import ConfigLoader
+from camera.config.configloader import ConfigLoader
 from camera.vision import Vision
 from hand_detection import HandDetector  # Replace with correct file if needed
 

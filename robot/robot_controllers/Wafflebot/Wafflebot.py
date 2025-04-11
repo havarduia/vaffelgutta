@@ -24,7 +24,6 @@ class cameraplaceholder():
 class Wafflebot:
     def __init__(
         self,
-        pose,
         vision: Optional[Vision] = None,
         debug_print: bool = False,
         use_rviz: bool = True,

@@ -100,7 +100,7 @@ def main(bot):
                 os.system("clear")
                 record_time("start")
                 record_time(f"move_start_{movement_number}")
-                goToTag(bot, tagid,vision, None)
+                goToTag(bot, tagid, None)
                 record_time(f"move_end_{movement_number}")
                 read_times()
                 movement_number +=1

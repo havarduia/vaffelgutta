@@ -4,18 +4,10 @@ if "Jetson.GPIO" in sysmodules:
     import Jetson.GPIO as GPIO
 
 from time import sleep
-from threading import Thread
-from typing import Callable
+from threading import Thread, Event
 
-def run_emergency_stop_monitor(return_function: Callable):
-    if "Jetson.GPIO" in sysmodules: # Check if running on Jetson
-        # **Start GPIO monitoring in a separate thread**
-        gpio_thread = Thread(
-            target=monitor_emergency_stop, daemon=True, args = [return_function])
-        gpio_thread.start()
-    return
 
-def monitor_emergency_stop(return_function: Callable):
+def monitor_emergency_stop(emergency_stop_state: Event):
     """ Function to monitor GPIO button in a separate thread. """
     # Set the GPIO mode
     GPIO.setmode(GPIO.BOARD)
@@ -26,6 +18,15 @@ def monitor_emergency_stop(return_function: Callable):
     while True:
         pin_state = GPIO.input(button_pin)
         if pin_state == GPIO.LOW:
-            return_function(slow = True)
+            emergency_stop_state.set()
             break
         sleep(0.1)  # Prevent CPU overuse
+
+
+def run_emergency_stop_monitor(emergency_stop_state: Event):
+    if "Jetson.GPIO" in sysmodules: # Check if running on Jetson
+        # Start GPIO monitoring in a separate thread
+        gpio_thread = Thread(
+            target=monitor_emergency_stop, daemon=True, args = [emergency_stop_state])
+        gpio_thread.start()
+    return

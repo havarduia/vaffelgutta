@@ -13,6 +13,7 @@ from camera.coordinatesystem import CoordinateSystem
 from robot.robot_controllers.Wafflebot.add_collisionobjects import add_collisionobjects
 from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
 from rclpy.logging import LoggingSeverity
+from threading import Event
 
 from robot.tools.file_manipulation import Jsonreader
 import numpy as numphy
@@ -38,7 +39,8 @@ class Wafflebot:
         robot_startup()
 
         # Keep a look out for the emergency stop
-        self.launch_emergency_stop_monitor()
+        self.emergency_stop = Event()
+        emergency_stop.run_emergency_stop_monitor(self.emergency_stop)
         # Define shorthands to call bot functions intuitively
         self.arm = self.bot.arm
         self.gripper = self.bot.gripper
@@ -123,6 +125,8 @@ class Wafflebot:
         string - name of the pose in the recordings folder
         joints - joint states.
         """
+        if self.emergency_stop.isSet():
+            raise FloatingPointError # unused error used as signal.
         use_joints = not self.automatic_mode
         if self.automatic_mode:
             self.cam.start("all")
@@ -146,6 +150,8 @@ class Wafflebot:
         moves the bot to a given pose matrix.
         the "move" function should be used instend for robustness.
         """
+        if self.emergency_stop.isSet():
+            raise FloatingPointError # unused error used as signal.
         if self.automatic_mode:
             self.cam.start("all")
             add_collisionobjects(ignore)
@@ -158,11 +164,17 @@ class Wafflebot:
             return False
         else:
             raise RuntimeError("This feature is only avaliable in automatic mode")
-            return False
+
 
     def move_to_joints(self, target):
+        if self.emergency_stop.isSet():
+            raise FloatingPointError # unused error used as signal.
         assert (not self.automatic_mode), "This function is intended for manual mode only"
         self.arm.set_joint_positions(target)
 
-    def launch_emergency_stop_monitor(self):
-        emergency_stop.run_emergency_stop_monitor(self.safe_stop)
+    def clear_error(self):
+        if self.emergency_stop.is_set():
+            self.emergency_stop.clear()
+            self.emergency_stop_pressed = False
+            emergency_stop.run_emergency_stop_monitor(self.emergency_stop)
+

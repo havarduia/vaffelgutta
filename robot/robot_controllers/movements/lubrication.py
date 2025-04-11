@@ -31,6 +31,7 @@ def pick_up_lube(bot: Wafflebot, reverse: bool = False):
     bot.move(top_of_lube_pos, ["lube", "toolstation"])
 
     # Go to lube
+
     if bot.automatic_mode:
         lube_toolstation_pos = position_from_name("lube_toolstation") 
     else:
@@ -45,42 +46,37 @@ def pick_up_lube(bot: Wafflebot, reverse: bool = False):
 
     bot.move(top_of_lube_pos, ["lube", "toolstation"])
 
-def spray_lube(bot:Wafflebot) -> bool:
+def spray():
+    raise NotImplementedError("The spray hardware does not exist yet.")
+
+def spray_lube(bot:Wafflebot): 
     """
     sprays the lube into the waffle iron. 
-
-    :returns bool: True if movement success, False if movement failed. 
-    """
-    """
-    if not _check_if_waffle_iron_open():
-        print("robot_movements/lubrication: waffle iron is not open. aborting movement.")
-        return False
     """
     reader = Jsonreader()
-    offsets = reader.read("offsets")
-    
-    # Todo change to static objects
-    waffle_iron_origin = get_tag_from_camera("waffle_iron")
-    front_of_waffle_iron_offset = numphy.matrix(offsets["front_of_waffle_iron"])
-    spray_offsets = [
-         numphy.matrix(offsets["spray_a"]),
-         numphy.matrix(offsets["spray_b"]),
-         numphy.matrix(offsets["spray_c"]),
-         numphy.matrix(offsets["spray_d"]),
+    positions = reader.read("recordings")
+
+    spray_positions = [
+         positions["spray_0"]["joints"],
+         positions["spray_1"]["joints"],
+         positions["spray_2"]["joints"],
+         positions["spray_3"]["joints"],
     ]
 
-    front_of_waffle_iron_pos = waffle_iron_origin * front_of_waffle_iron_offset
+    #move to the front of the waffle iron
+    front_of_waffle_iron_pos = positions["front_of_waffle_iron"]
+    bot.move(front_of_waffle_iron_pos, ["waffle_iron","lube"])
     
-    spray_positions = [0,0,0,0]
-    for i in range(len(spray_offsets)):
-        spray_positions[i] = waffle_iron_origin * spray_offsets[i]
+    #apply spray
+    for pos in spray_positions:
+        bot.move(pos, ignore=["waffle_iron", "lube"])
+        try:
+            spray()
+        except NotImplementedError:
+            print("IM SPRAYING AAHHHHH")
     
-    bot.move_old(front_of_waffle_iron_pos, ["waffle_iron", "lube"])
-    
-    for i in range(len(spray_offsets)):
-        bot.move_old(spray_positions[i], ["waffle_iron", "lube"])
-        #spray()
-    bot.move_old(front_of_waffle_iron_pos, ["waffle_iron","lube"])
+    #move to the front of the waffle iron
+    bot.move(front_of_waffle_iron_pos, ["waffle_iron","lube"])
 
     
 

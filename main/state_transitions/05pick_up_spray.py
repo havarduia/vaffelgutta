@@ -8,15 +8,13 @@ def open_iron(state: "CurrentState", bot: "Wafflebot", tag: "CurrentTag"):
     actions = Actions(bot)
     reader = Jsonreader()
 
-    reader.pop("camera_readings", Tags.CLOSED_IRON_TAG) # tag id 2 is opened iron
+    reader.pop("camera_readings", Tags.OPENED_IRON_TAG) # tag id 2 is opened iron
     bot.cam.start("all")
     tags = reader.read("camera_readings")
 
-    if Tags.CLOSED_IRON_TAG in tags.keys():
+    if Tags.OPENED_IRON_TAG in tags.keys():
         try:
-            bot.move("front_of_waffle_iron")
-            actions.apply_lube() # make it so it clears away from iron
-            bot.move("front_of_waffle_iron")
+            actions.spray_lube() 
             state.set(State.SPRAY)
         except FloatingPointError: # unused error used as signal.
             state.set(State.ERROR)

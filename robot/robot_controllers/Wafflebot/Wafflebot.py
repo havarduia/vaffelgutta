@@ -121,9 +121,9 @@ class Wafflebot:
         if returncode == -1:
             raise RuntimeError("Invalid pose passed")
         elif returncode == 0:
-            self.move_to_joints(None)
+            return self.move_to_joints(target)
         elif returncode == 1:
-            self.move_to_matrix(target, ignore, speed_scaling) 
+            return self.move_to_matrix(target, ignore, speed_scaling) 
         else:
             raise RuntimeError("I f-ed up. check for invalid returns in interpret_target_command.")
 

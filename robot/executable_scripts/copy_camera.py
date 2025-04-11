@@ -61,7 +61,7 @@ def follow_tag(bot, tagid):
     offset =[
     [0.0,0.0,1.0,0.0],
     [0.0,1.0,0.0,0.0],
-    [-1.0,0.0,0.0,0.25],
+    [-1.0,0.0,0.0,0.20],
     [0.0,0.0,0.0,1.0]
     ]
     goToTag(bot,tagid, offset)
@@ -79,7 +79,7 @@ def main(bot):
     # Init robot  
     
     #Thread(target=show_camera,daemon=True, args=[camera_display]).start()
-    print("hello worl")
+    print("hello world")
     bot.go_to_home_pose()
     pub = TFPublisher()
     tagid = "25"

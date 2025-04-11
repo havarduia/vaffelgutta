@@ -180,7 +180,7 @@ class Vision:
 
         if ids is None or not corners:
             print("Marker not detected! 👺")
-            return {}, pose_image  # Return the original frame even if no detection
+            return {}, None  # Return the original frame even if no detection
 
         raw_poses = []
         for tag_id, corner in zip(ids, corners):
@@ -231,10 +231,10 @@ class Vision:
             origin_inv = np.linalg.inv(pose[self.origin_id])
             self.last_origin_inv = origin_inv
         else:
-            return {}
+            return {}, None
 
         if origin_inv is None:
-            return {}
+            return {}, None
 
         tags = {}
         for id, pose in pose.items():

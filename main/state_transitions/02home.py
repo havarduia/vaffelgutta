@@ -16,6 +16,7 @@ def home(state: "CurrentState", bot: "Wafflebot", tag: "CurrentTag"):
         try:
             bot.move("waffle_iron")
             actions.open_waffle_iron() # Todo implenment this as a movement sequence
+            bot.move("waffle_iron")
             #Todo ensure arm moves away from iron ^^ 
         except FloatingPointError: # unused error used as signal.
             state.set(State.ERROR)

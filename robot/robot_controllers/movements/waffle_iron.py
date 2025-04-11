@@ -1,6 +1,6 @@
 from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
 from robot.tools.file_manipulation import Jsonreader
-from robot.robot_controllers.path_planner import get_trajectory_joints
+from robot.robot_controllers.path_planner import get_trajectory_joints, get_trajectory_matrix
 import numpy as numphy
 
 
@@ -13,7 +13,10 @@ def open_waffle_iron(bot: Wafflebot, reverse:bool = False):
     else:
         bot.move("bottom_of_waffle_iron",ignore=["waffle_iron", "sticks"])
 
-    lift_positions = get_trajectory_joints("waffle_iron_open")
+    if bot.automatic_mode:
+        lift_positions = get_trajectory_matrix("waffle_iron_open")
+    else:
+        lift_positions = get_trajectory_joints("waffle_iron_open")
 
     if reverse:
         lift_positions.reverse()

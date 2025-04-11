@@ -55,16 +55,17 @@ def spray_lube(bot:Wafflebot):
     """
     reader = Jsonreader()
     positions = reader.read("recordings")
-
+    
+    pose_type = "basepose" if bot.automatic_mode else "joints"
     spray_positions = [
-         positions["spray_0"]["joints"],
-         positions["spray_1"]["joints"],
-         positions["spray_2"]["joints"],
-         positions["spray_3"]["joints"],
+         positions["spray_0"][pose_type],
+         positions["spray_1"][pose_type],
+         positions["spray_2"][pose_type],
+         positions["spray_3"][pose_type],
     ]
 
     #move to the front of the waffle iron
-    front_of_waffle_iron_pos = positions["front_of_waffle_iron"]
+    front_of_waffle_iron_pos = positions["front_of_waffle_iron"][pose_type]
     bot.move(front_of_waffle_iron_pos, ["waffle_iron","lube"])
     
     #apply spray

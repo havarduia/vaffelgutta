@@ -51,6 +51,9 @@ class Wafflebot:
         self.motionplanner = MotionPlanner(interbotix_process)
         
         self.vision = vision
+        if self.vision == None:
+            self.vision = cameraplaceholder()
+        # initialize joint positions
         self.motionplanner.update_joint_states()
 
     # return the methods of the child class (interbotixmanipulatorxs)

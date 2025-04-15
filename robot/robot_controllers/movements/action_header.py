@@ -20,10 +20,6 @@ class Actions:
         sleep(delay)     
         if print_actions: print("Opening waffle iron")
         self.open_waffle_iron()
-        if print_actions: print("Serving waffle")
-        self.serve_waffle()
-        if print_actions: print("Putting away sticks.")
-        self.put_away_sticks()   
         if print_actions: print("Closing waffle iron")
         self.close_waffle_iron()
 
@@ -50,34 +46,20 @@ class Actions:
     def insert_sticks(self):
         waffle_iron.insert_sticks(self.bot)
     
-    def serve_waffle(self):
-        self.take_out_waffle()
-        self.serve_waffle()
-    
     def take_out_waffle(self):
         waffle_iron.take_out_waffle(self.bot)
     
-    def serve_waffle(self):
-        waffle_iron.serve_waffle(self.bot)
+    def take_waffle_off_sticks(self):
+        waffle_iron.take_waffle_off_sticks(self.bot)
 
-    def put_away_sticks(self):
-        waffle_iron.put_away_sticks(self.bot) 
-    
     def fill_batter_on_iron(self):
         self.put_ladle_in_bowl()
-        self.fill_cup()
         self.pick_up_ladle()
         self.pour_batter()
-        self.put_ladle_in_bowl(True)
+        self.put_ladle_in_bowl()
 
-    def put_ladle_in_bowl(self, is_holding_cup):
+    def put_ladle_in_bowl(self):
         batter.put_ladle_in_bowl(self.bot)
-    
-    def fill_cup(self):
-        try:
-            batter.fill_cup(self.bot)
-        except NotImplementedError:
-            print("Not implemented yet.")
 
     def pick_up_ladle(self):
         batter.pick_up_ladle(self.bot)

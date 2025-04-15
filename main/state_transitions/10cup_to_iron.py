@@ -1,7 +1,7 @@
 from waffle_states.waffle_states import State 
 from robot.robot_controllers.movements.action_header import Actions
 
-def cup_to_iron(state: "State", bot: "Wafflebot"):
+def cup_to_iron(state: "CurrentState", bot: "Wafflebot"):
     actions = Actions(bot)
     try:
         actions.pour_batter()   

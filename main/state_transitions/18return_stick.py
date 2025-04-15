@@ -8,19 +8,14 @@ from main.tag_enum.tags import Tags
 
 def return_stick(state: "CurrentState", bot: "Wafflebot", tag: "CurrentTag"):
     # TODO finish logic
-    actions = Actions(bot)
     reader = Jsonreader()
     reader.clear("camera_readings")
     bot.cam.start("all")
     tags = reader.read("camera_readings")
-    try:  
-        if Tags.CLOSED_IRON_TAG in tags.keys():
-            state.set(State.HOME)
-        elif Tags.OPENED_IRON_TAG in tags.keys():
-            state.set(State.OPEN_IRON)
-    except FloatingPointError: # unused error used as signal.
-        state.set(State.ERROR)
-        return
+    if Tags.CLOSED_IRON_TAG in tags.keys():
+        state.set(State.HOME)
+    elif Tags.OPENED_IRON_TAG in tags.keys():
+        state.set(State.OPEN_IRON)
     
     
     

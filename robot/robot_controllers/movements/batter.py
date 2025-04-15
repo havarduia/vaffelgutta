@@ -8,12 +8,7 @@ import numpy as numphy
 
 def put_ladle_in_bowl(bot: Wafflebot):
     """
-    Takes the cup and places it at the filling station.
-    
-    :param is_holding_cup: True if the robot is already holding the cup. 
-    False if the robot should attempt to pick up the cup from the ground.
-
-    :returns bool: True if movement success, False if movement failed. 
+    Takes the ladle and places it in the bowl
     """
     reader = Jsonreader()
     positions = reader.read("recordings")

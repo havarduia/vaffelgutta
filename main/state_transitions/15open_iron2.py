@@ -1,3 +1,4 @@
+from rclpy import action
 from waffle_states.waffle_states import State 
 from robot.tools.file_manipulation import Jsonreader
 from robot.robot_controllers.movements.action_header import Actions
@@ -16,7 +17,7 @@ def open_iron2(state: "CurrentState", bot: "Wafflebot", tag: "CurrentTag"):
     if Tags.STICKS_TAG in tags.keys(): # Tag 6 is meant to be the sticks in the waffle iron.
         try:
             bot.move("sticks")
-            actions.put_away_sticks() # Take out sticks from waffle iron with the waffle attached hopefully.
+            actions.take_out_waffle() # Take out sticks from waffle iron with the waffle attached hopefully.
             bot.move("front_of_waffle_iron") # Here for changing state
             state.set(State.PICK_UP_WAFFLE)
         except FloatingPointError: # unused error used as signal.

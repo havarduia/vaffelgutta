@@ -21,7 +21,7 @@ class Wafflebot:
     def __init__(
         self,
         cam: Optional[CoordinateSystem] = None,
-        automatic_mode: bool = False,
+        automatic_mode: bool = True,
         use_rviz: bool = True,
         debug_print: bool = False,
     ):

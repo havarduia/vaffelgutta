@@ -25,6 +25,9 @@ def main(bot,cam,aruco,coordsys):
     """
 
 
+    for _ in range(4):
+        bot.gripper.grasp()
+        bot.gripper.release()
 
 
 # footer:

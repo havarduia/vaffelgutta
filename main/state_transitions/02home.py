@@ -1,9 +1,9 @@
 from robot.tools.file_manipulation import Jsonreader
 from robot.robot_controllers.movements.action_header import Actions
-from main.waffle_states.waffle_states import State
-from main.tag_enum.tags import Tags
+from main.waffle_states.waffle_states import State, Tags
 
-def home(state: "CurrentState", bot: "Wafflebot", tag: "CurrentTag"):
+
+def home(state: "CurrentState", bot: "Wafflebot"):
     
     actions = Actions(bot)
 
@@ -27,4 +27,3 @@ if __name__ == "__main__":
     # to resolve type annotation
     from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
     from main.waffle_states.waffle_states import CurrentState
-    from main.tag_enum.tags import CurrentTag

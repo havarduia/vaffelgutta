@@ -1,12 +1,11 @@
-from main.waffle_states.waffle_states import State 
+from main.waffle_states.waffle_states import State, Tags
 from robot.tools.file_manipulation import Jsonreader
 from robot.robot_controllers.movements.action_header import Actions
-from main.tag_enum.tags import Tags
 
 # TODO 
 # placeholder = 1
 
-def return_stick(state: "CurrentState", bot: "Wafflebot", tag: "CurrentTag"):
+def return_stick(state: "CurrentState", bot: "Wafflebot"):
     # TODO finish logic
     reader = Jsonreader()
     reader.clear("camera_readings")
@@ -27,4 +26,3 @@ if __name__ == "__main__":
     # to resolve type annotation
     from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
     from main.waffle_states.waffle_states import CurrentState 
-    from main.tag_enum.tags import CurrentTag

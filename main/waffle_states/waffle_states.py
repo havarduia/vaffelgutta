@@ -9,17 +9,13 @@ class State(Enum):
     PICK_UP_SPRAY = 5
     SPRAY = 6
     PUT_DOWN_SPRAY = 7
-    PLACE_CUP_TO_STAT = 8
-    FILL_CUP = 9
-    CUP_TO_IRON = 10
-    EMPTY_CUP = 11
-    RETURN_CUP = 12
-    CLOSE_IRON = 13
-    FUN_TIME = 14
-    OPEN_IRON2 = 15
-    PICK_UP_WAFFLE = 16
-    SERVE_WAFFLE = 17
-    RETURN_STICK = 18
+    PICK_UP_LADLE = 8
+    POUR_BATTER = 9
+    RETURN_LADLE = 10
+    CLOSE_IRON = 11
+    FUN_TIME = 12
+    OPEN_IRON2 = 13
+    RETURN_STICK = 14
     ERROR = 666
     # ...fill in states here
 
@@ -33,3 +29,16 @@ class CurrentState:
 
     def get(self) -> State:
         return self.state
+    
+class Tags(Enum):
+    CLOSED_IRON_TAG = "1"
+    OPENED_IRON_TAG = "2"
+    SPRAY_TAG = "3"
+    LADLE_TAG = "4"
+    STICKS_TAG = "5"
+    JAM_TAG = "6"
+    FOLLOW_ME_TAG = "7"
+    ORIGIN_TAG = "0"
+    
+    # ...fill in tags here
+

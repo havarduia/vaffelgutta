@@ -5,7 +5,7 @@ def interpret_target_command(
                             target: str | list[float] | list[list[float]],
                             return_joints: bool = False,
                             debug_print: bool = False
-                            ) -> tuple[ list[list[float]] | [list[float] | None] , int]:
+                            ) -> tuple[ list[list[float]] | list[float] | None , int]:
     """
     ### Converts a guess from a arbitrary input to either a set of joints or a matrix.
 

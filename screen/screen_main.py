@@ -39,16 +39,27 @@ class TouchInterface(tk.Tk):
 
         self.title("Touch Screen Interface")
         self.geometry(f"{self.width}x{self.height}")
-        self.screen_backgrounds = {
-            "Home": ImageTk.PhotoImage(Image.open("/home/havard/git/vaffelgutta/screen/home_bg.png").resize((self.width - self.sidebar_width, self.height))),
-            "Stats": ImageTk.PhotoImage(Image.open("/home/havard/git/vaffelgutta/screen/stats_bg.png").resize((self.width - self.sidebar_width, self.height))),
-            "Dev Mode": ImageTk.PhotoImage(Image.open("/home/havard/git/vaffelgutta/screen/dev_bg.png").resize((self.width - self.sidebar_width, self.height))),
-            "Emergency": ImageTk.PhotoImage(Image.open("/home/havard/git/vaffelgutta/screen/emergency_bg.png").resize((self.width - self.sidebar_width, self.height))),
-            "Default": ImageTk.PhotoImage(Image.open("/home/havard/git/vaffelgutta/screen/default_bg.png").resize((self.width - self.sidebar_width, self.height)))
-        }
         # Set a larger default font for touch friendliness
         default_font = font.nametofont("TkDefaultFont")
         default_font.configure(size=self.button_font_size)
+        def load_cropped_background(path):
+            """Load a full 1920x1080 image and crop it to fit the main area (excluding the sidebar)."""
+            full_image = Image.open(path)
+            cropped = full_image.crop((
+                self.sidebar_width,  # crop left
+                0,
+                self.width,          # right
+                self.height          # bottom
+            ))
+            return ImageTk.PhotoImage(cropped)
+
+        self.screen_backgrounds = {
+            "Home": load_cropped_background("/home/havard/git/vaffelgutta/screen/home_bg.png"),
+            "Stats": load_cropped_background("/home/havard/git/vaffelgutta/screen/stats_bg.png"),
+            "Dev Mode": load_cropped_background("/home/havard/git/vaffelgutta/screen/dev_bg.png"),
+            "Emergency": load_cropped_background("/home/havard/git/vaffelgutta/screen/emergency_bg.png"),
+            "Default": load_cropped_background("/home/havard/git/vaffelgutta/screen/default_bg.png")
+        }
 
         # Create a container for both sidebar and main area
         container = tk.Frame(self)
@@ -78,6 +89,8 @@ class TouchInterface(tk.Tk):
         self.create_sidebar_button("Stats", self.show_stats)
         self.create_sidebar_button("Dev Mode", self.dev_mode)
         self.create_sidebar_button("Back", self.go_back)
+
+   
 
     def create_sidebar_button(self, text, command):
         """Creates and packs a touch-friendly sidebar button with configurable styling."""

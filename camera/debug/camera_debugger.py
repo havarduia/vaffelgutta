@@ -36,7 +36,7 @@ class ArucoDebugger:
             messagebox.showinfo("Info", f"Detected markers: {ids}")
     
     def visualize_markers(self):
-        vision.run(True, "all")
+        vision.run("all")
 
     def debug_pose_estimation(self):
         try:

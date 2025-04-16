@@ -180,7 +180,7 @@ class Vision:
 
         if ids is None or not corners:
             print("Marker not detected! 👺")
-            return {}, None  # Return the original frame even if no detection
+            return {}, pose_image  # Return the original frame even if no detection
 
         raw_poses = []
         for tag_id, corner in zip(ids, corners):
@@ -292,7 +292,7 @@ class Vision:
         if return_image:
             return image
         
-    def run(self, *allowed_tags: str | int, show_image: bool=False):
+    def run(self, *allowed_tags: str | int, show_image: bool=True):
         """
         Continuously runs pose estimation, writes data, and shows video feed.
         Press ESC to exit.
@@ -315,4 +315,4 @@ class Vision:
 # =====================================================
 if __name__ == "__main__":
     vision = Vision()
-    vision.run_once()
+    vision.run()

@@ -13,7 +13,7 @@ from camera.vision import Vision
 from robot.robot_controllers.Wafflebot.add_collisionobjects import add_collisionobjects
 from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
 from rclpy.logging import LoggingSeverity
-
+from ai.hand_detection import HandDetector
 from robot.tools.file_manipulation import Jsonreader
 import numpy as numphy
 
@@ -22,8 +22,10 @@ class Wafflebot:
         self,
         automatic_mode: bool,
         vision: Optional[Vision] = None,
+        hand: Optional[HandDetector] = None,
         use_rviz: bool = True,
         debug_print: bool = False,
+        use_hand_detection: bool = False
     ):
         # Initialize robot:
         interbotix_process = robot_boot_manager.robot_launch(use_rviz=use_rviz, use_moveit = automatic_mode)
@@ -48,10 +50,17 @@ class Wafflebot:
         self.debug_print = debug_print
         self.speed = 1.0
         self.automatic_mode = automatic_mode
+        self.use_hand_detection = use_hand_detection
         if self.automatic_mode:
             self.motionplanner = MotionPlanner(interbotix_process)
             self.collision_publisher = CollisionObjectPublisher()
             self.vision = vision
+            self.motionplanner.update_joint_states()
+        if self.use_hand_detection:
+            self.motionplanner = MotionPlanner(interbotix_process)
+            self.collision_publisher = CollisionObjectPublisher()
+            self.vision = vision
+            self.hand = hand(vision)
             self.motionplanner.update_joint_states()
 
     # return the methods of the child class (interbotixmanipulatorxs)

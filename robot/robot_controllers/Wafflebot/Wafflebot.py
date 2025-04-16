@@ -3,7 +3,7 @@ from types import NoneType
 from typing import Optional
 from robot.robot_controllers.Wafflebot import *
 from robot.robot_controllers import robot_boot_manager
-from interbotix_common_modules.common_robot.robot import robot_startup, robot_shutdown
+from interbotix_common_modules.common_robot.robot import interbotix_is_up, robot_startup, robot_shutdown
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 import rclpy
 from time import sleep
@@ -70,7 +70,8 @@ class Wafflebot:
             for i in range(1, 51):
                 self.arm.set_joint_positions(list_multiply(start_joints, (1 - i / 50)), blocking=False)
                 sleep(0.02)
-            sleep(0.2)
+            self.arm.set_joint_positions([0]*6) #one final blocking call
+            sleep(2.0/50.0)
         else:
             self.arm.set_joint_positions(self.home_pose)
 
@@ -92,15 +93,21 @@ class Wafflebot:
                 ),
             blocking=False
             )
-            sleep(0.012)
+            sleep(2.0/50.0)
+        self.arm.set_joint_positions(sleep_joints) #one final blocking call
         sleep(0.4)
 
     
     def exit(self):
         if rclpy.ok():
+            sleep(0.1)
             self.collision_publisher.destroy_node()
+            sleep(0.1)
             self.motionplanner.destroy_node()
-            robot_shutdown()
+            sleep(0.1)
+            if interbotix_is_up():
+                robot_shutdown()
+                sleep(0.1)
             robot_boot_manager.robot_close()
             if rclpy.ok():
                 rclpy.shutdown()
@@ -163,6 +170,21 @@ class Wafflebot:
     def move_to_joints(self, target):
         assert (not self.automatic_mode), "This function is intended for manual mode only"
         self.arm.set_joint_positions(target)
+
+    
+    def grasp(self):
+        if self.automatic_mode:
+            for _ in range(500):
+                self.bot.gripper.grasp(0.005)
+        else:
+            self.bot.gripper.grasp()
+
+    def release(self):
+        if self.automatic_mode:
+            for _ in range(500):
+                self.bot.gripper.release(0.005)
+        else:
+            self.bot.gripper.release()
 
     def launch_emergency_stop_monitor(self):
         emergency_stop.run_emergency_stop_monitor(self.safe_stop)

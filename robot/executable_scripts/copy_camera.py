@@ -13,7 +13,7 @@ import cv2
 from robot.tools.timekeeper import record_time, read_times
 import os
 import numpy as numphy
-
+from ai.hand_detection import HandDetector
 
 def get_aruco_pose(id: str):
     reader = Jsonreader()
@@ -61,14 +61,14 @@ def compute_rotation_DU(target_position: numphy.array) -> numphy.array:
 
 
 
-def follow_DU(bot: Wafflebot, tagid):
+def follow_DU(bot: Wafflebot, handmatrix):
     reader = Jsonreader()
     starttime = time()
     endtime = time()
     while endtime - starttime <= 30:
         endtime = time()
-        bot.vision.run_once()
-        tag_pos = reader.read("camera_readings")[tagid]
+        bot.hand.start()
+        tag_pos = reader.read("hand_position")[handmatrix]
 
         pos = compute_translation_DU(tag_pos)
         R = compute_rotation_DU(pos)
@@ -93,6 +93,7 @@ def goToTag(bot: Wafflebot, tagid:str, pre_offset):
     while endtime - starttime <= 10:
         endtime = time()
         bot.vision.run_once()
+        
         tag_pos = reader.read("camera_readings")[tagid]
         if pre_offset is not None:
             offset = pre_offset
@@ -136,6 +137,7 @@ def main(bot):
     bot.go_to_home_pose()
     pub = TFPublisher()
     tagid = "25"
+    handmatrix = "matrix"
     torqed = True
     movement_number = 1
     while True:
@@ -161,7 +163,7 @@ def main(bot):
             case 6:
                 follow_tag(bot,tagid)
             case 42453:
-                follow_DU(bot, tagid)
+                follow_DU(bot, handmatrix)
             case _:
                 print("invalid input. Try again.")
 
@@ -171,9 +173,10 @@ def main(bot):
 if __name__ == '__main__':
     bot = None
     vision = Vision()
+    hand = HandDetector(Vision)
     try:
         
-        bot = Wafflebot(vision=vision, use_rviz=False, automatic_mode=True)
+        bot = Wafflebot(vision=vision, use_rviz=False, automatic_mode=True, use_hand_detection=True)
         main(bot)
         bot.exit()
         

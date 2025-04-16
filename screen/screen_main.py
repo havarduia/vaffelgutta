@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import font
+from PIL import Image, ImageTk  # at the top
 
 class TouchInterface(tk.Tk):
     def __init__(self,
@@ -18,8 +19,10 @@ class TouchInterface(tk.Tk):
                  active_button_bg="#A0522D",  # Sienna for active state
                  main_text_color="black"):    # Main area text color
         super().__init__()
-
+        
         # Store configuration parameters
+        self.screen_history = []
+        self.current_screen_content = None
         self.width = width
         self.height = height
         self.sidebar_width = sidebar_width
@@ -36,7 +39,13 @@ class TouchInterface(tk.Tk):
 
         self.title("Touch Screen Interface")
         self.geometry(f"{self.width}x{self.height}")
-
+        self.screen_backgrounds = {
+            "Home": ImageTk.PhotoImage(Image.open("/home/havard/git/vaffelgutta/screen/home_bg.png").resize((self.width - self.sidebar_width, self.height))),
+            "Stats": ImageTk.PhotoImage(Image.open("/home/havard/git/vaffelgutta/screen/stats_bg.png").resize((self.width - self.sidebar_width, self.height))),
+            "Dev Mode": ImageTk.PhotoImage(Image.open("/home/havard/git/vaffelgutta/screen/dev_bg.png").resize((self.width - self.sidebar_width, self.height))),
+            "Emergency": ImageTk.PhotoImage(Image.open("/home/havard/git/vaffelgutta/screen/emergency_bg.png").resize((self.width - self.sidebar_width, self.height))),
+            "Default": ImageTk.PhotoImage(Image.open("/home/havard/git/vaffelgutta/screen/default_bg.png").resize((self.width - self.sidebar_width, self.height)))
+        }
         # Set a larger default font for touch friendliness
         default_font = font.nametofont("TkDefaultFont")
         default_font.configure(size=self.button_font_size)
@@ -64,10 +73,10 @@ class TouchInterface(tk.Tk):
         self.main_label.pack(pady=20)
 
         # Create the sidebar buttons with the configurable styling
+        self.create_emergency_button()
         self.create_sidebar_button("Home", self.go_home)
         self.create_sidebar_button("Stats", self.show_stats)
         self.create_sidebar_button("Dev Mode", self.dev_mode)
-        self.create_emergency_button()
         self.create_sidebar_button("Back", self.go_back)
 
     def create_sidebar_button(self, text, command):
@@ -90,28 +99,36 @@ class TouchInterface(tk.Tk):
     
     def create_emergency_button(self):
         """Creates a red circular emergency button inside the sidebar."""
-        canvas_size = 120
-        self.emergency_canvas = tk.Canvas(self.sidebar, width=canvas_size, height=canvas_size,
-                                        bg=self.sidebar_bg, highlightthickness=0)
-        self.emergency_canvas.pack(pady=10)
+        canvas_size = 200
+        padding = 2  # Space between the circle and canvas edge
 
-        # Draw red circle
-        x0, y0 = 10, 10
-        x1, y1 = canvas_size - 10, canvas_size - 10
+        self.emergency_canvas = tk.Canvas(
+            self.sidebar,
+            width=canvas_size,
+            height=canvas_size,
+            bg=self.sidebar_bg,
+            highlightthickness=0
+        )
+        self.emergency_canvas.pack(pady=2)
+
+        # Draw red circle fully inside the canvas
         self.emergency_circle = self.emergency_canvas.create_oval(
-            x0, y0, x1, y1, fill="red", outline=""
+            padding, padding,
+            canvas_size - padding, canvas_size - padding,
+            fill="red", outline=""
         )
 
         # Add centered white "!" text
         self.emergency_text = self.emergency_canvas.create_text(
-            canvas_size/2, canvas_size/2,
+            canvas_size // 2, canvas_size // 2,
             text="!", fill="white",
             font=("Helvetica", int(self.button_font_size * 1.5), "bold")
         )
 
-        # Bind both circle and text to the same click event
-        self.emergency_canvas.tag_bind(self.emergency_circle, "<Button-1>", self.emergency)
-        self.emergency_canvas.tag_bind(self.emergency_text, "<Button-1>", self.emergency)
+        # Bind both circle and text to the emergency function
+        for tag in (self.emergency_circle, self.emergency_text):
+            self.emergency_canvas.tag_bind(tag, "<Button-1>", self.emergency)
+
             
     def flash_emergency_button(self):
         """Toggle the emergency button color to create a flashing effect."""
@@ -126,13 +143,34 @@ class TouchInterface(tk.Tk):
         # Continue flashing every 500ms
         self.after(500, self.flash_emergency_button)
 
+    def set_main_background(self, screen_name):
+        """Set the background image for the given screen."""
+        bg_image = self.screen_backgrounds.get(screen_name, self.screen_backgrounds["Default"])
+        
+        # Create label to hold background image
+        self.bg_label = tk.Label(self.main_area, image=bg_image)
+        self.bg_label.image = bg_image  # prevent garbage collection
+        self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
-    def update_main_area(self, message):
-        """Update the main display with the given message."""
-        # Clear existing widgets from main area
+        
+    def update_main_area(self, message, screen_name=None):
+        """Update the main display with the given message and track history."""
+        if screen_name is None:
+            screen_name = message  # fallback if not explicitly passed
+
+        if self.current_screen_content is not None:
+            self.screen_history.append(self.current_screen_content)
+
+        self.current_screen_content = screen_name
+
+        # Clear existing widgets
         for widget in self.main_area.winfo_children():
             widget.destroy()
-        # Display the message in main area
+
+        # Set background
+        self.set_main_background(screen_name)
+        
+        # Display the message
         self.main_label = tk.Label(
             self.main_area,
             text=message,
@@ -144,10 +182,11 @@ class TouchInterface(tk.Tk):
 
     # Callback functions for sidebar buttons
     def go_home(self):
-        self.update_main_area("Home Screen")
+        self.update_main_area("Home Screen", screen_name="Home")
 
     def show_stats(self):
-        self.update_main_area("Stats Screen")
+        self.update_main_area("Stats Screen", screen_name="Stats")
+
 
     def dev_mode(self):
         """Display an integrated keypad in the main area to enter a 4-digit code."""
@@ -225,10 +264,11 @@ class TouchInterface(tk.Tk):
         if self.entered_code == correct_code:
             # Remove keypad and activate Dev Mode
             self.keypad_frame.destroy()
-            self.update_main_area("Dev Mode Activated")
+            self.update_main_area("Dev Mode Activated", screen_name="Dev Mode")
+            self.entered_code = ""
         else:
             # Show error message briefly before resetting keypad
-            self.display_label.config(text="Incorrect. Try again.", fg="red")
+            self.display_label.config(text="IHagle", fg="red")
             self.after(1000, self.reset_keypad)
 
     def reset_keypad(self):
@@ -254,10 +294,15 @@ class TouchInterface(tk.Tk):
 
 
     def go_back(self):
-        self.update_main_area("Previous Screen")
+        """Go back to the previous screen, asking for password again if Dev Mode."""
+        if self.screen_history:
+            last_screen = self.screen_history.pop()
+            if last_screen == "Dev Mode":
+                self.dev_mode()  # re-trigger keypad
+            else:
+                self.update_main_area(last_screen, screen_name=last_screen)
 
-if __name__ == "__main__":
-    # Instantiate with waffle-themed colors tuned for a 1920x1080 screen
+def screen():
     app = TouchInterface(
         width=1920,
         height=1080,
@@ -274,3 +319,6 @@ if __name__ == "__main__":
         main_text_color="black"
     )
     app.mainloop()
+
+if __name__ == "__main__":
+    screen()

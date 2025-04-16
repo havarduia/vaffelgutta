@@ -65,13 +65,11 @@ def follow_DU(bot: Wafflebot, tagid):
     reader = Jsonreader()
     starttime = time()
     endtime = time()
-    while endtime - starttime <= 30:
-        os.system("clear")
+    while endtime - starttime <= 10:
         record_time("start")
         endtime = time()
         bot.vision.run_once()
         tag_pos = reader.read("camera_readings")[tagid]
-        record_time("vision")
 
         pos = compute_translation_DU(tag_pos)
         R = compute_rotation_DU(pos)
@@ -84,7 +82,9 @@ def follow_DU(bot: Wafflebot, tagid):
         print("Moving robot")
         # plan a:
         record_time("compute pose")
-        print(f"movement success? {bot.move(out_pos, speed_scaling=4.0)}")
+        print(f"movement success? {bot.move(out_pos, speed_scaling=2.0)}")
+        record_time("movement finished")
+        os.system("clear")
         read_times()
         
         
@@ -96,6 +96,7 @@ def goToTag(bot: Wafflebot, tagid:str, pre_offset):
     starttime = time()
     endtime = time()
     while endtime - starttime <= 10:
+        record_time("start")
         endtime = time()
         bot.vision.run_once()
         tag_pos = reader.read("camera_readings")[tagid]
@@ -107,9 +108,12 @@ def goToTag(bot: Wafflebot, tagid:str, pre_offset):
 
         print("Moving robot")
         # plan a:
-        print(f"movement success? {bot.move(target, speed_scaling=4.0)}")
+        print(f"movement success? {bot.move(target, speed_scaling=1.2)}")
+        record_time("movement finish")
         # plan b:
         #bot.arm.set_ee_pose_matrix(target, blocking=False)
+        os.system("clear")
+        read_times()
 
         sleep(0.2)
     return

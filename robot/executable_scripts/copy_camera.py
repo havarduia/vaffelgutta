@@ -146,7 +146,7 @@ def main(bot):
                 break
             case 6:
                 follow_tag(bot,tagid)
-            case 41453:
+            case 42453:
                 follow_DU(bot, tagid)
             case _:
                 print("invalid input. Try again.")

@@ -94,7 +94,7 @@ class Wafflebot:
             blocking=False
             )
             sleep(2.0/50.0)
-            self.arm.set_joint_positions(sleep_joints) #one final blocking call
+        self.arm.set_joint_positions(sleep_joints) #one final blocking call
         sleep(0.4)
 
     

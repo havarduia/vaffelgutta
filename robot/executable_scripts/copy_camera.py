@@ -127,7 +127,7 @@ def main(bot):
             print("That was not a number😡") # 😡
         match choice:
             case 1:
-                bot.vision.run_once("all")
+                bot.vision.run_once()
                 recordOffset(bot, tagid, pub)
             case 2:
                 os.system("clear")

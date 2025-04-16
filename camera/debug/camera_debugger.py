@@ -60,12 +60,7 @@ def create_gui(debugger):
     root.resizable(False, False)
 
     # Load and set background image
-    bg_image = ctk.CTkImage(
-        light_image=Image.open("background.jpg"),  # Replace with your image path
-        dark_image=Image.open("background.jpg"),   # Replace with your image path
-        size=(700, 500)
-    )
-    bg_label = ctk.CTkLabel(root, image=bg_image, text="")
+    bg_label = ctk.CTkLabel(root, text="")
     bg_label.place(x=0, y=0, relwidth=1, relheight=1)
 
     # Main frame over background
@@ -116,8 +111,6 @@ def create_gui(debugger):
     root.mainloop()
 
 if __name__ == "__main__":
-    config = ConfigLoader()
-    json = Jsonreader()
-    vision = Vision(config, json)
+    vision = Vision()
     debugger = ArucoDebugger(vision)
     create_gui(debugger)

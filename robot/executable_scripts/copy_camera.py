@@ -72,7 +72,7 @@ def goToTag(bot: Wafflebot, tagid:str, pre_offset):
     endtime = time()
     while endtime - starttime <= 10:
         endtime = time()
-        bot.vision.run_once("all")
+        bot.vision.run_once()
         tag_pos = reader.read("camera_readings")[tagid]
         if pre_offset is not None:
             offset = pre_offset

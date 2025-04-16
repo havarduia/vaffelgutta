@@ -158,7 +158,7 @@ class Wafflebot:
 
     def move_to_joints(self, target):
         assert (not self.automatic_mode), "This function is intended for manual mode only"
-        self.arm.set_joint_positions(target)
+        self.arm.set_joint_positions(target, moving_time=2.0*speed_scaling)
 
     
     def grasp(self):

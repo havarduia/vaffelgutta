@@ -127,9 +127,7 @@ def main(bot):
 
 if __name__ == '__main__':
     bot = None
-    config = ConfigLoader()
-    json = Jsonreader()
-    vision = Vision(config, json)
+    vision = Vision()
     try:
         
         bot = Wafflebot(vision=vision, use_rviz=False)

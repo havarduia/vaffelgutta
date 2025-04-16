@@ -5,9 +5,9 @@ from camera.config.configloader import ConfigLoader
 from robot.tools.file_manipulation import Jsonreader
 from typing import Union
 class Vision:
-    def __init__(self, config_loader: ConfigLoader, jsonreader: Jsonreader):
-        self.config_loader = config_loader
-        self.jsonreader = jsonreader
+    def __init__(self):
+        self.config_loader = ConfigLoader()
+        self.jsonreader = Jsonreader()
 
         # -----------------------
         # Camera Setup

@@ -57,37 +57,45 @@ class HandDetector:
         return np.mean(points, axis=0)
 
     def start(self):
-        frame = self.camera._get_image()
-        depth_frame = self.camera._get_depth_image()
+        while True:  # Keep the window open until a key is pressed
+            frame = self.camera._get_image()
+            depth_frame = self.camera._get_depth_image()
 
-        if frame is not None or depth_frame is not None:
+            if frame is not None or depth_frame is not None:
 
-            frame = cv2.flip(frame, 1)
-            depth_frame = cv2.flip(depth_frame, 1)
-            image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = self.hands.process(image_rgb)
+                frame = cv2.flip(frame, 1)
+                depth_frame = cv2.flip(depth_frame, 1)
+                image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                results = self.hands.process(image_rgb)
 
-            if results.multi_hand_landmarks:
-                for hand_landmarks in results.multi_hand_landmarks:
-                    self.mp_drawing.draw_landmarks(
-                        frame,
-                        hand_landmarks,
-                        self.mp_hands.HAND_CONNECTIONS
-                    )
+                if results.multi_hand_landmarks:
+                    for hand_landmarks in results.multi_hand_landmarks:
+                        self.mp_drawing.draw_landmarks(
+                            frame,
+                            hand_landmarks,
+                            self.mp_hands.HAND_CONNECTIONS
+                        )
 
-                    pos = self.get_hand_position(
-                        hand_landmarks.landmark,
-                        depth_frame,
-                        frame.shape[:2]
-                    )
+                        pos = self.get_hand_position(
+                            hand_landmarks.landmark,
+                            depth_frame,
+                            frame.shape[:2]
+                        )
 
-                    if pos is not None:
-                        x, y, z = pos
-                        print(f"Hand position: x={x:.3f} m, y={y:.3f} m, z={z:.3f} m")
-                        cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)
-                        cv2.putText(frame, f"{z:.3f}m", (int(x), int(y) - 10),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+                        if pos is not None:
+                            x, y, z = pos
+                            print(f"Hand position: x={x:.3f} m, y={y:.3f} m, z={z:.3f} m")
+                            cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)
+                            cv2.putText(frame, f"{z:.3f}m", (int(x), int(y) - 10),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
-            cv2.imshow("AI Hand Detection", frame)
-        else:  
-            print("No image!")
+                cv2.imshow("AI Hand Detection", frame)
+
+                # Wait for a key press to continue or close the window
+                key = cv2.waitKey(1)  # Wait for 1 ms
+                if key == ord('q'):  # Press 'q' to quit the loop
+                    break
+            else:  
+                print("No image!")
+
+        cv2.destroyAllWindows()  # Close the window after the loop ends

@@ -20,7 +20,7 @@ def init():
         userstate = State[userstate_input.upper()]
         state = CurrentState(userstate)
     except KeyError:
-        state = CurrentState(State.REST)
+        state = CurrentState(State.SLEEP)
     return bot, camera, aruco, coordsys, state
 
 

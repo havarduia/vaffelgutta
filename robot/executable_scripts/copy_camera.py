@@ -173,10 +173,10 @@ def main(bot):
 if __name__ == '__main__':
     bot = None
     vision = Vision()
-    hand = HandDetector(Vision)
+    hand = HandDetector(vision)
     try:
         
-        bot = Wafflebot(vision=vision, use_rviz=False, automatic_mode=True, use_hand_detection=True)
+        bot = Wafflebot(vision=vision, hand=hand, use_rviz=False, automatic_mode=True, use_hand_detection=True)
         main(bot)
         bot.exit()
         

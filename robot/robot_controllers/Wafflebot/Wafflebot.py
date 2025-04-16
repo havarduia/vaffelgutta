@@ -9,7 +9,7 @@ import rclpy
 from time import sleep
 from robot.robot_controllers.path_planner import list_multiply, list_sum
 from robot.robot_controllers.Wafflebot.moveit.MotionPlanner import MotionPlanner
-from camera.coordinatesystem import CoordinateSystem
+from camera.vision import Vision
 from robot.robot_controllers.Wafflebot.add_collisionobjects import add_collisionobjects
 from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
 from rclpy.logging import LoggingSeverity
@@ -20,8 +20,8 @@ import numpy as numphy
 class Wafflebot:
     def __init__(
         self,
-        cam: Optional[CoordinateSystem] = None,
-        automatic_mode: bool = True,
+        vision: Optional[Vision] = None,
+        automatic_mode: bool = False,
         use_rviz: bool = True,
         debug_print: bool = False,
     ):
@@ -48,16 +48,14 @@ class Wafflebot:
         self.debug_print = debug_print
         self.speed = 1.0
         self.automatic_mode = automatic_mode
-
         self.motionplanner = MotionPlanner(interbotix_process)
+        
+        self.vision = vision
+        if self.vision == None:
+            self.vision = cameraplaceholder()
+        # initialize joint positions
         self.motionplanner.update_joint_states()
 
-        if self.automatic_mode:
-            if cam is None:
-                raise RuntimeError("Camera is not provided for automatic mode")
-            else:
-                self.cam = cam
-            self.collision_publisher = CollisionObjectPublisher()
     # return the methods of the child class (interbotixmanipulatorxs)
     def __getattr__(self, name):
         return getattr(self.bot, name)
@@ -122,7 +120,7 @@ class Wafflebot:
             self.go_to_sleep_pose()
         self.exit()
 
-    def move(self, target, ignore: Optional[list[str]] = None, speed_scaling: float = 1.0):
+    def move(self, target, ignore: Optional[list[str]] = None, speed_scaling: float = 1.0 ):
         """
         checks the input type and moves to a position.
         input can be either of:
@@ -131,19 +129,14 @@ class Wafflebot:
         joints - joint states.
         """
         use_joints = not self.automatic_mode
-        if self.automatic_mode:
-            self.cam.start("all")
-        (target, returncode) = interpret_target_command.interpret_target_command(
-                target,
-                use_joints,
-                self.debug_print
-                )
+        self.vision.run_once("all")
+        (target, returncode) = interpret_target_command.interpret_target_command(target, use_joints,self.debug_print)
         if returncode == -1:
             raise RuntimeError("Invalid pose passed")
         elif returncode == 0:
-            self.move_to_joints(None)
+            return self.move_to_joints(target)
         elif returncode == 1:
-            self.move_to_matrix(target, ignore, speed_scaling) 
+            return self.move_to_matrix(target, ignore, speed_scaling) 
         else:
             raise RuntimeError("I f-ed up. check for invalid returns in interpret_target_command.")
 
@@ -154,7 +147,7 @@ class Wafflebot:
         the "move" function should be used instend for robustness.
         """
         if self.automatic_mode:
-            self.cam.start("all")
+            self.vision.run_once("all")
             add_collisionobjects(ignore)
             success = self.collision_publisher.publish_collisionobjects() 
             if success:

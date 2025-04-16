@@ -1,5 +1,6 @@
 from robot.tools.file_manipulation import Jsonreader
 from robot.tools.update_tagoffsets import abs_position_from_offset
+from typing import Union, List, Tuple, Optional
 
 def interpret_target_command(
                             target: str | list[float] | list[list[float]],

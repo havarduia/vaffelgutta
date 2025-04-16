@@ -65,14 +65,11 @@ public:
             "publish_boxes", std::bind(&CollisionChecker::handle_service, this, std::placeholders::_1, std::placeholders::_2));    
     }
 
-}
-
-
 private:
     void handle_service(const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
                         std::shared_ptr<std_srvs::srv::Trigger::Response> response)
     {
-        response->success = !update_collision();  // Update response based on the collision check
+        response->success = update_collision();  // Update response based on the collision check
     }
     
 
@@ -143,7 +140,7 @@ int main(int argc, char** argv) {
     
     auto node = std::make_shared<CollisionChecker>();
 
-    rclcpp::spin(node)
+    rclcpp::spin(node);
 
     rclcpp::shutdown();
     return 0;

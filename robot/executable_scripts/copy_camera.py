@@ -5,7 +5,8 @@ from time import sleep, time
 from robot.tools.file_manipulation import Jsonreader
 from robot.tools.visualizers.tf_publisher import TFPublisher
 from robot.tools.update_tagoffsets import create_offset_matrix, abs_position_from_offset
-from camera.init_camera import initalize_system as init_camera
+from camera.vision import Vision
+from camera.config.configloader import ConfigLoader
 from threading import Thread
 import cv2
 from robot.tools.timekeeper import record_time, read_times
@@ -28,22 +29,8 @@ def recordOffset(bot: Wafflebot, tagid: str, visualizer: TFPublisher = None):
 
     return
 
-def show_camera(camera):
-    cv2.namedWindow("RealSense Camera", cv2.WINDOW_NORMAL)  # Make window resizable 
-    while True:
-        image = camera.get_image()
-        
-        if image is not None:
-            cv2.imshow("RealSense Camera", image)
-        else:
-            print("No image captured")
-        
-        # Break on 'q' key press
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
 
-
-def goToTag(bot: Wafflebot, tagid:str, camera, pre_offset):
+def goToTag(bot: Wafflebot, tagid:str, pre_offset):
     i = 0
     reader = Jsonreader()
     starttime = time()
@@ -51,7 +38,7 @@ def goToTag(bot: Wafflebot, tagid:str, camera, pre_offset):
     while endtime - starttime <= 10:
         endtime = time()
         record_time("(buffer)")
-        bot.cam.start("all")
+        bot.vision.run_once("all")
         record_time(f"camera_frame_no_{i}")
         tag_pos = reader.read("camera_readings")[tagid]
         if pre_offset is not None:
@@ -70,14 +57,14 @@ def goToTag(bot: Wafflebot, tagid:str, camera, pre_offset):
         sleep(0.2)
     return
 
-def follow_tag(bot, tagid, camera):
+def follow_tag(bot, tagid):
     offset =[
     [0.0,0.0,1.0,0.0],
     [0.0,1.0,0.0,0.0],
-    [-1.0,0.0,0.0,0.25],
+    [-1.0,0.0,0.0,0.20],
     [0.0,0.0,0.0,1.0]
     ]
-    goToTag(bot,tagid,camera, offset)
+    goToTag(bot,tagid, offset)
 
 def printmenu():
     print("Press 1 to record offset")
@@ -88,11 +75,11 @@ def printmenu():
     print("press 6 to follow the tag like a silly lil goose")
     return 
 
-def main(bot,cam,aruco,coordsys):
+def main(bot):
     # Init robot  
     
     #Thread(target=show_camera,daemon=True, args=[camera_display]).start()
-    print("hello worl")
+    print("hello world")
     bot.go_to_home_pose()
     pub = TFPublisher()
     tagid = "25"
@@ -107,13 +94,13 @@ def main(bot,cam,aruco,coordsys):
             print("That was not a number😡") # 😡
         match choice:
             case 1:
-                camera_coordsys.start("all") 
+                bot.vision.run_once("all")
                 recordOffset(bot, tagid, pub)
             case 2:
                 os.system("clear")
                 record_time("start")
                 record_time(f"move_start_{movement_number}")
-                goToTag(bot, tagid,camera_coordsys, None)
+                goToTag(bot, tagid, None)
                 record_time(f"move_end_{movement_number}")
                 read_times()
                 movement_number +=1
@@ -128,7 +115,7 @@ def main(bot,cam,aruco,coordsys):
                 os.system("clear")
                 record_time("start")
                 record_time(f"move_start_{movement_number}")
-                follow_tag(bot,tagid,camera_coordsys)
+                follow_tag(bot,tagid)
                 record_time(f"move_end_{movement_number}")
                 movement_number +=1
                 read_times()
@@ -140,11 +127,13 @@ def main(bot,cam,aruco,coordsys):
 
 if __name__ == '__main__':
     bot = None
+    vision = Vision()
     try:
-        camera_display,throwaway2,camera_coordsys = init_camera()
-        bot = Wafflebot(camera_coordsys, use_rviz=False)
-        main(bot, camera_display, throwaway2, camera_coordsys)
+        
+        bot = Wafflebot(vision=vision, use_rviz=False)
+        main(bot)
         bot.exit()
+        
     # if error detected, run the error handler
     except (Exception, KeyboardInterrupt, RCLError) as e:
         handle_error(e, bot)

@@ -99,8 +99,11 @@ class Wafflebot:
     
     def exit(self):
         if rclpy.ok():
-            self.collision_publisher.destroy_node()
-            self.motionplanner.destroy_node()
+            try:
+                self.collision_publisher.destroy_node()
+                self.motionplanner.destroy_node()
+            except AttributeError:
+                pass
             robot_shutdown()
             robot_boot_manager.robot_close()
             if rclpy.ok():
@@ -137,7 +140,7 @@ class Wafflebot:
         if returncode == -1:
             raise RuntimeError("Invalid pose passed")
         elif returncode == 0:
-            self.move_to_joints(None)
+            self.move_to_joints(target)
         elif returncode == 1:
             self.move_to_matrix(target, ignore, speed_scaling) 
         else:

@@ -56,9 +56,7 @@ def follow_DU(bot: Wafflebot, tagid):
         pos[2] += arm_height
         print("Moving robot")
         # plan a:
-        print(f"movement success? {
-              bot.move(target, speed_scaling=4.0)
-              }")
+        print(f"movement success? {bot.move(target, speed_scaling=4.0)}")
         
         
 

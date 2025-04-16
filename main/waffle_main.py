@@ -6,7 +6,7 @@ It should however be viewed as a template and not funtional
 
 from camera.init_camera import initalize_system as init_camera
 from robot.tools.errorhandling import handle_error
-from robot.robot_controllers.Wafflebot import Wafflebot
+from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
 from main.waffle_states.waffle_states import State, CurrentState
 from main.state_transitions import *
 

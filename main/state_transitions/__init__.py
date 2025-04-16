@@ -8,11 +8,7 @@ from .home import home
 from .open_iron import open_iron
 from .open_iron2 import open_iron2
 from .pick_up_spray import pick_up_spray
-from .pick_up_waffle import pick_up_waffle
-from .place_cup_to_stat import place_cup_to_stat
-from .return_cup import return_cup
 from .return_stick import return_stick
-from .serve_waffle import serve_waffle
 from .spray import spray
 from .pick_up_ladle import pick_up_ladle
 from .pour_batter import pour_batter

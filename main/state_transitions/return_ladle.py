@@ -1,8 +1,7 @@
 from robot.tools.file_manipulation import Jsonreader
 from robot.robot_controllers.movements.action_header import Actions
 from waffle_states.waffle_states import State, Tags
-#TODO: Rename accordingly
-def return_cup(state: "CurrentState", bot: "Wafflebot"):
+def return_ladle(state: "CurrentState", bot: "Wafflebot"):
     reader = Jsonreader()
     actions = Actions(bot)
     reader.pop("camera_readings",Tags.OPENED_IRON_TAG)

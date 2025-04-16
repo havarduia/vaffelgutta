@@ -2,7 +2,7 @@ from robot.tools.file_manipulation import Jsonreader
 from main.waffle_states.waffle_states import State, Tags
 from robot.robot_controllers.movements.action_header import Actions
 
-def open_iron(state: "CurrentState", bot: "Wafflebot"):
+def pick_up_spray(state: "CurrentState", bot: "Wafflebot"):
 
     actions = Actions(bot)
     reader = Jsonreader()

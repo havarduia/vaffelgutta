@@ -50,7 +50,7 @@ def follow_DU(bot: Wafflebot, tagid):
         target = numphy.array(abs_position_from_offset(tag_pos, offset))
         pos = target[3,0:3]
         
-        pos[3] -= arm_height
+        pos[2] -= arm_height
         r = numphy.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
         pos = pos * rTarget / r
         pos[2] += arm_height
@@ -60,10 +60,6 @@ def follow_DU(bot: Wafflebot, tagid):
         
         
 
-
-            
-
-
         
 def goToTag(bot: Wafflebot, tagid:str, pre_offset):
     i = 0
@@ -72,7 +68,7 @@ def goToTag(bot: Wafflebot, tagid:str, pre_offset):
     endtime = time()
     while endtime - starttime <= 10:
         endtime = time()
-        bot.vision.run_once("all")
+        bot.vision.run_once()
         tag_pos = reader.read("camera_readings")[tagid]
         if pre_offset is not None:
             offset = pre_offset
@@ -130,13 +126,7 @@ def main(bot):
                 bot.vision.run_once()
                 recordOffset(bot, tagid, pub)
             case 2:
-                os.system("clear")
-                record_time("start")
-                record_time(f"move_start_{movement_number}")
                 goToTag(bot, tagid, None)
-                record_time(f"move_end_{movement_number}")
-                read_times()
-                movement_number +=1
             case 3: 
                 tagid = str(input("Input new ID: "))
             case 4:

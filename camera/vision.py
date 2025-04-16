@@ -272,6 +272,7 @@ class Vision:
         all_tags = []
         for tag in tags:
             all_tags.append(str(tag))
+
         return all_tags
 
     from typing import Union
@@ -282,7 +283,7 @@ class Vision:
         self.jsonreader.write("camera_readings", tags)
         data = self.jsonreader.read("camera_readings")
         
-        if not any(tag == "all" for tag in allowed_tags):
+        if not len(allowed_tags) == 0:
             for key in list(data.keys()):
                 if key not in allowed_tags:
                     print(f"removed hallucinated tag, id: {key}")

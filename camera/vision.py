@@ -314,4 +314,4 @@ class Vision:
 # =====================================================
 if __name__ == "__main__":
     vision = Vision(ConfigLoader(), Jsonreader())
-    vision.run("all")
+    vision.run_once("all")

@@ -3,7 +3,7 @@ from robot.robot_controllers.Wafflebot.Wafflebot import *
 from robot.tools.file_manipulation import Jsonreader, table_print
 from robot.tools.errorhandling import handle_error
 from robot.tools.update_tagoffsets import create_offset_matrix
-from camera.coordinatesystem import CoordinateSystem
+from camera.vision import Vision
 # user libraries: 
 from time import sleep
 from typing import Literal
@@ -50,7 +50,7 @@ def playposition(bot: Wafflebot, data_type: Literal["joints", "matrix"]):
         print(f"Going to {name}")
         position = data[name][data_type]
         if data_type == "matrix":
-            bot.move(position,file="recordings")
+            bot.move(position)
         elif data_type == "joints":
             bot.arm.set_joint_positions(position)
         sleep(1)
@@ -109,7 +109,7 @@ def recordtrajectory(bot: Wafflebot):
     print("press Q to abort")
     while True:
         if keyboard.is_pressed("s"):
-            break;
+            break
         if keyboard.is_pressed("q"):
             bot.core.robot_torque_enable("group", "arm", True)
             return
@@ -149,9 +149,9 @@ def pop_item()->None:
         print(f"Thanos snapped {key}. Perfectly balanced, as all things should be.")
     return
 
-def record_offset(bot:Wafflebot, cam: CoordinateSystem):
+def record_offset(bot:Wafflebot, cam: Vision):
     name = recordposition(bot)
-    cam.start("all")
+    cam.run_once()
     reader = Jsonreader()
     data = reader.read("recordings")    
     tags = reader.read("camera_readings")
@@ -160,7 +160,7 @@ def record_offset(bot:Wafflebot, cam: CoordinateSystem):
     tagid = input(f"Give me a tagid!! default: {tagid}\nInput: ")
     name = recordposition(bot)
 
-    cam.start(tagid)
+    cam.run_once(tagid)
     reader = Jsonreader()
     robot_positions = reader.read("recordings")
     reader.pop("recordings", name)
@@ -187,10 +187,9 @@ def record_offset(bot:Wafflebot, cam: CoordinateSystem):
     print("successfully recorded offset.")
     return None
 
-def main(bot,cam,aruco,coordsys):
-    # boot bot
-    bot.go_to_sleep_pose()
+def main(bot,vision):
     #print menu and listen for keystrokes:
+    
     while True:
         printmenu()
         userinput = input()
@@ -206,7 +205,7 @@ def main(bot,cam,aruco,coordsys):
             break
         elif userinput == str(9):
             print("You used a secret input, you sneaky rascal!")
-            record_offset(bot, camera_coordsys)
+            record_offset(bot, vision)
         else:
             print("invalid input, try again bozo")
 
@@ -216,13 +215,13 @@ def main(bot,cam,aruco,coordsys):
 
 if __name__ == '__main__':
     from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
-    from camera.init_camera import initalize_system as init_camera
+    from camera.vision import Vision
     from rclpy.exceptions import InvalidHandle
     from robot.tools.errorhandling import handle_error
     try:
-        cam, aruco, coordsys = init_camera()
-        bot = Wafflebot(coordsys)
-        main(bot=bot,cam=cam,aruco=aruco,coordsys=coordsys)
+        vision = Vision()
+        bot = Wafflebot(vision)
+        main(bot=bot,vision=vision)
     # if error detected, run the error handler
     except (InvalidHandle):
         pass

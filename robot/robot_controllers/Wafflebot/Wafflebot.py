@@ -127,7 +127,6 @@ class Wafflebot:
         joints - joint states.
         """
         use_joints = not self.automatic_mode
-        self.vision.run_once("all")
         (target, returncode) = interpret_target_command.interpret_target_command(target, use_joints,self.debug_print)
         if returncode == -1:
             raise RuntimeError("Invalid pose passed")
@@ -145,7 +144,6 @@ class Wafflebot:
         the "move" function should be used instend for robustness.
         """
         if self.automatic_mode:
-            self.vision.run_once("all")
             add_collisionobjects(ignore)
             success = self.collision_publisher.publish_collisionobjects() 
             if success:

@@ -20,8 +20,8 @@ import numpy as numphy
 class Wafflebot:
     def __init__(
         self,
+        automatic_mode: bool,
         vision: Optional[Vision] = None,
-        automatic_mode: bool = False,
         use_rviz: bool = True,
         debug_print: bool = False,
     ):

@@ -314,5 +314,5 @@ class Vision:
 # Example Usage
 # =====================================================
 if __name__ == "__main__":
-    vision = Vision(ConfigLoader(), Jsonreader())
-    vision.run_once("all")
+    vision = Vision()
+    vision.run_once()

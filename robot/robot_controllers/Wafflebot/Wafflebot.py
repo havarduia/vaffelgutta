@@ -48,13 +48,11 @@ class Wafflebot:
         self.debug_print = debug_print
         self.speed = 1.0
         self.automatic_mode = automatic_mode
-        self.motionplanner = MotionPlanner(interbotix_process)
-        
-        self.vision = vision
-        if self.vision == None:
-            self.vision = cameraplaceholder()
-        # initialize joint positions
-        self.motionplanner.update_joint_states()
+        if self.automatic_mode:
+            self.motionplanner = MotionPlanner(interbotix_process)
+            self.collision_publisher = CollisionObjectPublisher()
+            self.vision = vision
+            self.motionplanner.update_joint_states()
 
     # return the methods of the child class (interbotixmanipulatorxs)
     def __getattr__(self, name):

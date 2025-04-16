@@ -60,7 +60,7 @@ class Wafflebot:
             self.motionplanner = MotionPlanner(interbotix_process)
             self.collision_publisher = CollisionObjectPublisher()
             self.vision = vision
-            self.hand = hand(vision)
+            self.hand = hand
             self.motionplanner.update_joint_states()
 
     # return the methods of the child class (interbotixmanipulatorxs)

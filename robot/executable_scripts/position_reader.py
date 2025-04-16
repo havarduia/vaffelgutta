@@ -110,7 +110,7 @@ def recordtrajectory(bot: Wafflebot):
     while True:
         if keyboard.is_pressed("s"):
             break;
-        if keyboard.is_pressed("q")
+        if keyboard.is_pressed("q"):
             bot.core.robot_torque_enable("group", "arm", True)
             return
         i+=1

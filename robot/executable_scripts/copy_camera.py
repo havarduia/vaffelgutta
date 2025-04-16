@@ -29,34 +29,58 @@ def recordOffset(bot: Wafflebot, tagid: str, visualizer: TFPublisher = None):
     reader.write("offsets", {"copy_camera": offset})
     print(f"written offset to copy_camera")
 
-def follow_DU(bot: Wafflebot, tagid):
-    distance = 0.2 
-    tol = 0.01
+
+def compute_translation_DU(tag_pos: list[list[float]]) -> numphy.array:
+    distance = 0.45 
     arm_height = 0.42705
-    rTarget = 0.4
-    offset =[
-    [0.0,0.0,1.0,0.0],
-    [0.0,1.0,0.0,0.0],
-    [-1.0,0.0,0.0,0.20],
-    [0.0,0.0,0.0,1.0]
-    ]
+    tag_pos = numphy.array(tag_pos)
+    pos = tag_pos[:3,3]        
+    pos[2] -= arm_height
+    r = numphy.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
+    pos = pos * distance / r
+    pos[2] += arm_height
+    return pos
+
+
+def compute_rotation_DU(target_position: numphy.array) -> numphy.array:
+    x, y, z = target_position
+    arm_height = 0.42705 
+    z -= arm_height
+    
+    Rx = numphy.array([x,y,z])
+    Rx = Rx/numphy.linalg.norm(Rx)
+    Ry = numphy.array([-Rx[1], Rx[0], 0])
+    norm = numphy.linalg.norm(Ry)
+    Ry = [1,0,0] if norm == 0 else Ry / norm  
+    Rz = numphy.cross(Rx,Ry)
+    Rz = Rz / numphy.linalg.norm(Rz)
+
+    R = numphy.column_stack([Rx, Ry, Rz])
+    return R
+        
+
+
+
+def follow_DU(bot: Wafflebot, tagid):
     reader = Jsonreader()
     starttime = time()
     endtime = time()
-    while endtime - starttime <= 10:
+    while endtime - starttime <= 30:
         endtime = time()
         bot.vision.run_once()
         tag_pos = reader.read("camera_readings")[tagid]
-        target = numphy.array(abs_position_from_offset(tag_pos, offset))
-        pos = target[3,0:3]
-        
-        pos[2] -= arm_height
-        r = numphy.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
-        pos = pos * rTarget / r
-        pos[2] += arm_height
+
+        pos = compute_translation_DU(tag_pos)
+        R = compute_rotation_DU(pos)
+
+        out_pos = numphy.identity(4)
+        out_pos[:3,3] = pos 
+        out_pos[:3,:3] = R
+        out_pos = out_pos.tolist()
+
         print("Moving robot")
         # plan a:
-        print(f"movement success? {bot.move(target, speed_scaling=4.0)}")
+        print(f"movement success? {bot.move(out_pos, speed_scaling=4.0)}")
         
         
 

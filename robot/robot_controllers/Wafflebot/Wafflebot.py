@@ -51,10 +51,9 @@ class Wafflebot:
         self.speed = 1.0
         self.automatic_mode = automatic_mode
 
-        self.motionplanner = MotionPlanner(interbotix_process)
-        self.motionplanner.update_joint_states()
-
         if self.automatic_mode:
+            self.motionplanner = MotionPlanner(interbotix_process)
+            self.motionplanner.update_joint_states()
             if cam is None:
                 raise RuntimeError("Camera is not provided for automatic mode")
             else:

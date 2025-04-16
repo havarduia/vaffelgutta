@@ -21,7 +21,7 @@ class Wafflebot:
     def __init__(
         self,
         vision: Optional[Vision] = None,
-        debug_print: bool = False,
+        automatic_mode: bool = False,
         use_rviz: bool = True,
         debug_print: bool = False,
     ):

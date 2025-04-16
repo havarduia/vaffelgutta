@@ -231,10 +231,10 @@ class Vision:
             origin_inv = np.linalg.inv(pose[self.origin_id])
             self.last_origin_inv = origin_inv
         else:
-            return {}, None
+            return {}, image
 
         if origin_inv is None:
-            return {}, None
+            return {}, image
 
         tags = {}
         for id, pose in pose.items():

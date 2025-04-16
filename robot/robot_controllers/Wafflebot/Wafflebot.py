@@ -17,6 +17,8 @@ from rclpy.logging import LoggingSeverity
 from robot.tools.file_manipulation import Jsonreader
 import numpy as numphy
 
+from robot.tools.timekeeper import record_time
+
 class Wafflebot:
     def __init__(
         self,
@@ -127,6 +129,7 @@ class Wafflebot:
         joints - joint states.
         """
         use_joints = not self.automatic_mode
+        
         (target, returncode) = interpret_target_command.interpret_target_command(target, use_joints,self.debug_print)
         if returncode == -1:
             raise RuntimeError("Invalid pose passed")
@@ -147,6 +150,7 @@ class Wafflebot:
             add_collisionobjects(ignore)
             success = self.collision_publisher.publish_collisionobjects() 
             if success:
+                record_time("plan movement")
                 self.motionplanner.move(target, speed_scaling*self.speed)
                 return self.motionplanner.movement_success
             elif self.debug_print:

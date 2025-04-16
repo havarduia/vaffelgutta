@@ -66,9 +66,12 @@ def follow_DU(bot: Wafflebot, tagid):
     starttime = time()
     endtime = time()
     while endtime - starttime <= 30:
+        os.system("clear")
+        record_time("start")
         endtime = time()
         bot.vision.run_once()
         tag_pos = reader.read("camera_readings")[tagid]
+        record_time("vision")
 
         pos = compute_translation_DU(tag_pos)
         R = compute_rotation_DU(pos)
@@ -80,7 +83,9 @@ def follow_DU(bot: Wafflebot, tagid):
 
         print("Moving robot")
         # plan a:
+        record_time("compute pose")
         print(f"movement success? {bot.move(out_pos, speed_scaling=4.0)}")
+        read_times()
         
         
 

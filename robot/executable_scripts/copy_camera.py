@@ -4,7 +4,6 @@ from robot.tools.errorhandling import handle_error
 from rclpy._rclpy_pybind11 import RCLError
 from time import sleep, time
 from robot.tools.file_manipulation import Jsonreader
-from robot.tools.visualizers.tf_publisher import TFPublisher
 from robot.tools.update_tagoffsets import create_offset_matrix, abs_position_from_offset
 from camera.vision import Vision
 from camera.config.configloader import ConfigLoader
@@ -20,11 +19,10 @@ def get_aruco_pose(id: str):
     tags = reader.read("camera_readings")        
     return tags.get(id)
 
-def recordOffset(bot: Wafflebot, tagid: str, visualizer: TFPublisher = None):
+def recordOffset(bot: Wafflebot, tagid: str):
     bot_pos = bot.arm.get_ee_pose()
     reader = Jsonreader()
     tag_pos = reader.read("camera_readings")[tagid]
-    visualizer.broadcast_transform(tag_pos)
     offset = create_offset_matrix(bot_pos, tag_pos)
     reader.write("offsets", {"copy_camera": offset})
     print(f"written offset to copy_camera")
@@ -102,12 +100,8 @@ def goToTag(bot: Wafflebot, tagid:str, pre_offset):
         target = abs_position_from_offset(tag_pos, offset)
 
         print("Moving robot")
-        # plan a:
         print(f"movement success? {bot.move(target, speed_scaling=4.0)}")
-        # plan b:
-        #bot.arm.set_ee_pose_matrix(target, blocking=False)
-
-        sleep(0.2)
+        sleep(0.1)
     return
 
 def follow_tag(bot, tagid):
@@ -131,15 +125,13 @@ def printmenu():
 
 def main(bot):
     # Init robot  
-    
-    #Thread(target=show_camera,daemon=True, args=[camera_display]).start()
-    print("hello world")
+    vision = Vision()
+    hand = HandDetector(vision)
+  
     bot.go_to_home_pose()
-    pub = TFPublisher()
     tagid = "25"
     handmatrix = "matrix"
     torqed = True
-    movement_number = 1
     while True:
         printmenu()
         choice = input("Input: ")
@@ -150,7 +142,7 @@ def main(bot):
         match choice:
             case 1:
                 bot.vision.run_once()
-                recordOffset(bot, tagid, pub)
+                recordOffset(bot, tagid)
             case 2:
                 goToTag(bot, tagid, None)
             case 3: 
@@ -172,11 +164,9 @@ def main(bot):
 
 if __name__ == '__main__':
     bot = None
-    vision = Vision()
-    hand = HandDetector(vision)
     try:
         
-        bot = Wafflebot(vision=vision, hand=hand, use_rviz=False, automatic_mode=True, use_hand_detection=True)
+        bot = Wafflebot(automatic_mode=True,detect_collisions=True)
         main(bot)
         bot.exit()
         

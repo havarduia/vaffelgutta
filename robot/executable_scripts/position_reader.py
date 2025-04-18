@@ -1,4 +1,5 @@
 # robot modules
+from os import read
 from robot.robot_controllers.Wafflebot.Wafflebot import *
 from robot.tools.file_manipulation import Jsonreader, table_print
 from robot.tools.errorhandling import handle_error
@@ -11,10 +12,9 @@ import keyboard
 import numpy as numphy
 
 
-
 def printmenu():
     print("\nPress 1 to record position\n"
-          +"Press 2 to play back saved position\n"
+          +"Press 2 to set a new reference tag\n" 
           +"Press 3 to play back saved position using joint method\n"
           +"Press 4 to remove a position\n"
           +"Press 5 to quit")
@@ -25,9 +25,9 @@ def print_stored_positions(data: dict) -> None:
     print("The stored positions are:")
     keys = data.keys()
     keys = sorted(keys) # also converts to list[str] as a bonus
-    table_print(keys, skip_sort=True)
+    table_print(keys, skip_sort=True) 
 
-def playposition(bot: Wafflebot, data_type: Literal["joints", "matrix"]): 
+def playposition(bot: Wafflebot, data_type: Literal["joints", "basepose"]): 
     # Set up arm
     bot.bot.core.robot_torque_enable("group", "arm", True)
     bot.arm.capture_joint_positions()
@@ -37,7 +37,7 @@ def playposition(bot: Wafflebot, data_type: Literal["joints", "matrix"]):
     
     # Ask for a name 
     names = input("Enter the name of the position(s) you want to go to,\n"
-                  +"separated by a comma (,):\n")
+                  +"separated by a comma (,):\n").lower()
     names = names.split(",")
     
     # Get name and check if it is in name list
@@ -49,14 +49,14 @@ def playposition(bot: Wafflebot, data_type: Literal["joints", "matrix"]):
             break
         print(f"Going to {name}")
         position = data[name][data_type]
-        if data_type == "matrix":
+        if data_type == "basepose":
             bot.move(position)
         elif data_type == "joints":
             bot.arm.set_joint_positions(position)
         sleep(1)
     return    
 
-def recordposition(bot: Wafflebot):
+def recordposition(bot: Wafflebot, tagid: int):
     # detorque arm
     bot.core.robot_torque_enable("group", "arm", False)
     sleep(0.25)    
@@ -72,13 +72,18 @@ def recordposition(bot: Wafflebot):
     # Test for valid position
     if bot.arm._check_joint_limits(position_joints):
         position_mat = bot.arm.get_ee_pose().tolist()
+        if tagid != 100:
+            tag = Jsonreader().read("camera_readings").get(tagid)
+            position_offset = create_offset_matrix(position_mat, tag)
+        else:
+            position_offset = 100
     else:
         print("Joints are not within their limits. Try again bozo.")
         bot.core.robot_torque_enable("group", "arm", False)
         return
     # Get the user to name the positions
     name = input("Write the name of your position:\n"
-                + "Press enter to cancel recording\n")
+                + "Press enter to cancel recording\n").lower().strip()
     if name != "":
         # write ee position
         jsonreader = Jsonreader()
@@ -86,15 +91,18 @@ def recordposition(bot: Wafflebot):
         data.update(
             {
             f"{name}":{
-                "matrix": position_mat,
-                "joints": position_joints
-                }},
+                "basepose": position_mat,
+                "joints": position_joints,
+                "tag" : tagid,
+                "offset" : position_offset
+                }
+            },
         )
         jsonreader.write("recordings", data)
         print(f'Successfully written "{name}" to recordings.')
     return name
 
-def recordtrajectory(bot: Wafflebot):
+def recordtrajectory(bot: Wafflebot, tagid: int):
     # initialize values:
     i = 0
     poses = dict()
@@ -107,6 +115,7 @@ def recordtrajectory(bot: Wafflebot):
         return
     print("press S to stop recording")
     print("press Q to abort")
+    tag = reader.read("camera_readings").get(tagid)
     while True:
         if keyboard.is_pressed("s"):
             break
@@ -123,89 +132,55 @@ def recordtrajectory(bot: Wafflebot):
             position_joints = bot.arm.get_joint_positions()
             # Test for valid position
             if bot.arm._check_joint_limits(position_joints):
-                position_mat = bot.arm.get_ee_pose().tolist()
+                position_mat = bot.arm.get_ee_pose().tolist() 
+                if tagid != 100:
+                    position_offset = create_offset_matrix(position_mat, tag)
+                else:
+                    position_offset = 100
             else:
                 print("Joints are not within their limits. Try again bozo.")
                 bot.core.robot_torque_enable("group", "arm", True)
                 return
-            poses.update({f"{pose_name}_{poseindex}" : position_mat})
+            poses.update({f"{pose_name}_{poseindex}" :
+                          {
+                              "basepose":position_mat,
+                              "joints" : position_joints,
+                              "tag" : tagid,
+                              "offset" : position_offset 
+                          }})
             poseindex+=1
     bot.core.robot_torque_enable("group", "arm", True)
-    reader.write("recordings", poses)
-
-
-
-
-
         
         
 
 def pop_item()->None:
     reader = Jsonreader()
-    
     print_stored_positions(reader.read("recordings"))
     key = input("Tell me what position to remove, little boy: ")
     if reader.pop("recordings",key):
         print(f"Thanos snapped {key}. Perfectly balanced, as all things should be.")
     return
 
-def record_offset(bot:Wafflebot, cam: Vision):
-    name = recordposition(bot)
-    cam.run_once()
-    reader = Jsonreader()
-    data = reader.read("recordings")    
-    tags = reader.read("camera_readings")
 
-    tagid = 25
-    tagid = input(f"Give me a tagid!! default: {tagid}\nInput: ")
-    name = recordposition(bot)
-
-    cam.run_once(tagid)
-    reader = Jsonreader()
-    robot_positions = reader.read("recordings")
-    reader.pop("recordings", name)
-    tags = reader.read("camera_readings")
-
-    robot_position = robot_positions[name]["matrix"]    
-    robot_joints = robot_positions[name]["joints"]
-    tag = tags[tagid]
-
-    robot_position = data[name]["matrix"]    
-    robot_joints = data[name]["joints"]
-
-    offset = create_offset_matrix(robot_position, tag)
-
-    newdata = {
-        "basepose" : robot_position,
-        "joints" : robot_joints,
-        "tag" : tagid,
-        "offset": offset
-    }
-    
-    reader.write("offsets", {name : newdata})     
-
-    print("successfully recorded offset.")
-    return None
-
-def main(bot,vision):
+def main(bot):
     #print menu and listen for keystrokes:
+    vision = Vision()
+    tagid = 100
     
     while True:
         printmenu()
         userinput = input()
         if userinput == str(1):
-            recordposition(bot)
+            vision.run_once()
+            recordposition(bot, tagid)
         elif userinput == str(2):
-            playposition(bot, "matrix")
+            tagid = int(input("New ID: "))
         elif userinput == str(3):
             playposition(bot, "joints")
         elif userinput == str(4):
             pop_item()
         elif userinput == str(5):
             break
-        elif userinput == str(9):
-            print("You used a secret input, you sneaky rascal!")
-            record_offset(bot, vision)
         else:
             print("invalid input, try again bozo")
 
@@ -219,9 +194,8 @@ if __name__ == '__main__':
     from rclpy.exceptions import InvalidHandle
     from robot.tools.errorhandling import handle_error
     try:
-        vision = Vision()
-        bot = Wafflebot(vision)
-        main(bot=bot,vision=vision)
+        bot = Wafflebot(automatic_mode=False, detect_collisions=False)
+        main(bot=bot)
     # if error detected, run the error handler
     except (InvalidHandle):
         pass

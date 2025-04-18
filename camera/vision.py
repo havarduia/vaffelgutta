@@ -161,4 +161,4 @@ class Vision:
 # =====================================================
 if __name__ == "__main__":
     vision = Vision()
-    vision.run(detect_hands=False, show_image=True, draw_cubes=True)
+    vision.run(detect_hands=True, show_image=True, draw_cubes=False)

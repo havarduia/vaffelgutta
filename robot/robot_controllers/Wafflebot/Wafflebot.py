@@ -171,7 +171,10 @@ class Wafflebot:
                 execute_movement = input("Do you want to proceed anyway? (y/n): ")
                 if not (execute_movement.lower() == "y" or execute_movement.lower() == "yes"):
                     return False
-        return self.arm.set_joint_positions(target, moving_time=2.0/(speed_scaling*self.speed), blocking = blocking)
+        success = self.arm.set_joint_positions(target, moving_time=2.0/(speed_scaling*self.speed), blocking = blocking)
+        if not blocking:
+            sleep(0.1)
+        return success
 
     def grasp(self):
         if self.automatic_mode:

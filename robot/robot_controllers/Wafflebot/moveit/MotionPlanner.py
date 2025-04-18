@@ -125,6 +125,7 @@ class MotionPlanner(Node):
                 self.movement_success = False
                 return False
             if not self.blocking:
+                sleep(0.1)
                 self.blocking = True
                 self.moving = False
                 self.movement_success = True

@@ -139,7 +139,7 @@ def _recordtrajectory(bot: Wafflebot, tagid: int, pose_name: str, event: Event, 
                           "offset" : position_offset 
                       }})
         poseindex+=1
-        sleep(0.1)
+        sleep(0.02)
         if event.is_set():
             queue.put(poses)
             return 

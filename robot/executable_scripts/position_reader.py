@@ -191,7 +191,7 @@ def main(bot):
         elif userinput == str(5):
             break
         elif userinput == str(7):
-            bot.core.torque_enable("group", "arm", torqued)
+            bot.core.robot_torque_enable("group", "arm", torqued)
             torqued = not torqued
         elif userinput == str(8):
             if gripped:

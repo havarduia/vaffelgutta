@@ -18,7 +18,12 @@ def printmenu():
           +"Press 2 to set a new reference tag\n" 
           +"Press 3 to play back saved position using joint method\n"
           +"Press 4 to remove a position\n"
-          +"Press 5 to quit")
+          +"Press 5 to quit\n"
+          +"Press 6 to print menu\n"
+          +"Press 7 to toggle torque\n"
+          +"Press 8 to toggle gripper\n"
+          +"Press 9 to record trajectory\n"
+          )
     return  
 
 def print_stored_positions(data: dict) -> None: 

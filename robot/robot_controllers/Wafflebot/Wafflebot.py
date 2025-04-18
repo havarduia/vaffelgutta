@@ -57,11 +57,7 @@ class Wafflebot:
             self.vision = vision
             self.motionplanner.update_joint_states()
         if self.use_hand_detection:
-            self.motionplanner = MotionPlanner(interbotix_process)
-            self.collision_publisher = CollisionObjectPublisher()
-            self.vision = vision
             self.hand = hand
-            self.motionplanner.update_joint_states()
 
     # return the methods of the child class (interbotixmanipulatorxs)
     def __getattr__(self, name):

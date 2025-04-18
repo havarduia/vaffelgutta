@@ -181,6 +181,10 @@ def main(bot):
             pop_item()
         elif userinput == str(5):
             break
+        elif userinput == str(9):
+            print("secret input pog")
+            vision.run_once()
+            recordtrajectory(bot,tagid)
         else:
             print("invalid input, try again bozo")
 

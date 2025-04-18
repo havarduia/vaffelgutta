@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Literal
 from robot.robot_controllers.safety_functions import check_collisions, fix_joint_limits
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from robot.tools.file_manipulation import Jsonreader

@@ -4,7 +4,7 @@ RealSense camera implementation.
 
 import pyrealsense2 as rs
 import numpy as np
-from camera.base import Camera
+from camera.parts.base import Camera
 from camera.config.configloader import ConfigLoader
 
 
@@ -101,3 +101,32 @@ class RealSense(Camera):
         if not depth_frame:
             return None
         return np.asanyarray(depth_frame.get_data())
+
+    def get_aligned_frames(self):
+        """Get an aligned color and depth frame from the camera."""
+        frames = self.pipeline.wait_for_frames()
+        aligned_frames = rs.align(rs.stream.color).process(frames)
+        color_frame = aligned_frames.get_color_frame()
+        depth_frame = aligned_frames.get_depth_frame()
+        if not color_frame or not depth_frame:
+            return None, None
+        return np.asanyarray(color_frame.get_data()), np.asanyarray(
+            depth_frame.get_data()
+        )
+
+    def get_depth_scale(self):
+        """Get the depth scale of the camera."""
+        return (
+            self.pipeline.get_active_profile()
+            .get_device()
+            .first_depth_sensor()
+            .get_depth_scale()
+        )
+
+    def get_rs_intrinsics(self):
+        """Get the pyrealsense2 intrinsics object for the color stream."""
+        if not self.isStreaming or not hasattr(self, "intrinsics"):
+            # Or handle appropriately, maybe try starting stream again or raise error
+            print("Warning: Stream not active or intrinsics not available.")
+            return None
+        return self.intrinsics  # Return the stored rs.intrinsics object

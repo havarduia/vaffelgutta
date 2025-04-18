@@ -126,19 +126,20 @@ class Aruco:
         half_length = marker_length / 2
 
         # Define the 8 vertices of the cube
-        cube_points = np.float32([
-            # Base (same plane as marker)
-            [-half_length, half_length, 0],  # Front left
-            [half_length, half_length, 0],   # Front right
-            [half_length, -half_length, 0],  # Back right
-            [-half_length, -half_length, 0], # Back left
-
-            # Top of the cube
-            [-half_length, half_length, cube_height],  # Front left top
-            [half_length, half_length, cube_height],   # Front right top
-            [half_length, -half_length, cube_height],  # Back right top
-            [-half_length, -half_length, cube_height]  # Back left top
-        ])
+        cube_points = np.float32(
+            [
+                # Base (same plane as marker)
+                [-half_length, half_length, 0],  # Front left
+                [half_length, half_length, 0],  # Front right
+                [half_length, -half_length, 0],  # Back right
+                [-half_length, -half_length, 0],  # Back left
+                # Top of the cube
+                [-half_length, half_length, cube_height],  # Front left top
+                [half_length, half_length, cube_height],  # Front right top
+                [half_length, -half_length, cube_height],  # Back right top
+                [-half_length, -half_length, cube_height],  # Back left top
+            ]
+        )
 
         # Project 3D points to the image plane
         cube_image_points, _ = cv2.projectPoints(
@@ -149,11 +150,20 @@ class Aruco:
         # Define edges of the cube
         edges = [
             # Base
-            (0, 1), (1, 2), (2, 3), (3, 0),
+            (0, 1),
+            (1, 2),
+            (2, 3),
+            (3, 0),
             # Top
-            (4, 5), (5, 6), (6, 7), (7, 4),
+            (4, 5),
+            (5, 6),
+            (6, 7),
+            (7, 4),
             # Connecting base to top
-            (0, 4), (1, 5), (2, 6), (3, 7)
+            (0, 4),
+            (1, 5),
+            (2, 6),
+            (3, 7),
         ]
 
         # Draw edges
@@ -233,7 +243,7 @@ class Aruco:
                         dist_coeffs,
                         rvec,
                         tvec,
-                        marker_length
+                        marker_length,
                     )
 
             raw_poses.append((tag_id, rvec, tvec))

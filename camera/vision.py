@@ -2,10 +2,10 @@ import cv2
 import numpy as np
 from typing import Union, List, Dict, Optional
 from robot.tools.file_manipulation import Jsonreader
-from camera.realsense import RealSense
-from camera.markers import Aruco
-from camera.coordinates import CoordinateSystem
-from camera.ai.hand_detection import HandDetector
+from camera.parts.realsense import RealSense
+from camera.parts.markers import Aruco
+from camera.parts.coordinates import CoordinateSystem
+from camera.parts.hand_detection import HandDetector
 
 
 class Vision:
@@ -19,29 +19,11 @@ class Vision:
         self.aruco = Aruco(self.camera)
         self.coord_sys = CoordinateSystem()
         # Pass the coordinate system to the hand detector so it uses the same instance
-        self.hand_detector = HandDetector(self.camera, self.coord_sys)
+        self.hand_detector = HandDetector(self.camera)
 
     def __del__(self):
         """Clean up resources when the object is deleted."""
         pass
-
-    def set_hand_bias(self, x=None, y=None, z=None):
-        """Set bias values for hand position adjustment and save to config file.
-
-        Args:
-            x: Bias in x direction (forward/backward)
-            y: Bias in y direction (left/right)
-            z: Bias in z direction (up/down)
-        """
-        self.hand_detector.set_hand_bias(x, y, z)
-
-    def reload_hand_bias(self):
-        """Reload hand bias values from the config file."""
-        self.hand_detector.load_hand_bias_from_config()
-
-    def _get_calibration(self):
-        """Return the camera matrix and distortion coefficients."""
-        return self.camera.get_calibration()
 
     def _process_frame(self, draw_cubes=True):
         """Process a single frame to detect markers and transform coordinates.
@@ -83,8 +65,8 @@ class Vision:
         self,
         *allowed_tags: Union[str, int],
         return_image: bool = False,
-        detect_hands: bool = False,
-        draw_cubes: bool = True
+        draw_cubes: bool = True,
+        detect_hands: bool = False
     ) -> Optional[np.ndarray]:
         """Process a single frame and update tag positions.
 
@@ -110,18 +92,9 @@ class Vision:
         # Save to JSON
         self.jsonreader.write("camera_readings", tags)
 
-        # Detect hands if requested
-        if detect_hands and return_image and image is not None:
-            # Check if origin marker is visible (no need to print)
-
-            # Pass the marker detection image and the latest tags to the hand detector
-            _, hand_image = self.hand_detector.start(
-                "hand_position", input_image=image, raw_tags=tags
-            )
-            # Hand detection status is shown by the HandDetector
-            if hand_image is not None:
-                # Use the combined image with both markers and hand landmarks
-                image = hand_image
+        # Process hand detection on the same image if requested
+        if detect_hands:
+            image, _, _ = self.hand_detector.process_frame(image=image)
 
         # Return image if requested
         if return_image:
@@ -132,8 +105,8 @@ class Vision:
         self,
         *allowed_tags: Union[str, int],
         show_image: bool = True,
-        detect_hands: bool = False,
-        draw_cubes: bool = True
+        draw_cubes: bool = True,
+        detect_hands: bool = False
     ) -> None:
         """Continuously run pose estimation, write data, and show video feed.
 
@@ -145,7 +118,10 @@ class Vision:
         """
         while True:
             img = self.run_once(
-                *allowed_tags, return_image=True, detect_hands=detect_hands, draw_cubes=draw_cubes
+                *allowed_tags,
+                return_image=True,
+                draw_cubes=draw_cubes,
+                detect_hands=detect_hands
             )
 
             if show_image and img is not None:
@@ -161,4 +137,4 @@ class Vision:
 # =====================================================
 if __name__ == "__main__":
     vision = Vision()
-    vision.run(detect_hands=True, show_image=True, draw_cubes=False)
+    vision.run(show_image=True, draw_cubes=True, detect_hands=True)

@@ -4,9 +4,9 @@ This module provides classes for camera access, marker detection, and coordinate
 """
 
 from camera.vision import Vision
-from camera.base import Camera
-from camera.realsense import RealSense
-from camera.markers import Aruco
-from camera.coordinates import CoordinateSystem
+from camera.parts.base import Camera
+from camera.parts.realsense import RealSense
+from camera.parts.markers import Aruco
+from camera.parts.coordinates import CoordinateSystem
 
 __all__ = ['Vision', 'Camera', 'RealSense', 'Aruco', 'CoordinateSystem']

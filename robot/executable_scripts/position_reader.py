@@ -167,6 +167,9 @@ def main(bot):
     vision = Vision()
     tagid = 100
     
+    torqued = False
+    gripped = False
+    
     while True:
         printmenu()
         userinput = input()
@@ -181,6 +184,15 @@ def main(bot):
             pop_item()
         elif userinput == str(5):
             break
+        elif userinput == str(7):
+            bot.core.torque_enable("group", "arm", torqued)
+            torqued = not torqued
+        elif userinput == str(8):
+            if gripped:
+                bot.grasp()
+            else:
+                bot.release()
+            gripped = not gripped
         elif userinput == str(9):
             print("secret input pog")
             vision.run_once()

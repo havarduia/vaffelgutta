@@ -1,3 +1,4 @@
+from typing import Optional
 from robot.robot_controllers.safety_functions import check_collisions, fix_joint_limits
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 import numpy as numphy
@@ -54,105 +55,33 @@ def _calculate_waypoint_count(joints, dt = 0.1):
         T+=1
     return T
 
-def plan_path(
-        bot: InterbotixManipulatorXS,
+def check_path(
         start:list,
         stop:list,
-        ignore:list = None,
-        waypoints:list = None,
-        failed_attempts:int = 0,
-        timeout: int = 0,
-        debug_print: bool = False
-        )->list:
+        ignore:Optional[list] = None,
+        )->tuple:
     """
-    plans a movement between a start pose and an end pose.
-    may recursively call itself to append waypoints to a partially planned path.    
-    
+    tests a movement between a start pose and an end pose.
+    if the movement collides with a box, returns false, long with the names of the colliding parts.
     :input start: a set of joints positions to start at
     :input end: a set of joint positions to end at.
     :input ignore: bounding boxes to ignore for collision checks
-    :input waypoints: List of previously computed waypoints. used for recursive calls
-    :input attempt: a way to 
-    :Returns: 
-    list of waypoint positions (or None),
-    Bool success 
+
+    :Returns success : True if the path is collision free
+    :returns robot_box: if collision, The part of the robot that collides 
+    :returns object_box: if collision, The object that is collided with
     """
-    if timeout > 100:
-        if debug_print:
-            print("Path planner: timed out")
-        return (None, False)
-    if ignore is None: ignore == []
-    if waypoints is None: 
-        waypoints = []
-    else:
-        error = test_endpoint(stop, ignore, debug_print)
-        if error: return (None, False)    
+    if ignore is None: ignore = []
  
     minus_start = [-1*s for s in start]
     joint_deltas = list_sum(stop, minus_start)
     waypoint_count = _calculate_waypoint_count(joint_deltas)
-    # If movement is very small, just gamble it.
-    if waypoint_count == 0:
-        return ([stop], True)
-    kaboom = 0
-    
+
     for dt in range(waypoint_count):
         next_position = list_sum(start, list_multiply(joint_deltas,((dt+1)/waypoint_count)))
         (kaboom, robot_box, object_box) = check_collisions(next_position)
         if kaboom: 
-            break
+            return (False, robot_box, object_box)
+    return (True, None, None)
     
 
-    if kaboom:
-        if debug_print:
-            print("Kaboom!")
-            print(f"{robot_box} collided with {object_box}")
-        
-        if failed_attempts == 0:       
-            
-            uprighter_position =[0,-0.2,-0.2,0,0,0]
-
-            position_attempt = list_sum(start,uprighter_position)
-
-            plan = plan_path(bot, start, position_attempt, ignore, waypoints,1, timeout+1)
-            if plan[1] == False:
-                return None, False
-            else: 
-                waypoints.append(plan[0][len(plan[0])-1])
-
-        elif failed_attempts == 1:
-            # preset values recorded as the arm folded in on itself
-            position_attempt =[-0.0782330259680748, -0.21168935298919678, 1.3897866010665894, -0.08283496648073196, -1.6106798648834229, 0.0] # waist irrelevant 
-            waist_index = 5
-            waist_angle = start[waist_index] 
-            position_attempt[waist_index] = waist_angle
-            plan = plan_path(bot, start,position_attempt,ignore, waypoints, 2, timeout+1)
-            if plan[1] == False:
-                return None,False
-            else: 
-                waypoints.append(plan[0][len(plan[0])-1])
-        elif failed_attempts == 2:
-            # preset values recorded as the arm rising up to the clouds bro
-            position_attempt = [-0.08130098134279251, -0.2991262674331665, -1.036971092224121, 0.13499031960964203, 1.372912883758545, 0.0]# waist irrelevant
-            waist_index = 5
-            waist_angle = start[waist_index]
-            position_attempt[waist_index] = waist_angle
-            plan = plan_path(bot,start,position_attempt,ignore, waypoints, 3, timeout+1)
-            if plan[1] == False:
-                return None, False
-            else:
-                waypoints.append(plan[0][len(plan[0])-1])
-
-        else:
-            #at this point you are beyond saving
-            if debug_print:
-                print("Movement planner failed - attempts exhausted")
-            return None, False
-            
-        if waypoints[1] == True:
-            # continue path planning from the new start point
-            plan_path(bot, waypoints[len(waypoints)-1],stop,ignore,waypoints,failed_attempts, timeout+1)
-    else:
-        waypoints.append(next_position)   
-  
-    return waypoints, True

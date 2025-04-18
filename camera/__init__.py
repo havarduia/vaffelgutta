@@ -1,2 +1,12 @@
-# Empty file to allow python to import code from this folder
-# Edit: Might actually be needed anymore, this was made as a part of debugging
+"""Camera module for detecting markers and tracking objects.
+
+This module provides classes for camera access, marker detection, and coordinate transformation.
+"""
+
+from camera.vision import Vision
+from camera.base import Camera
+from camera.realsense import RealSense
+from camera.markers import Aruco
+from camera.coordinates import CoordinateSystem
+
+__all__ = ['Vision', 'Camera', 'RealSense', 'Aruco', 'CoordinateSystem']

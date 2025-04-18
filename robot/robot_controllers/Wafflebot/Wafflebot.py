@@ -67,7 +67,7 @@ class Wafflebot:
             self.arm.set_joint_positions([0]*6) #one final blocking call
             sleep(2.0/50.0)
         else:
-            self.arm.set_joint_positions(self.home_pose)
+            self.arm.set_joint_positions(self.home_pose, moving_time = 2.0)
 
     def go_to_sleep_pose(self):
         sleep_joints = [0.0, -1.80, 1.59, 0.0, 0.5959, 0.0]
@@ -88,7 +88,7 @@ class Wafflebot:
             blocking=False
             )
             sleep(2.0/50.0)
-        self.arm.set_joint_positions(sleep_joints) #one final blocking call
+        self.arm.set_joint_positions(sleep_joints, moving_time = 2.0) #one final blocking call
         sleep(0.4)
 
     

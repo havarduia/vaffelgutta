@@ -7,13 +7,11 @@ from interbotix_common_modules.common_robot.robot import interbotix_is_up, robot
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 import rclpy
 from time import sleep
-from robot.robot_controllers.path_planner import list_multiply, list_sum
+from robot.robot_controllers.path_planner import list_multiply, list_sum, check_path
 from robot.robot_controllers.Wafflebot.moveit.MotionPlanner import MotionPlanner
-from camera.vision import Vision
 from robot.robot_controllers.Wafflebot.add_collisionobjects import add_collisionobjects
 from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
 from rclpy.logging import LoggingSeverity
-from ai.hand_detection import HandDetector
 from robot.tools.file_manipulation import Jsonreader
 import numpy as numphy
 
@@ -22,9 +20,6 @@ class Wafflebot:
         self,
         automatic_mode : bool,
         detect_collisions: bool = True,
-        use_hand_detection: bool = False,
-        vision: Optional[Vision] = None,
-        hand: Optional[HandDetector] = None,
         use_rviz: bool = True,
         debug_print: bool = False,
     ):
@@ -50,7 +45,6 @@ class Wafflebot:
         # misc inits
         self.speed = 1.0
         self.detect_collisions = detect_collisions
-        self.use_hand_detection = use_hand_detection
         self.debug_print = debug_print
         self.home_pose = self.arm.robot_des.M if self.automatic_mode else [0]*6
         if self.automatic_mode:
@@ -58,10 +52,6 @@ class Wafflebot:
             self.motionplanner.update_joint_states()
         if self.detect_collisions:
             self.collision_publisher = CollisionObjectPublisher()
-        if self.use_moveit or self.detect_collisions:
-            self.vision = vision
-        if self.use_hand_detection:
-            self.hand = hand
 
     # return the methods of the child class (interbotixmanipulatorxs)
     def __getattr__(self, name):
@@ -82,7 +72,7 @@ class Wafflebot:
     def go_to_sleep_pose(self):
         sleep_joints = [0.0, -1.80, 1.59, 0.0, 0.5959, 0.0]
         if not self.automatic_mode:
-            self.arm.set_joint_positions(sleep_joints)
+            self.arm.set_joint_positions(sleep_joints) 
             return
         start_joints = self.motionplanner.update_joint_states()
         for i in range(1, 51):
@@ -143,14 +133,14 @@ class Wafflebot:
         if returncode == -1:
             raise RuntimeError("Invalid pose passed")
         elif returncode == 0:
-            return self.move_to_joints(target, speed_scaling)
+            return self.move_to_joints(target, ignore, speed_scaling)
         elif returncode == 1:
             return self.move_to_matrix(target, ignore, speed_scaling) 
         else:
             raise RuntimeError("I f-ed up. check for invalid returns in interpret_target_command.")
 
 
-    def move_to_matrix(self, target: list[list[float]], ignore: Optional[list[str]], speed_scaling: float = 1.0) -> bool: 
+    def move_to_matrix(self, target: list[list[float]], ignore: Optional[list[str]] = None, speed_scaling: float = 1.0) -> bool: 
         """
         moves the bot to a given pose matrix.
         the "move" function should be used instend for robustness.
@@ -171,13 +161,19 @@ class Wafflebot:
             raise RuntimeError("This feature is only avaliable in dynamic mode")
             return False
 
-    def move_to_joints(self, target, speed_scaling):
+    def move_to_joints(self, target: list[float], ignore: Optional[list[str]] = None, speed_scaling: float = 1.0) -> bool: 
         assert (not self.automatic_mode), "This function is intended for manual mode only"
         if self.detect_collisions:
-            pass
+            start_joints = self.bot.arm.get_joint_positions()
+            (success, botbox, objbox) = check_path(start_joints, target, ignore)
+            if not success:
+                print(f"Detected collision between {botbox} and {objbox}")
+                execute_movement = input("Do you want to proceed anyway? (y/n): ")
+                if not (execute_movement.lower() == "y" or execute_movement.lower() == "yes"):
+                    return False
             # Test for collisions with lerp
             # if collision: return false? raise error?  
-        self.arm.set_joint_positions(target, moving_time=2.0/(speed_scaling*self.speed))
+        return self.arm.set_joint_positions(target, moving_time=2.0/(speed_scaling*self.speed))
 
     def grasp(self):
         if self.automatic_mode:

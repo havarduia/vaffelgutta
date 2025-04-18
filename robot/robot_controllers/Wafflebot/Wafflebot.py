@@ -20,15 +20,17 @@ import numpy as numphy
 class Wafflebot:
     def __init__(
         self,
-        automatic_mode: bool,
+        moveit : bool,
+        detect_collisions: bool,
+        use_hand_detection: bool = False,
         vision: Optional[Vision] = None,
         hand: Optional[HandDetector] = None,
         use_rviz: bool = True,
         debug_print: bool = False,
-        use_hand_detection: bool = False
     ):
         # Initialize robot:
-        interbotix_process = robot_boot_manager.robot_launch(use_rviz=use_rviz, use_moveit = automatic_mode)
+        self.use_moveit = moveit
+        interbotix_process = robot_boot_manager.robot_launch(use_rviz=use_rviz, use_moveit = self.use_moveit)
 
         self.bot = InterbotixManipulatorXS(
             robot_model="vx300s",
@@ -46,23 +48,24 @@ class Wafflebot:
         self.gripper = self.bot.gripper
         self.core = self.bot.core
         # misc inits
-        self.home_pose = self.arm.robot_des.M if automatic_mode else [0]*6
-        self.debug_print = debug_print
         self.speed = 1.0
-        self.automatic_mode = automatic_mode
+        self.detect_collisions = detect_collisions
+        self.debug_print = debug_print
         self.use_hand_detection = use_hand_detection
-        if self.automatic_mode:
+        self.home_pose = self.arm.robot_des.M if self.use_moveit else [0]*6
+        if self.use_moveit:
             self.motionplanner = MotionPlanner(interbotix_process)
-            self.collision_publisher = CollisionObjectPublisher()
-            self.vision = vision
             self.motionplanner.update_joint_states()
+        if self.detect_collisions:
+            self.collision_publisher = CollisionObjectPublisher()
+        if self.use_moveit or self.detect_collisions:
+            self.vision = vision
         if self.use_hand_detection:
             self.hand = hand
 
     # return the methods of the child class (interbotixmanipulatorxs)
     def __getattr__(self, name):
         return getattr(self.bot, name)
-
 
     def go_to_home_pose(self):
         if self.automatic_mode:

@@ -20,8 +20,8 @@ import numpy as numphy
 class Wafflebot:
     def __init__(
         self,
-        moveit : bool,
-        detect_collisions: bool,
+        automatic_mode : bool,
+        detect_collisions: bool = True,
         use_hand_detection: bool = False,
         vision: Optional[Vision] = None,
         hand: Optional[HandDetector] = None,
@@ -29,8 +29,8 @@ class Wafflebot:
         debug_print: bool = False,
     ):
         # Initialize robot:
-        self.use_moveit = moveit
-        interbotix_process = robot_boot_manager.robot_launch(use_rviz=use_rviz, use_moveit = self.use_moveit)
+        self.automatic_mode = automatic_mode
+        interbotix_process = robot_boot_manager.robot_launch(use_rviz=use_rviz, use_moveit = self.automatic_mode)
 
         self.bot = InterbotixManipulatorXS(
             robot_model="vx300s",
@@ -50,10 +50,10 @@ class Wafflebot:
         # misc inits
         self.speed = 1.0
         self.detect_collisions = detect_collisions
-        self.debug_print = debug_print
         self.use_hand_detection = use_hand_detection
-        self.home_pose = self.arm.robot_des.M if self.use_moveit else [0]*6
-        if self.use_moveit:
+        self.debug_print = debug_print
+        self.home_pose = self.arm.robot_des.M if self.automatic_mode else [0]*6
+        if self.automatic_mode:
             self.motionplanner = MotionPlanner(interbotix_process)
             self.motionplanner.update_joint_states()
         if self.detect_collisions:
@@ -105,9 +105,13 @@ class Wafflebot:
     def exit(self):
         if rclpy.ok():
             sleep(0.1)
-            self.collision_publisher.destroy_node()
+            try:
+                self.collision_publisher.destroy_node()
+            except AttributeError: pass
             sleep(0.1)
-            self.motionplanner.destroy_node()
+            try:
+                self.motionplanner.destroy_node()
+            except AttributeError: pass
             sleep(0.1)
             if interbotix_is_up():
                 robot_shutdown()
@@ -139,7 +143,7 @@ class Wafflebot:
         if returncode == -1:
             raise RuntimeError("Invalid pose passed")
         elif returncode == 0:
-            return self.move_to_joints(target)
+            return self.move_to_joints(target, speed_scaling)
         elif returncode == 1:
             return self.move_to_matrix(target, ignore, speed_scaling) 
         else:
@@ -152,8 +156,11 @@ class Wafflebot:
         the "move" function should be used instend for robustness.
         """
         if self.automatic_mode:
-            add_collisionobjects(ignore)
-            success = self.collision_publisher.publish_collisionobjects() 
+            if self.detect_collisions:
+                add_collisionobjects(ignore)
+                success = self.collision_publisher.publish_collisionobjects() 
+            else: 
+                success = True
             if success:
                 self.motionplanner.move(target, speed_scaling*self.speed)
                 return self.motionplanner.movement_success
@@ -161,14 +168,17 @@ class Wafflebot:
                 print("Wafflebot: Collision publishing failed")
             return False
         else:
-            raise RuntimeError("This feature is only avaliable in automatic mode")
+            raise RuntimeError("This feature is only avaliable in dynamic mode")
             return False
 
-    def move_to_joints(self, target):
+    def move_to_joints(self, target, speed_scaling):
         assert (not self.automatic_mode), "This function is intended for manual mode only"
-        self.arm.set_joint_positions(target, moving_time=2.0*speed_scaling)
+        if self.detect_collisions:
+            pass
+            # Test for collisions with lerp
+            # if collision: return false? raise error?  
+        self.arm.set_joint_positions(target, moving_time=2.0/(speed_scaling*self.speed))
 
-    
     def grasp(self):
         if self.automatic_mode:
             for _ in range(500):

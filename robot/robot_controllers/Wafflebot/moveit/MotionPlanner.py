@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 from time import sleep
+
+from numpy import true_divide
 from robot.robot_controllers.robot_boot_manager import robot_launch, robot_close
 from robot.tools.errorhandling import handle_error
 from robot.robot_controllers.Wafflebot.moveit.create_motion_plan_request import create_motion_plan_request
@@ -45,6 +47,7 @@ class MotionPlanner(Node):
         self.gripper_state = None
         self.update_count = 0
         self.movement_success =False 
+        self.blocking = True
         
 
     def update_joint_states(self):
@@ -66,6 +69,7 @@ class MotionPlanner(Node):
     def move(self, 
              target: list[list[float]],
              speed_scaling: float = 1.0,
+             blocking: bool = True,
              ) -> None: 
         if self.moving:
             print("already moving")
@@ -73,6 +77,8 @@ class MotionPlanner(Node):
             return
             
         self.moving = True
+        if not blocking:
+            self.blocking = False
         self.update_joint_states()
         start_state = self.joint_states
    
@@ -118,7 +124,13 @@ class MotionPlanner(Node):
                 self.moving = False
                 self.movement_success = False
                 return False
-            goal_handle.get_result_async().add_done_callback(self.trajectory_finished_callback)
+            if not self.blocking:
+                self.blocking = True
+                self.moving = False
+                self.movement_success = True
+                return True
+            else:
+                goal_handle.get_result_async().add_done_callback(self.trajectory_finished_callback)
         except Exception as e:
             self.moving = False
             self.movement_success = False

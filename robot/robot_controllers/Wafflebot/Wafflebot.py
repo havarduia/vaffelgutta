@@ -120,7 +120,7 @@ class Wafflebot:
             self.go_to_sleep_pose()
         self.exit()
 
-    def move(self, target, ignore: Optional[list[str]] = None, speed_scaling: float = 1.0 ):
+    def move(self, target, ignore: Optional[list[str]] = None, speed_scaling: float = 1.0, blocking: bool = True):
         """
         checks the input type and moves to a position.
         input can be either of:
@@ -133,14 +133,14 @@ class Wafflebot:
         if returncode == -1:
             raise RuntimeError("Invalid pose passed")
         elif returncode == 0:
-            return self.move_to_joints(target, ignore, speed_scaling)
+            return self.move_to_joints(target, ignore, speed_scaling, blocking)
         elif returncode == 1:
-            return self.move_to_matrix(target, ignore, speed_scaling) 
+            return self.move_to_matrix(target, ignore, speed_scaling, blocking) 
         else:
             raise RuntimeError("I f-ed up. check for invalid returns in interpret_target_command.")
 
 
-    def move_to_matrix(self, target: list[list[float]], ignore: Optional[list[str]] = None, speed_scaling: float = 1.0) -> bool: 
+    def move_to_matrix(self, target: list[list[float]], ignore: Optional[list[str]] = None, speed_scaling: float = 1.0,blocking: bool = True) -> bool: 
         """
         moves the bot to a given pose matrix.
         the "move" function should be used instend for robustness.
@@ -152,7 +152,7 @@ class Wafflebot:
             else: 
                 success = True
             if success:
-                self.motionplanner.move(target, speed_scaling*self.speed)
+                self.motionplanner.move(target, speed_scaling*self.speed, blocking)
                 return self.motionplanner.movement_success
             elif self.debug_print:
                 print("Wafflebot: Collision publishing failed")
@@ -161,7 +161,7 @@ class Wafflebot:
             raise RuntimeError("This feature is only avaliable in dynamic mode")
             return False
 
-    def move_to_joints(self, target: list[float], ignore: Optional[list[str]] = None, speed_scaling: float = 1.0) -> bool: 
+    def move_to_joints(self, target: list[float], ignore: Optional[list[str]] = None, speed_scaling: float = 1.0, blocking: bool = True) -> bool: 
         assert (not self.automatic_mode), "This function is intended for manual mode only"
         if self.detect_collisions:
             start_joints = self.bot.arm.get_joint_positions()
@@ -171,7 +171,7 @@ class Wafflebot:
                 execute_movement = input("Do you want to proceed anyway? (y/n): ")
                 if not (execute_movement.lower() == "y" or execute_movement.lower() == "yes"):
                     return False
-        return self.arm.set_joint_positions(target, moving_time=2.0/(speed_scaling*self.speed))
+        return self.arm.set_joint_positions(target, moving_time=2.0/(speed_scaling*self.speed), blocking = blocking)
 
     def grasp(self):
         if self.automatic_mode:

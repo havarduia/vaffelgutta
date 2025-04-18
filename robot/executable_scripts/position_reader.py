@@ -8,7 +8,8 @@ from camera.vision import Vision
 # user libraries: 
 from time import sleep
 from typing import Literal
-import keyboard
+from threading import Thread, Event
+from queue import Queue
 import numpy as numphy
 
 
@@ -102,55 +103,60 @@ def recordposition(bot: Wafflebot, tagid: int):
         print(f'Successfully written "{name}" to recordings.')
     return name
 
-def recordtrajectory(bot: Wafflebot, tagid: int):
+
+def _recordtrajectory(bot: Wafflebot, tagid: int, pose_name: str, event: Event, queue: Queue):
     # initialize values:
-    i = 0
     poses = dict()
     poseindex = 0
     reader = Jsonreader()
 
+    tag = reader.read("camera_readings").get(tagid)
+    while True:
+        # Record position
+        bot.arm.capture_joint_positions()
+        position_joints = bot.arm.get_joint_positions()
+        # Test for valid position
+        if bot.arm._check_joint_limits(position_joints):
+            position_mat = bot.arm.get_ee_pose().tolist() 
+            if tagid != 100:
+                position_offset = create_offset_matrix(position_mat, tag)
+            else:
+                position_offset = 100
+        else:
+            print("Joints are not within their limits. Try again bozo.")
+            bot.core.robot_torque_enable("group", "arm", True)
+            return
+        poses.update({f"{pose_name}_{poseindex}" :
+                      {
+                          "basepose":position_mat,
+                          "joints" : position_joints,
+                          "tag" : tagid,
+                          "offset" : position_offset 
+                      }})
+        poseindex+=1
+        sleep(0.1)
+        if event.is_set():
+            queue.put(poses)
+            return 
+        
+def recordtrajectory(bot: Wafflebot, tagid: int):
     bot.core.robot_torque_enable("group", "arm", False)
     pose_name = input("Enter pose name to begin recording. press enter to cancel.")
     if pose_name == "":
         return
-    print("press S to stop recording")
-    print("press Q to abort")
-    tag = reader.read("camera_readings").get(tagid)
-    while True:
-        if keyboard.is_pressed("s"):
-            break
-        if keyboard.is_pressed("q"):
-            bot.core.robot_torque_enable("group", "arm", True)
-            return
-        i+=1
-        sleep(0.01)
-        if i == 100:
-            i = 0
-
-            # Record position
-            bot.arm.capture_joint_positions()
-            position_joints = bot.arm.get_joint_positions()
-            # Test for valid position
-            if bot.arm._check_joint_limits(position_joints):
-                position_mat = bot.arm.get_ee_pose().tolist() 
-                if tagid != 100:
-                    position_offset = create_offset_matrix(position_mat, tag)
-                else:
-                    position_offset = 100
-            else:
-                print("Joints are not within their limits. Try again bozo.")
-                bot.core.robot_torque_enable("group", "arm", True)
-                return
-            poses.update({f"{pose_name}_{poseindex}" :
-                          {
-                              "basepose":position_mat,
-                              "joints" : position_joints,
-                              "tag" : tagid,
-                              "offset" : position_offset 
-                          }})
-            poseindex+=1
+    q = Queue()
+    e = Event()
+    t = Thread(target=_recordtrajectory, daemon=True, args=(bot,tagid, pose_name, e, q))
+    t.start()
+    print("press enter stop recording")
+    input()
+    e.set()
     bot.core.robot_torque_enable("group", "arm", True)
-        
+    poses = q.get()
+    t.join()
+    if input("press enter to save. Press Q to abort.\n").lower() != "q":
+        Jsonreader().write("recordings", poses)
+    
         
 
 def pop_item()->None:
@@ -185,7 +191,7 @@ def main(bot):
         elif userinput == str(5):
             break
         elif userinput == str(7):
-            bot.core.torque_enable("group", "arm", torqued)
+            bot.core.robot_torque_enable("group", "arm", torqued)
             torqued = not torqued
         elif userinput == str(8):
             if gripped:

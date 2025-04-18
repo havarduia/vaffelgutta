@@ -9,10 +9,14 @@ marker_sizes:
   0: 0.0470
   10: 0.0470
 origin_id: 0
-offset_x: -0.1800
-offset_y: -0.1800
+offset_x: 0 # -0.18
+offset_y: 0 # -0.18
 offset_z: 0.0000
 bias_x: 0.0000
 bias_y: 0.0000
 bias_z: 0.0000
 
+# Hand detection bias parameters
+hand_bias_x: 0.0000  # Forward/backward adjustment
+hand_bias_y: 0.0000  # Left/right adjustment
+hand_bias_z: 0.0000  # Up/down adjustment

@@ -171,8 +171,6 @@ class Wafflebot:
                 execute_movement = input("Do you want to proceed anyway? (y/n): ")
                 if not (execute_movement.lower() == "y" or execute_movement.lower() == "yes"):
                     return False
-            # Test for collisions with lerp
-            # if collision: return false? raise error?  
         return self.arm.set_joint_positions(target, moving_time=2.0/(speed_scaling*self.speed))
 
     def grasp(self):

@@ -7,7 +7,7 @@ from interbotix_common_modules.common_robot.robot import interbotix_is_up, robot
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 import rclpy
 from time import sleep
-from robot.robot_controllers.path_planner import list_multiply, list_sum, check_path
+from robot.robot_controllers.path_planner import list_multiply, list_sum, check_path, get_trajectory_joints
 from robot.robot_controllers.Wafflebot.moveit.MotionPlanner import MotionPlanner
 from robot.robot_controllers.Wafflebot.add_collisionobjects import add_collisionobjects
 from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
@@ -128,6 +128,10 @@ class Wafflebot:
         string - name of the pose in the recordings folder
         joints - joint states.
         """
+        if isinstance(target,str):
+            camerareadings = Jsonreader().read("recordings")
+            if (target+"_0") in camerareadings.keys():
+                self.movetotrajectory(target)
         use_joints = not self.automatic_mode
         (target, returncode) = interpret_target_command.interpret_target_command(target, use_joints,self.debug_print)
         if returncode == -1:
@@ -175,6 +179,14 @@ class Wafflebot:
         if not blocking:
             sleep(0.1)
         return success
+
+    def movetotrajectory(self, target: str):
+        waypoints = get_trajectory_joints(target)
+        wp_count = len(waypoints)
+        for waypoint in waypoints:
+            self.bot.arm.set_joint_positions(waypoint, blocking = False, moving_time = 1.0/wp_count)
+            sleep(2.0/wp_count)
+        self.bot.arm.set_trajectory_time(moving_time=2.0)
 
     def grasp(self):
         if self.automatic_mode:

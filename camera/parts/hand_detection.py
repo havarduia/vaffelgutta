@@ -3,17 +3,13 @@ import numpy as np
 import cv2
 import mediapipe as mp
 
-from camera.parts.realsense import RealSense
-
-
 class HandDetector:
     """
     Detects hands in frames via MediaPipe and computes 3D wrist position and transformation matrix.
     """
 
-    def __init__(self, camera: RealSense):
-        if not isinstance(camera, RealSense):
-            raise TypeError("camera must be a RealSense instance")
+    def __init__(self, camera):
+
         self.camera = camera
         self.rs_intrinsics = camera.get_rs_intrinsics()
         self.depth_scale = camera.get_depth_scale()

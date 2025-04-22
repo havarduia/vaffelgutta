@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from screen.sidebar import Sidebar
 from screen.pagecontroller import PageController
+from screen.notification_manager import NotificationManager
 # Global appearance
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -20,6 +21,9 @@ class TouchScreenApp(ctk.CTk):
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
+        # Create the notification manager (must be created before pages)
+        self.notification_manager = NotificationManager(self)
+
         self.sidebar = Sidebar(self, button_callback=self.on_button_click)
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.page_controller = PageController(self)
@@ -30,6 +34,32 @@ class TouchScreenApp(ctk.CTk):
             self.page_controller.go_back()
         else:
             self.page_controller.show_page(button_name)
+
+    def show_notification(self, message, popup_type="info", auto_hide=True, position="top"):
+        """Show a notification popup.
+
+        This method can be called from anywhere in the application.
+        """
+        self.notification_manager.show(message, popup_type, auto_hide, position)
+
+    def show_marker_status(self, detected=True, marker_id=None, position="top"):
+        """Show a notification about marker detection status.
+
+        This method can be called from anywhere in the application.
+        """
+        self.notification_manager.show_marker_status(detected, marker_id, position)
+
+    def show_confirmation(self, message, callback=None, position="center"):
+        """Show a confirmation dialog with Yes/No buttons.
+
+        Args:
+            message: The message to display
+            callback: A function to call with the result (True for Yes, False for No)
+            position: Where to position the dialog ("top", "center", "bottom")
+
+        This method can be called from anywhere in the application.
+        """
+        self.notification_manager.show_confirmation(message, callback, position)
 
 if __name__ == "__main__":
     app = TouchScreenApp()

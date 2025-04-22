@@ -60,12 +60,13 @@ class Wafflebot:
     def go_to_home_pose(self):
         if self.automatic_mode:
             self.move(self.home_pose)
+            sleep(0.2)
             start_joints = self.motionplanner.update_joint_states()
             for i in range(1, 51):
                 self.arm.set_joint_positions(list_multiply(start_joints, (1 - i / 50)), blocking=False)
-                sleep(0.02)
+                sleep(2.0/50.0)
             self.arm.set_joint_positions([0]*6) #one final blocking call
-            sleep(2.0/50.0)
+            sleep(0.2)
         else:
             self.arm.set_joint_positions(self.home_pose, moving_time = 2.0)
 

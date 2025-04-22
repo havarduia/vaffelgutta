@@ -24,13 +24,13 @@ class TouchScreenApp(ctk.CTk):
 
         # Create the notification manager (must be created before pages)
         self.notification_manager = NotificationManager(self)
+        self.maleman = maleman
 
         self.sidebar = Sidebar(self, button_callback=self.on_button_click)
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.page_controller = PageController(self)
         self.page_controller.grid(row=0, column=1, sticky="nsew")
 
-        self.maleman = maleman
         
 
     def on_button_click(self, button_name):

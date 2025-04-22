@@ -1,6 +1,8 @@
 import customtkinter as ctk
+from robot.tools.maleman import MaleMan
 from screen.pages import EmergencyPage, StatsPage, HomePage, DevModePage
 # Global appearance
+
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 

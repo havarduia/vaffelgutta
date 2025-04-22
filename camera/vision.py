@@ -138,3 +138,7 @@ class Vision:
 if __name__ == "__main__":
     vision = Vision()
     vision.run(show_image=True, draw_cubes=True, detect_hands=True)
+
+
+    # add a maleman to run vision.runonce() on a message (you choose the name) (msg field is None (i think))
+

@@ -196,6 +196,20 @@ class Wafflebot:
             raise RuntimeError("This feature is only avaliable in dynamic mode")
             return False
 
+
+
+
+
+    def test_male(self):
+        self.maleman.send_male("screen", "manual_mode_collision", [botbox, objbox])
+        execute_movement = self.read_male() 
+        print(execute_movement)
+
+
+
+
+
+
     def move_to_joints(self, target: list[float], ignore: Optional[list[str]] = None, speed_scaling: float = 1.0, blocking: bool = True) -> bool: 
         assert (not self.automatic_mode), "This function is intended for manual mode only"
         if self.detect_collisions:

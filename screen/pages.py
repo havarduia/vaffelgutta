@@ -2,6 +2,8 @@ import os
 from PIL import Image
 import customtkinter as ctk
 
+from robot.tools.maleman import MaleMan
+
 # Global appearance
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -12,10 +14,11 @@ FONT_BUTTON = ("Arial", 36)
 FONT_PIN_ENTRY = ("Arial", 48)
 
 class BasePage(ctk.CTkFrame):
-    def __init__(self, master, title, background_image_filename=None, app=None, **kwargs):
+    def __init__(self, master, maleman: MaleMan, title, background_image_filename=None, app=None, **kwargs):
         super().__init__(master, **kwargs)
         self.title = title
         self.app = app  # Store reference to the main app
+        self.maleman = maleman
 
         # Handle background image (do NOT pass it to super().__init__)
         if background_image_filename:
@@ -174,18 +177,7 @@ class HomePage(BasePage):
         Args:
             result: True if the user clicked Yes, False if the user clicked No
         """
-        if result:
-            self.show_notification(
-                message="Pang!",
-                popup_type="success",
-                auto_hide=True
-            )
-        else:
-            self.show_notification(
-                message="En annen gang!",
-                popup_type="error",
-                auto_hide=True
-            )
+        self.maleman.txmsg("robot", "collision_detected_response", result)    
 
 
 class EmergencyPage(BasePage):

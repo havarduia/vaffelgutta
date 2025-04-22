@@ -2,6 +2,7 @@ import customtkinter as ctk
 from screen.sidebar import Sidebar
 from screen.pagecontroller import PageController
 from screen.notification_manager import NotificationManager
+from robot.tools.maleman import MaleMan
 # Global appearance
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -12,7 +13,7 @@ FONT_BUTTON = ("Arial", 36)
 FONT_PIN_ENTRY = ("Arial", 48)
 
 class TouchScreenApp(ctk.CTk):
-    def __init__(self):
+    def __init__(self, maleman: MaleMan):
         super().__init__()
         self.title("Touchscreen GUI")
         self.attributes("-fullscreen", True)
@@ -28,6 +29,9 @@ class TouchScreenApp(ctk.CTk):
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         self.page_controller = PageController(self)
         self.page_controller.grid(row=0, column=1, sticky="nsew")
+
+        self.maleman = maleman
+        
 
     def on_button_click(self, button_name):
         if button_name == "Back":
@@ -62,5 +66,6 @@ class TouchScreenApp(ctk.CTk):
         self.notification_manager.show_confirmation(message, callback, position)
 
 if __name__ == "__main__":
-    app = TouchScreenApp()
+    maleman = MaleMan()
+    app = TouchScreenApp(maleman)
     app.mainloop()

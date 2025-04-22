@@ -15,13 +15,14 @@ from rclpy.logging import LoggingSeverity
 from robot.tools.file_manipulation import Jsonreader
 import numpy as numphy
 
+from robot.tools.maleman import MaleMan
+
 class Wafflebot:
     def __init__(
         self,
+        maleman: MaleMan,
         automatic_mode : bool,
-        detect_collisions: bool = True,
-        use_rviz: bool = True,
-        debug_print: bool = False,
+        use_rviz: bool = False,
     ):
         # Initialize robot:
         self.automatic_mode = automatic_mode
@@ -44,8 +45,10 @@ class Wafflebot:
         self.core = self.bot.core
         # misc inits
         self.speed = 1.0
-        self.detect_collisions = detect_collisions
-        self.debug_print = debug_print
+        self.detect_collisions = True
+        self.debug_print = True
+        self.maleman = maleman
+        self.male = None
         self.home_pose = self.arm.robot_des.M if self.automatic_mode else [0]*6
         if self.automatic_mode:
             self.motionplanner = MotionPlanner(interbotix_process)
@@ -56,6 +59,34 @@ class Wafflebot:
     # return the methods of the child class (interbotixmanipulatorxs)
     def __getattr__(self, name):
         return getattr(self.bot, name)
+
+    def _set_collision(self, enable : bool):
+        self.detect_collisions = enable
+    def _get_collision(self):
+        return self.detect_collisions
+
+    def _set_print(self, enable: bool):
+        self.debug_print = enable
+    def _get_print(self):
+        return self.debug_print
+
+    def rxmsg(self, operation: str, msg: any)
+        match operation:
+            case "set_collision":
+                self._set_collision(msg)
+            case "set_print":
+                self._set_print(msg)
+            case "collision_detected_response":
+                self.male = msg
+            case _:
+                print(f"no operation found for {operation}")
+                print(f"message contents: {str(msg)}")
+    def empty_malebox(self):
+        self.male = None
+    def read_male(self):
+        male = self.male
+        self.empty_malebox()
+        return male
 
     def go_to_home_pose(self):
         if self.automatic_mode:
@@ -171,9 +202,9 @@ class Wafflebot:
             start_joints = self.bot.arm.get_joint_positions()
             (success, botbox, objbox) = check_path(start_joints, target, ignore)
             if not success:
-                print(f"Detected collision between {botbox} and {objbox}")
-                execute_movement = input("Do you want to proceed anyway? (y/n): ")
-                if not (execute_movement.lower() == "y" or execute_movement.lower() == "yes"):
+                self.maleman.send_male("screen", "manual_mode_collision", [botbox, objbox])
+                execute_movement = self.read_male() 
+                if not execute_movement:
                     return False
         success = self.arm.set_joint_positions(target, moving_time=2.0/(speed_scaling*self.speed), blocking = blocking)
         if not blocking:

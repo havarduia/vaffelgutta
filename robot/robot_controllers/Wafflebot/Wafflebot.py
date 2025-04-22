@@ -201,7 +201,7 @@ class Wafflebot:
 
 
     def test_male(self):
-        self.maleman.send_male("screen", "manual_mode_collision", [botbox, objbox])
+        self.maleman.send_male("screen", "manual_mode_collision", ["botbox", "objbox"])
         execute_movement = self.read_male() 
         print(execute_movement)
 

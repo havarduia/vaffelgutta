@@ -70,7 +70,7 @@ class Wafflebot:
     def _get_print(self):
         return self.debug_print
 
-    def rxmsg(self, operation: str, msg: any)
+    def rxmsg(self, operation: str, msg: any):
         match operation:
             case "set_collision":
                 self._set_collision(msg)

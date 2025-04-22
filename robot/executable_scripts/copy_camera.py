@@ -12,7 +12,7 @@ import cv2
 from robot.tools.timekeeper import record_time, read_times
 import os
 import numpy as numphy
-from ai.hand_detection import HandDetector
+
 
 def get_aruco_pose(id: str):
     reader = Jsonreader()
@@ -59,14 +59,14 @@ def compute_rotation_DU(target_position: numphy.array) -> numphy.array:
 
 
 
-def follow_DU(bot: Wafflebot, handmatrix):
+def follow_DU(bot: Wafflebot, tagid, vision):
     reader = Jsonreader()
     starttime = time()
     endtime = time()
     while endtime - starttime <= 30:
         endtime = time()
-        bot.hand.start()
-        tag_pos = reader.read("hand_position")[handmatrix]
+        vision.run_once()
+        tag_pos = reader.read("camera_readings")[tagid]
 
         pos = compute_translation_DU(tag_pos)
         R = compute_rotation_DU(pos)
@@ -83,14 +83,14 @@ def follow_DU(bot: Wafflebot, handmatrix):
         
 
         
-def goToTag(bot: Wafflebot, tagid:str, pre_offset):
+def goToTag(bot: Wafflebot, tagid:str, pre_offset, vision):
     i = 0
     reader = Jsonreader()
     starttime = time()
     endtime = time()
     while endtime - starttime <= 10:
         endtime = time()
-        bot.vision.run_once()
+        vision.run_once()
         
         tag_pos = reader.read("camera_readings")[tagid]
         if pre_offset is not None:
@@ -100,18 +100,17 @@ def goToTag(bot: Wafflebot, tagid:str, pre_offset):
         target = abs_position_from_offset(tag_pos, offset)
 
         print("Moving robot")
-        print(f"movement success? {bot.move(target, speed_scaling=4.0)}")
-        sleep(0.1)
+        print(f"movement success? {bot.move(target, speed_scaling=9.0)}")
     return
 
-def follow_tag(bot, tagid):
+def follow_tag(bot, tagid, vision):
     offset =[
     [0.0,0.0,1.0,0.0],
     [0.0,1.0,0.0,0.0],
     [-1.0,0.0,0.0,0.20],
     [0.0,0.0,0.0,1.0]
     ]
-    goToTag(bot,tagid, offset)
+    goToTag(bot,tagid, offset, vision)
 
 def printmenu():
     print("Press 1 to record offset")
@@ -126,11 +125,9 @@ def printmenu():
 def main(bot):
     # Init robot  
     vision = Vision()
-    hand = HandDetector(vision)
   
     bot.go_to_home_pose()
     tagid = "25"
-    handmatrix = "matrix"
     torqed = True
     while True:
         printmenu()
@@ -141,10 +138,10 @@ def main(bot):
             print("That was not a number😡") # 😡
         match choice:
             case 1:
-                bot.vision.run_once()
+                vision.run_once()
                 recordOffset(bot, tagid)
             case 2:
-                goToTag(bot, tagid, None)
+                goToTag(bot, tagid, vision)
             case 3: 
                 tagid = str(input("Input new ID: "))
             case 4:
@@ -153,9 +150,10 @@ def main(bot):
             case 5:
                 break
             case 6:
-                follow_tag(bot,tagid)
+                follow_tag(bot,tagid, vision)
+                
             case 42453:
-                follow_DU(bot, handmatrix)
+                follow_DU(bot, tagid, vision)
             case _:
                 print("invalid input. Try again.")
 

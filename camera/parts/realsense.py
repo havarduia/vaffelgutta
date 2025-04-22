@@ -13,8 +13,12 @@ class RealSense(Camera):
     Implementation of the Camera interface for Intel RealSense cameras.
     """
 
-    def __init__(self):
-        """Initialize the RealSense camera."""
+    def __init__(self, camera_id=None):
+        """Initialize the RealSense camera.
+
+        Args:
+            camera_id: The serial number of the camera to use. If None, uses the first available camera.
+        """
         super().__init__()
         self.config_loader = ConfigLoader()
 
@@ -22,26 +26,39 @@ class RealSense(Camera):
         self.pipeline = rs.pipeline()
         self.config = rs.config()
 
-        # Find the first available RealSense camera
+        # Find available RealSense cameras
         ctx = rs.context()
         devices = ctx.query_devices()
         if len(devices) == 0:
             raise RuntimeError("No RealSense camera found.")
 
-        self.camera_id = devices[0].get_info(rs.camera_info.serial_number)
-        # Camera initialized with serial number
+        # If camera_id is provided, verify it exists
+        if camera_id:
+            # Check if the provided camera_id exists in the available devices
+            device_found = False
+            for device in devices:
+                if device.get_info(rs.camera_info.serial_number) == camera_id:
+                    device_found = True
+                    break
+            if not device_found:
+                raise ValueError(f"Camera with ID {camera_id} not found.")
+            self.camera_id = camera_id
+        else:
+            # Use the first available camera
+            self.camera_id = devices[0].get_info(rs.camera_info.serial_number)
 
         # Configure streams
         resolution = self.config_loader.get("resolution")
         resolution_d = self.config_loader.get("resolution_d")
         fps = self.config_loader.get("fps")
+        fps_d = self.config_loader.get("fps_d")
 
         self.config.enable_device(self.camera_id)
         self.config.enable_stream(
             rs.stream.color, resolution[0], resolution[1], rs.format.bgr8, fps
         )
         self.config.enable_stream(
-            rs.stream.depth, resolution_d[0], resolution_d[1], rs.format.z16, fps
+            rs.stream.depth, resolution_d[0], resolution_d[1], rs.format.z16, fps_d
         )
 
         # Start streaming

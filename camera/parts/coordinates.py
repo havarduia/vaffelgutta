@@ -23,9 +23,7 @@ class CoordinateSystem:
         self.bias_x = self.config_loader.get("bias_x")
         self.bias_y = self.config_loader.get("bias_y")
         self.bias_z = self.config_loader.get("bias_z")
-        self.last_origin_inv = (
-            None  # Store last known inverse transformation from origin
-        )
+        self.last_origin_inv = (None)  # Store last known inverse transformation from origin
 
     def transform_poses(self, poses):
         """

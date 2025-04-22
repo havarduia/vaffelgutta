@@ -1,140 +1,89 @@
 import cv2
-import numpy as np
-from typing import Union, List, Dict, Optional
-from robot.tools.file_manipulation import Jsonreader
-from camera.parts.realsense import RealSense
-from camera.parts.markers import Aruco
-from camera.parts.coordinates import CoordinateSystem
-from camera.parts.hand_detection import HandDetector
+from typing import Optional
+
+from camera.parts.camera_instance import CameraInstance
+from camera.parts.camera_manager import CameraManager
 
 
 class Vision:
-    """Main vision class that integrates camera, marker detection, and coordinate transformation."""
+    """Main vision class that manages multiple camera instances."""
+    def __init__(self) -> None:
+        # Initialize the camera manager
+        self.camera_manager = CameraManager()
 
-    def __init__(self):
-        """Initialize the vision system."""
-        self.jsonreader = Jsonreader()
-        # Initialize components
-        self.camera = RealSense()
-        self.aruco = Aruco(self.camera)
-        self.coord_sys = CoordinateSystem()
-        # Pass the coordinate system to the hand detector so it uses the same instance
-        self.hand_detector = HandDetector(self.camera)
+        # For backward compatibility
+        self.available_cameras = self.camera_manager.available_cameras
+
+    def add_camera(self, camera_id: Optional[str] = None, name: Optional[str] = None) -> str:
+        """Add a camera to the vision system.
+
+        Args:
+            camera_id: The serial number of the camera to add. If None, uses the first available camera.
+            name: A friendly name to use for accessing the camera. If None, uses cam1, cam2, etc.
+
+        Returns:
+            The name used to access the camera.
+        """
+        return self.camera_manager.add_camera(camera_id, name)
+
+    def remove_camera(self, name: str) -> None:
+        """Remove a camera from the vision system."""
+        self.camera_manager.remove_camera(name)
+
+    def __getattr__(self, name: str) -> CameraInstance:
+        """Allow accessing cameras as attributes (e.g., vision.cam1)."""
+        try:
+            return self.camera_manager.get_camera(name)
+        except ValueError:
+            raise AttributeError(f"'Vision' object has no attribute '{name}'")
+
+    def run_all(self, *args, **kwargs) -> None:
+        """Run all cameras simultaneously."""
+        if not self.camera_manager.cameras:
+            raise RuntimeError("No cameras added to vision system.")
+
+        # Convert show_image to return_image for run_once calls
+        run_once_kwargs = kwargs.copy()
+        if 'show_image' in run_once_kwargs:
+            run_once_kwargs['return_image'] = run_once_kwargs.pop('show_image')
+        else:
+            run_once_kwargs['return_image'] = True
+
+        try:
+            # Create windows for each camera
+            for name, camera in self.camera_manager.cameras.items():
+                # Start each camera in its own window
+                window_name = f"Camera {name}"
+                # Don't pass window_name to run_once
+                img = camera.run_once(*args, **run_once_kwargs)
+                if img is not None:
+                    cv2.imshow(window_name, img)
+
+            # Main loop
+            while True:
+                for name, camera in self.camera_manager.cameras.items():
+                    img = camera.run_once(*args, **run_once_kwargs)
+                    if img is not None:
+                        cv2.imshow(f"Camera {name}", img)
+
+                if cv2.waitKey(1) & 0xFF == 27:
+                    break
+        finally:
+            # Clean up all cameras
+            self.camera_manager.cleanup_all()
+            cv2.destroyAllWindows()
 
     def __del__(self):
         """Clean up resources when the object is deleted."""
-        pass
-
-    def _process_frame(self, draw_cubes=True):
-        """Process a single frame to detect markers and transform coordinates.
-
-        Args:
-            draw_cubes: Whether to draw 3D cubes on the markers
-
-        Returns:
-            tuple: (transformed_poses, annotated_image)
-        """
-        # Detect markers and estimate poses
-        poses, image = self.aruco.estimate_poses(draw_cubes=draw_cubes)
-
-        # Transform poses to robot coordinate system
-        transformed_poses = self.coord_sys.transform_poses(poses)
-
-        return transformed_poses, image
-
-    def _filter_tags(self, tags: Dict, allowed_tags: List[str]) -> Dict:
-        """Filter tags based on allowed tag IDs.
-
-        Args:
-            tags: Dictionary of tag poses
-            allowed_tags: List of allowed tag IDs as strings
-
-        Returns:
-            dict: Filtered dictionary of tag poses
-        """
-        if not allowed_tags:
-            return tags
-
-        filtered_tags = {}
-        for tag_id, pose in tags.items():
-            if str(tag_id) in allowed_tags:
-                filtered_tags[tag_id] = pose
-        return filtered_tags
-
-    def run_once(
-        self,
-        *allowed_tags: Union[str, int],
-        return_image: bool = False,
-        draw_cubes: bool = True,
-        detect_hands: bool = False
-    ) -> Optional[np.ndarray]:
-        """Process a single frame and update tag positions.
-
-        Args:
-            *allowed_tags: Optional list of tag IDs to track
-            return_image: Whether to return the annotated image
-            detect_hands: Whether to detect and track hands
-            draw_cubes: Whether to draw 3D cubes on the markers
-
-        Returns:
-            Optional[np.ndarray]: Annotated image if return_image is True, otherwise None
-        """
-        # Convert allowed_tags to strings
-        allowed_tag_strings = [str(tag) for tag in allowed_tags]
-
-        # Process frame
-        tags, image = self._process_frame(draw_cubes=draw_cubes)
-
-        # Filter tags if needed
-        if allowed_tag_strings:
-            tags = self._filter_tags(tags, allowed_tag_strings)
-
-        # Save to JSON
-        self.jsonreader.write("camera_readings", tags)
-
-        # Process hand detection on the same image if requested
-        if detect_hands:
-            image, _, _ = self.hand_detector.process_frame(image=image)
-
-        # Return image if requested
-        if return_image:
-            return image
-        return None
-
-    def run(
-        self,
-        *allowed_tags: Union[str, int],
-        show_image: bool = True,
-        draw_cubes: bool = True,
-        detect_hands: bool = False
-    ) -> None:
-        """Continuously run pose estimation, write data, and show video feed.
-
-        Args:
-            *allowed_tags: Optional list of tag IDs to track
-            show_image: Whether to display the video feed
-            detect_hands: Whether to detect and track hands
-            draw_cubes: Whether to draw 3D cubes on the markers
-        """
-        while True:
-            img = self.run_once(
-                *allowed_tags,
-                return_image=True,
-                draw_cubes=draw_cubes,
-                detect_hands=detect_hands
-            )
-
-            if show_image and img is not None:
-                cv2.imshow("Pose Estimation Feed", img)
-
-            if cv2.waitKey(1) & 0xFF == 27:  # ESC to break
-                cv2.destroyAllWindows()
-                break
+        if hasattr(self, 'camera_manager'):
+            self.camera_manager.cleanup_all()
 
 
-# =====================================================
-# Example Usage
-# =====================================================
 if __name__ == "__main__":
     vision = Vision()
-    vision.run(show_image=True, draw_cubes=True, detect_hands=True)
+
+    # Add cameras - will use the first available camera if no ID is specified
+    cam1_name = vision.add_camera(name="cam1")
+    cam2_name = vision.add_camera(name="cam2")
+    
+    vision.cam1.run(show_image=True, detect_markers=True, detect_hands=True)

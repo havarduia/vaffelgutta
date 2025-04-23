@@ -49,7 +49,6 @@ class Vision:
             self.camera_ids.append(i)
             self.arucos.append(Aruco(self.cameras[i]))
             self.hand_detectors.append(HandDetector(self.cameras[i], self.coord_sys))
-        print(self.cameras)
 
 
     def __del__(self):

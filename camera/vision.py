@@ -131,13 +131,15 @@ class Vision:
         aruco_processes = list()
         aruco_results = Queue() 
         images = [camera.get_color_frame() for camera in self.cameras]
-        for i, image, aruco in zip(range(len(images), images, self.arucos)):
+        i = 0
+        for image, aruco in zip(images, self.arucos):
             aruco_process = Process(
                     target=process_aruco,
                     args = (aruco, self.coord_sys, draw_cubes, aruco_results, i, image)
                     )
             aruco_processes.append(aruco_process)
             aruco_process.start()
+            i+=1
 
         # Process hand detection or gesture recognition
         if detect_hands:

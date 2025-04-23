@@ -7,7 +7,7 @@ syspath.append(ospath.abspath(ospath.expanduser("~/git/vaffelgutta")))
 
 from time import sleep
 
-def main(bot,cam,aruco,coordsys):
+def main(bot):
     # Not required but recommended:
     bot.go_to_home_pose()
 
@@ -24,23 +24,40 @@ def main(bot,cam,aruco,coordsys):
     5) See the other scripts for examples of movement.
     """
 
+    from robot.robot_controllers.path_planner import get_trajectory_joints, get_trajectory_matrix
+    bot.release()
+    bot.move("front_of_waffle_iron")
+    sleep(1)
+    bot.move("open_waffle_iron_0")
+    sleep(1)
+    bot.grasp()
+    trajectory = get_trajectory_joints("open_waffle_iron")
+    trajectory = get_trajectory_matrix("open_waffle_iron")
+    sleep(1)
+    for waypoint in trajectory:
+        bot.move(waypoint,speed_scaling = 2.0/0.02) 
+    trajectory.reverse()
+    for waypoint in trajectory:
+        bot.move(waypoint, speed_scaling =2.0/0.02)
+    bot.move(trajectory[-1], speed_scaling = 1)
+    bot.release()
+    sleep(1)
+    bot.move("front_of_waffle_iron")
 
 
 
-# footer:
+    # footer:
 
     bot.safe_stop()
 
 
 if __name__ == '__main__':
     from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
-    from camera.init_camera import initalize_system as init_camera
     from rclpy.exceptions import InvalidHandle
     from robot.tools.errorhandling import handle_error
     try:
-        cam, aruco, coordsys = init_camera()
-        bot = Wafflebot(coordsys)
-        main(bot=bot,cam=cam,aruco=aruco,coordsys=coordsys)
+        bot = Wafflebot(automatic_mode=True, detect_collisions=False)
+        main(bot=bot)
     # if error detected, run the error handler
     except (InvalidHandle):
         pass

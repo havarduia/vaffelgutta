@@ -10,6 +10,9 @@ cd $script_dir
 cp ../robot/assets/misc/vx300s_joint_limits.yaml ~/interbotix_ws/install/interbotix_xsarm_moveit/share/interbotix_xsarm_moveit/config/joint_limits/vx300s_joint_limits.yaml 
 cp ../robot/assets/misc/vx300s_joint_limits.yaml ~/interbotix_ws/src/interbotix_ros_manipulators/interbotix_ros_xsarms/interbotix_xsarm_moveit/config/joint_limits/vx300s_joint_limits.yaml 
 
+cp ../robot/assets/misc/modes.yaml ~/interbotix_ws/src/interbotix_ros_manipulators/interbotix_ros_xsarms/interbotix_xsarm_moveit/config/modes.yaml
+cp ../robot/assets/misc/modes.yaml ~/interbotix_ws/install/interbotix_xsarm_moveit/share/interbotix_xsarm_moveit/config/modes.yaml
+
 cd ~/
 
 # Install necessary dependencies

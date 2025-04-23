@@ -65,63 +65,66 @@ class CollisionChecker : public rclcpp::Node
         "publish_boxes", std::bind(&CollisionChecker::handle_service, this, std::placeholders::_1, std::placeholders::_2));    
   }
 
-
-
 private:
-void handle_service(const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
-    std::shared_ptr<std_srvs::srv::Trigger::Response> response)
-{
-  response->success = !update_collision();  // Update response based on the collision check
-}
+    void handle_service(const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+                        std::shared_ptr<std_srvs::srv::Trigger::Response> response)
+    {
+        response->success = update_collision();  // Update response based on the collision check
+    }
+    
 
+    bool update_collision() {
 
-bool update_collision() {
+    for(int i = 0; i<=1; i++){
+        json boxes_dict = open_boxes(i);
+        std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
 
-  for(int i = 0; i<=1; i++){
-    json boxes_dict = open_boxes(i);
-    std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
+        for (auto mybox : boxes_dict.items()){
+            
+            // Define a collision object (a box)
+            moveit_msgs::msg::CollisionObject collision_object;
+            collision_object.header.frame_id = "world";
+            collision_object.id = mybox.key();
+            
+            std::array<std::array<float,3>,2> mybox_corners = mybox.value();
+            std::array<float, 3> min_corner = mybox_corners[0];
+            std::array<float, 3> max_corner = mybox_corners[1];
+            float size_x = max_corner[0] - min_corner[0];
+            float size_y = max_corner[1] - min_corner[1];
+            float size_z = max_corner[2] - min_corner[2];
+            
+            float origin_x = min_corner[0] + size_x/2;
+            float origin_y = min_corner[1] + size_y/2;
+            float origin_z = min_corner[2] + size_z/2;
+            
+            // Define the box shape and dimensions
+            shape_msgs::msg::SolidPrimitive box;
+            box.type = shape_msgs::msg::SolidPrimitive::BOX;
+            box.dimensions = {size_x, size_y, size_z};  // x, y, z dimensions
 
-    for (auto mybox : boxes_dict.items()){
+            // Define the pose of the box (positioned in front of the robot)
+            geometry_msgs::msg::Pose box_pose;
+            box_pose.orientation.w = 1.0;  // No rotation
+            box_pose.position.x = origin_x;     
+            box_pose.position.y = origin_y;
+            box_pose.position.z = origin_z;    
 
-      // Define a collision object (a box)
-      moveit_msgs::msg::CollisionObject collision_object;
-      collision_object.header.frame_id = "world";
-      collision_object.id = mybox.key();
+            // Add the box shape and pose to the collision object
+            collision_object.primitives.push_back(box);
+            collision_object.primitive_poses.push_back(box_pose);
 
-      std::array<std::array<float,3>,2> mybox_corners = mybox.value();
-      std::array<float, 3> min_corner = mybox_corners[0];
-      std::array<float, 3> max_corner = mybox_corners[1];
-      float size_x = max_corner[0] - min_corner[0];
-      float size_y = max_corner[1] - min_corner[1];
-      float size_z = max_corner[2] - min_corner[2];
-
-      float origin_x = min_corner[0] + size_x/2;
-      float origin_y = min_corner[1] + size_y/2;
-      float origin_z = min_corner[2] + size_z/2;
-
-      // Define the box shape and dimensions
-      shape_msgs::msg::SolidPrimitive box;
-      box.type = shape_msgs::msg::SolidPrimitive::BOX;
-      box.dimensions = {size_x, size_y, size_z};  // x, y, z dimensions
-
-      // Define the pose of the box (positioned in front of the robot)
-      geometry_msgs::msg::Pose box_pose;
-      box_pose.orientation.w = 1.0;  // No rotation
-      box_pose.position.x = origin_x;     
-      box_pose.position.y = origin_y;
-      box_pose.position.z = origin_z;    
-
-      // Add the box shape and pose to the collision object
-      collision_object.primitives.push_back(box);
-      collision_object.primitive_poses.push_back(box_pose);
-
-      if (i == 0){
-        collision_object.operation = moveit_msgs::msg::CollisionObject::ADD;
-      }
-      else{
-        collision_object.operation = moveit_msgs::msg::CollisionObject::REMOVE;
-      }
-      collision_objects.push_back(collision_object);    
+            if (i == 0){
+            collision_object.operation = moveit_msgs::msg::CollisionObject::ADD;
+            }
+            else{
+                collision_object.operation = moveit_msgs::msg::CollisionObject::REMOVE;
+            }
+            collision_objects.push_back(collision_object);    
+        }
+        // Add the collision object into the planning scene
+        planning_scene_interface.applyCollisionObjects(collision_objects);
+        }
+    return true;
     }
     // Add the collision object into the planning scene
     planning_scene_interface.applyCollisionObjects(collision_objects);
@@ -142,7 +145,7 @@ int main(int argc, char** argv) {
     
     auto node = std::make_shared<CollisionChecker>();
 
-    rclcpp::spin(node)
+    rclcpp::spin(node);
 
     rclcpp::shutdown();
     return 0;

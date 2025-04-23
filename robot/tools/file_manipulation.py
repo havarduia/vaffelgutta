@@ -20,6 +20,7 @@ class Jsonreader:
 
     def read(self, filename: str)->dict:
         """reads the specified file contents as .json"""    
+        if filename.endswith(".json"): filename=filename[:-5]
         try:
             with open((self.directory_path+filename+".json"), "r+") as file:
                 if file.read() == "":
@@ -41,6 +42,7 @@ class Jsonreader:
 
         :param data: Dictionary containing the data to be stored. Can be nested dict.
         """
+        if filename.endswith(".json"): filename=filename[:-5]
         all_data = self.read(filename)
         updated_data = {}
         for key, value in data.items():
@@ -59,6 +61,7 @@ class Jsonreader:
         return None
     
     def clear(self, filename: str) -> None:
+        if filename.endswith(".json"): filename=filename[:-5]
         filepath = self.directory_path + filename + ".json"
         if os_path.exists(filepath):
             with open(filepath, "w") as file:
@@ -75,6 +78,7 @@ class Jsonreader:
         
         :param key: the key to pop
         """
+        if filename.endswith(".json"): filename=filename[:-5]
         data = self.read(filename)
         try:
             if not data: raise KeyError

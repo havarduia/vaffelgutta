@@ -21,16 +21,6 @@ def _test_collision(object1: list, object2: list)-> bool:
     #else:
     return True
 
-def read_boxes(name):
-    path = getcwd()
-    path += f"/robot/assets/boundingboxes/{name}.py"
-    with open(path,"r") as file:
-        box_list: dict = eval(file.read(), {"np":numphy})
-    boxes = []  
-    for key in box_list.keys():
-        boxes.append((box_list[key]))
-    return (box_list.keys(), boxes)
-
 
 def _get_joint_limit_map(ind: int, bound_is_upper: bool):
     """
@@ -130,10 +120,10 @@ def check_collisions(pose: list, overrides: list = None):
 
     reader = Jsonreader("robot/assets/boundingboxes/")
     robotboxes = reader.read("robot")
-    boundingboxes = reader.read("boundingboxes")
+    boundingboxes: dict = reader.read("static").update(reader.read("dynamic"))
 
     # Test for collision:
-    for object_boxname, object_box in zip(boundingboxes.keys(),boundingboxes.values()):
+    for object_boxname, object_box in boundingboxes.items():
         if object_boxname in overrides:
             continue
         for robot_boxname, robot_box in zip(robotboxes.keys(), robotboxes.values()):

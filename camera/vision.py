@@ -175,9 +175,5 @@ class Vision:
 # =====================================================
 if __name__ == "__main__":
     vision = Vision()
-<<<<<<< HEAD
     vision.run(show_image=True, detect_markers=False)
-=======
-    # Example usage: Run with gesture detection enabled
-    vision.run(show_image=True, draw_cubes=True, detect_gestures=True)
->>>>>>> 01bd0e8dd2e2ed156e77bc13a1f1b0d92583ecb6
+

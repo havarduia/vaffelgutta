@@ -16,7 +16,6 @@ class RealSense(Camera):
         """
         super().__init__()
         self.config_loader = ConfigLoader()
-<<<<<<< HEAD
 
         if camera_id is None:
             raise TypeError("No camera specified!")
@@ -24,12 +23,6 @@ class RealSense(Camera):
         # Get the actual serial number from the config using the camera_id as the key
         self.serial_number = self.config_loader.get(camera_id)
 
-=======
-        if camera_id is None:
-            raise TypeError("No camera specified!")
-        
-        self.camera_id = self.config_loader.get(camera_id)
->>>>>>> 6602363920169fb8c41f10611880be355fc4a790
         # Camera setup
         self.pipeline = rs.pipeline()
         self.config = rs.config()

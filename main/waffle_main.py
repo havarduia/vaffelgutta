@@ -17,9 +17,21 @@ def init():
     bot = Wafflebot(coordsys)
     userstate_input = input("Input the start state: \n")
     try:
-        userstate = State[userstate_input.upper()]
+        # Try to match the input to a state enum
+        userstate_input = userstate_input.upper()
+        # If the input is a function name (like 'sleepstate'), try to match it to the corresponding state
+        if userstate_input == 'SLEEPSTATE':
+            userstate = State.SLEEP
+        elif userstate_input == 'RESTSTATE':
+            userstate = State.REST
+        elif userstate_input == 'HOMESTATE':
+            userstate = State.HOME
+        else:
+            # Otherwise, try to match it directly to a state enum
+            userstate = State[userstate_input]
         state = CurrentState(userstate)
     except KeyError:
+        print(f"State '{userstate_input}' not found. Defaulting to SLEEP state.")
         state = CurrentState(State.SLEEP)
     return bot, camera, aruco, coordsys, state
 
@@ -80,12 +92,12 @@ def main():
             case State.ERROR:
                 print("Hagle")
                 error(state, bot)
-                
+
             case _:
                 print("An unknown state was encountered!")
                 bot.safe_stop(slow=True)
                 break
-    
+
     bot.safe_stop()
 
 if __name__ == "__main__":

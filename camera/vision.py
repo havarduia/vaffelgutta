@@ -15,7 +15,7 @@ class Vision:
         """Initialize the vision system."""
         self.jsonreader = Jsonreader()
         # Initialize components
-        self.camera = RealSense("id2")
+        self.camera = RealSense("id1")
         self.aruco = Aruco(self.camera)
         self.coord_sys = CoordinateSystem()
         # Pass the coordinate system to the hand detector so it uses the same instance

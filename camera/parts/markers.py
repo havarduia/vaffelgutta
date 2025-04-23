@@ -6,7 +6,6 @@ import cv2
 import numpy as np
 from camera.config.configloader import ConfigLoader
 
-
 class Aruco:
     """
     Class for detecting ArUco markers and estimating their poses.

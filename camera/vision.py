@@ -9,7 +9,7 @@ from camera.parts.hand_detection import HandDetector
 from multiprocessing import Queue, Process 
 
 
-def process_aruco(aruco, coord_sys, results: Queue, draw_cubes, order):
+def process_aruco(aruco, coord_sys, results: Queue, draw_cubes, order, image):
     """Process a single frame to detect markers and transform coordinates.
 
     Args:
@@ -19,7 +19,7 @@ def process_aruco(aruco, coord_sys, results: Queue, draw_cubes, order):
         tuple: (transformed_poses, annotated_image)
     """
     # Detect markers and estimate poses
-    poses, image = aruco.estimate_poses(draw_cubes=draw_cubes)
+    poses, image = aruco.estimate_poses(image, draw_cubes=draw_cubes)
     posematrices = poses.values()
     distances = [np.linalg.norm(p[3][0], p[3][1],p[3][2]) for p in posematrices]
     # Transform poses to robot coordinate system

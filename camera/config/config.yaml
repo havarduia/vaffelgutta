@@ -8,7 +8,7 @@ fps_d: 30
 dictionary: DICT_4X4_50
 marker_length: 0.04750  # default marker length
 marker_sizes:
-  25: 0.11        # marker 25 has a size of 0.08 m
+  25: 0.0480        # marker 25 has a size of 0.08 m
   33: 0.0330        # marker 23 has a size of 0.06 m
   0: 0.0700
   10: 0.0470

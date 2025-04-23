@@ -6,7 +6,6 @@ import cv2
 import numpy as np
 from camera.config.configloader import ConfigLoader
 
-
 class Aruco:
     """
     Class for detecting ArUco markers and estimating their poses.
@@ -29,7 +28,18 @@ class Aruco:
         self.aruco_dict = cv2.aruco.getPredefinedDictionary(
             getattr(cv2.aruco, self.dictionary)
         )
+
+        # Configure detector parameters for better performance
         parameters = cv2.aruco.DetectorParameters()
+        # Reduce the number of iterations in the corner refinement
+        parameters.cornerRefinementMaxIterations = 15
+        # Increase the threshold for faster detection
+        parameters.adaptiveThreshConstant = 10
+        # Reduce the number of marker detection iterations
+        parameters.maxMarkerPerimeterRate = 4.0
+        # Increase minimum marker distance to avoid false positives
+        parameters.minMarkerDistanceRate = 0.05
+
         self.detector = cv2.aruco.ArucoDetector(self.aruco_dict, parameters)
 
     def detect_markers(self, image=None):
@@ -48,18 +58,22 @@ class Aruco:
         if image is None:
             return None, None
 
+        # Convert to grayscale for faster processing
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        # Detect markers without refinement first
         corners, ids, _ = self.detector.detectMarkers(gray)
 
-        if corners:
-            # Refine corner positions to sub-pixel accuracy
+        # Only refine corners if markers are detected and we have a reasonable number
+        if corners and len(corners) <= 5:  # Only refine if we have 5 or fewer markers
+            # Refine corner positions to sub-pixel accuracy with optimized parameters
             for i in range(len(corners)):
                 cv2.cornerSubPix(
                     gray,
                     np.array(corners[i], dtype=np.float32),
-                    (5, 5),
+                    (3, 3),  # Smaller window size
                     (-1, -1),
-                    criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 30, 0.1),
+                    criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 15, 0.1),  # Fewer iterations
                 )
 
         return corners, ids.flatten() if ids is not None else None
@@ -108,7 +122,7 @@ class Aruco:
 
     def _draw_cube(self, image, camera_matrix, dist_coeffs, rvec, tvec, marker_length):
         """
-        Draw a 3D cube on the marker.
+        Draw a simplified 3D cube on the marker for better performance.
 
         Args:
             image: Image to draw on
@@ -166,15 +180,16 @@ class Aruco:
             (3, 7),
         ]
 
-        # Draw edges
+        # Draw edges with thinner lines for better performance
         for i, j in edges:
             pt1 = tuple(cube_image_points[i])
             pt2 = tuple(cube_image_points[j])
-            cv2.line(image, pt1, pt2, (0, 255, 255), 2)  # Yellow lines
+            cv2.line(image, pt1, pt2, (0, 255, 255), 1)  # Thinner yellow lines
 
-        # Draw vertices
-        for point in cube_image_points:
-            cv2.circle(image, tuple(point), 4, (0, 0, 255), -1)  # Red circles
+        # Skip drawing vertices for better performance
+        # Only draw the top center point as a reference
+        top_center = tuple(np.mean(cube_image_points[4:8], axis=0).astype(int))
+        cv2.circle(image, top_center, 3, (0, 0, 255), -1)  # Red circle
 
         return image
 
@@ -198,31 +213,47 @@ class Aruco:
         if image is None:
             return {}, None
 
+        # Only create a copy if we need to draw on it
         pose_image = image.copy() if (draw_markers or draw_cubes) else None
+
+        # Detect markers
         corners, ids = self.detect_markers(image)
 
         if ids is None or not corners:
             # No markers detected
             return {}, pose_image
 
+        # Process all markers at once
         raw_poses = []
         for tag_id, corner in zip(ids, corners):
             marker_length = self.marker_sizes.get(tag_id, self.marker_length)
             objectPoints, imagePoints = self._get_points(corner, marker_length)
 
+            # Use a faster PnP method with fewer iterations
             success, rvec, tvec = cv2.solvePnP(
                 objectPoints,
                 imagePoints,
                 camera_matrix,
                 dist_coeffs,
-                flags=cv2.SOLVEPNP_IPPE_SQUARE,
+                flags=cv2.SOLVEPNP_IPPE_SQUARE,  # Fast method for square markers
             )
 
             if not success:
                 # Pose estimation failed for this tag
                 continue
 
-            if pose_image is not None:
+            raw_poses.append((tag_id, rvec, tvec))
+
+        # Only draw if we have poses and need to draw
+        if pose_image is not None and raw_poses:
+            # Draw all markers at once if needed
+            if draw_markers and corners is not None and ids is not None:
+                cv2.aruco.drawDetectedMarkers(pose_image, corners, ids)
+
+            # Draw axes and cubes for each marker
+            for tag_id, rvec, tvec in raw_poses:
+                marker_length = self.marker_sizes.get(tag_id, self.marker_length)
+
                 if draw_markers:
                     # Draw axis on the marker
                     cv2.drawFrameAxes(
@@ -233,7 +264,6 @@ class Aruco:
                         tvec,
                         marker_length * 0.5,
                     )
-                    cv2.aruco.drawDetectedMarkers(pose_image, corners, ids)
 
                 if draw_cubes:
                     # Draw 3D cube on the marker
@@ -246,11 +276,10 @@ class Aruco:
                         marker_length,
                     )
 
-            raw_poses.append((tag_id, rvec, tvec))
-
         if not raw_poses:
             return {}, pose_image
 
+        # Create transformation matrices for all poses at once
         poses = {
             tag_id: self._get_homo_matrix(rvec, tvec).tolist()
             for tag_id, rvec, tvec in raw_poses

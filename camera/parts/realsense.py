@@ -9,43 +9,44 @@ from camera.config.configloader import ConfigLoader
 
 
 class RealSense(Camera):
-    """
-    Implementation of the Camera interface for Intel RealSense cameras.
-    """
 
-    def __init__(self):
-        """Initialize the RealSense camera."""
+    def __init__(self, camera_id=None):
+        """
+        Initialize the RealSense camera.
+        """
         super().__init__()
         self.config_loader = ConfigLoader()
+
+        if camera_id is None:
+            raise TypeError("No camera specified!")
+
+        # Get the actual serial number from the config using the camera_id as the key
+        self.serial_number = self.config_loader.get(camera_id)
 
         # Camera setup
         self.pipeline = rs.pipeline()
         self.config = rs.config()
 
-        # Find the first available RealSense camera
-        ctx = rs.context()
-        devices = ctx.query_devices()
-        if len(devices) == 0:
-            raise RuntimeError("No RealSense camera found.")
-
-        self.camera_id = devices[0].get_info(rs.camera_info.serial_number)
-        # Camera initialized with serial number
-
         # Configure streams
         resolution = self.config_loader.get("resolution")
         resolution_d = self.config_loader.get("resolution_d")
         fps = self.config_loader.get("fps")
+        fps_d = self.config_loader.get("fps_d")
 
-        self.config.enable_device(self.camera_id)
+        self.camera_id = camera_id
+        print(f"Using camera ID: '{self.camera_id}' with serial number: '{self.serial_number}'")
+        self.config.enable_device(self.serial_number)
+
         self.config.enable_stream(
             rs.stream.color, resolution[0], resolution[1], rs.format.bgr8, fps
         )
         self.config.enable_stream(
-            rs.stream.depth, resolution_d[0], resolution_d[1], rs.format.z16, fps
+            rs.stream.depth, resolution_d[0], resolution_d[1], rs.format.z16, fps_d
         )
 
         # Start streaming
         self._start_streaming()
+
 
     def _start_streaming(self):
         """Start the camera stream."""
@@ -130,3 +131,4 @@ class RealSense(Camera):
             print("Warning: Stream not active or intrinsics not available.")
             return None
         return self.intrinsics  # Return the stored rs.intrinsics object
+

@@ -10,28 +10,30 @@ from camera.config.configloader import ConfigLoader
 
 class RealSense(Camera):
 
-    def __init__(self, camera_id=None, camera_key="id1"):
+    def __init__(self, camera_id=None):
         """
         Initialize the RealSense camera.
         """
         super().__init__()
         self.config_loader = ConfigLoader()
+        
+        self.camera_id = str(self.config_loader.get(camera_id)).strip()
 
-        # Load camera ID from config if not provided
         if camera_id is None:
-            camera_id = self.config_loader.get(camera_key)
-
+            raise TypeError("No camera specified!")
+        
         # Camera setup
         self.pipeline = rs.pipeline()
         self.config = rs.config()
-        self.camera_id = camera_id
 
         # Configure streams
         resolution = self.config_loader.get("resolution")
         resolution_d = self.config_loader.get("resolution_d")
         fps = self.config_loader.get("fps")
         fps_d = self.config_loader.get("fps_d")
-
+        
+        self.camera_id = camera_id
+        print(f"Using camera ID: '{self.camera_id}'")
         self.config.enable_device(self.camera_id)
         
         self.config.enable_stream(

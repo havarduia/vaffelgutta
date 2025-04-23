@@ -7,11 +7,11 @@ def pick_up_spray(state: "CurrentState", bot: "Wafflebot"):
     actions = Actions(bot)
     reader = Jsonreader()
 
-    reader.pop("camera_readings", Tags.OPENED_IRON_TAG) # tag id 2 is opened iron
+    reader.pop("camera_readings", Tags.IRON_TAG) # tag id 2 is opened iron
     bot.cam.start("all")
     tags = reader.read("camera_readings")
 
-    if Tags.OPENED_IRON_TAG in tags.keys():
+    if Tags.IRON_TAG not in tags.keys(): # If not there, assume it is open.
         try:
             actions.spray_lube() 
             state.set(State.SPRAY)

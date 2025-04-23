@@ -8,11 +8,11 @@ def home(state: "CurrentState", bot: "Wafflebot"):
     actions = Actions(bot)
 
     reader = Jsonreader()
-    reader.pop("camera_readings", Tags.CLOSED_IRON_TAG)
+    reader.pop("camera_readings", Tags.IRON_TAG)
     bot.cam.start("all")
     tags = reader.read("camera_readings")
     
-    if Tags.CLOSED_IRON_TAG in tags.keys():
+    if Tags.IRON_TAG in tags.keys():
         try:
             bot.move("waffle_iron")
             actions.open_waffle_iron() 

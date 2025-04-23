@@ -11,15 +11,10 @@ def return_stick(state: "CurrentState", bot: "Wafflebot"):
     reader.clear("camera_readings")
     bot.cam.start("all")
     tags = reader.read("camera_readings")
-    if Tags.CLOSED_IRON_TAG in tags.keys():
+    if Tags.IRON_TAG in tags.keys():
         state.set(State.HOME)
-    elif Tags.OPENED_IRON_TAG in tags.keys():
+    elif Tags.IRON_TAG not in tags.keys():
         state.set(State.OPEN_IRON)
-    
-    
-    
-    
-
 
 
 if __name__ == "__main__":

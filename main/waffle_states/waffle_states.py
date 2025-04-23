@@ -31,13 +31,12 @@ class CurrentState:
         return self.state
     
 class Tags(Enum):
-    CLOSED_IRON_TAG = "1"
-    OPENED_IRON_TAG = "2"
+    LADLE_TAG = "1"
+    IRON_TAG = "2"
     SPRAY_TAG = "3"
-    LADLE_TAG = "4"
-    STICKS_TAG = "5"
-    JAM_TAG = "6"
-    FOLLOW_ME_TAG = "7"
+    STICKS_TAG = "4"
+    JAM_TAG = "5"
+    FOLLOW_ME_TAG = "6"
     ORIGIN_TAG = "0"
     
     # ...fill in tags here

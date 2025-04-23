@@ -8,20 +8,15 @@ def open_iron2(state: "CurrentState", bot: "Wafflebot"):
     # TODO finish logic
 
     actions = Actions(bot)
-    reader = Jsonreader()
-
-    bot.cam.start("all")
-    tags = reader.read("camera_readings")
     
-    if Tags.STICKS_TAG in tags.keys(): # Tag 6 is meant to be the sticks in the waffle iron.
-        try:
-            bot.move("sticks")
-            actions.take_out_waffle() # Take out sticks from waffle iron with the waffle attached hopefully.
-            bot.move("front_of_waffle_iron") # Here for changing state
-            state.set(State.PICK_UP_WAFFLE)
-        except FloatingPointError: # unused error used as signal.
-            state.set(State.ERROR)
-            return
+    try:
+        bot.move("sticks")
+        actions.take_out_waffle() # Take out sticks from waffle iron with the waffle attached hopefully.
+        bot.move("front_of_waffle_iron") # Here for changing state
+        state.set(State.PICK_UP_WAFFLE)
+    except FloatingPointError: # unused error used as signal.
+        state.set(State.ERROR)
+        return
 
 if __name__ == "__main__":
     # to resolve type annotation

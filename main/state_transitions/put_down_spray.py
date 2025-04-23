@@ -5,6 +5,8 @@ from robot.robot_controllers.movements.action_header import Actions
 def put_down_spray(state: "CurrentState", bot: "Wafflebot"):
     actions = Actions(bot)
     reader = Jsonreader()
+    
+    reader.pop("camera_readings", Tags.LADLE_TAG)
     bot.cam.start("all")
     tags = reader.read("camera_readings")
 

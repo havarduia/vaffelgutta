@@ -8,12 +8,12 @@ def return_ladle(state: "CurrentState", bot: "Wafflebot"):
     bot.cam.start("all")
     tags = reader.read("camera_readings")
     try:
-        if Tags.OPENED_IRON_TAG in tags.keys():     
+        if Tags.IRON_TAG not in tags.keys():     
             bot.move("front_of_waffle_iron")
             actions.close_waffle_iron()
             bot.move("front_of_waffle_iron")
             state.set(State.CLOSE_IRON)
-        elif Tags.CLOSED_IRON_TAG in tags.keys():
+        elif Tags.IRON_TAG in tags.keys():
             state.set(State.CLOSE_IRON) 
         else:
             state.set(State.ERROR)

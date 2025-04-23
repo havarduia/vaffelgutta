@@ -142,7 +142,7 @@ class Vision:
         if detect_hands:
             assert not detect_gestures, "detect_hands and detect_gestures should never run at the same time"
             camera = self.cameras[0]
-            image, depth = camera.get_aligned_frame()
+            image, depth = camera.get_aligned_frames()
             hand_detector = self.hand_detectors[0]
             result, image = self._process_hand(image, depth, False, hand_detector)
 
@@ -153,7 +153,7 @@ class Vision:
         if detect_gestures:
             assert not detect_hands, "detect_hands and detect_gestures should never run at the same time"
             camera = self.cameras[1]
-            image, depth = camera.get_aligned_frame()
+            image, depth = camera.get_aligned_frames()
             hand_detector = self.hand_detectors[1]
             result, image = self._process_hand(image, depth, True, hand_detector)
             

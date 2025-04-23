@@ -15,7 +15,7 @@ class Vision:
         """Initialize the vision system."""
         self.jsonreader = Jsonreader()
         # Initialize components
-        self.camera = RealSense("id2")
+        self.camera = RealSense("id1")
         self.aruco = Aruco(self.camera)
         self.coord_sys = CoordinateSystem()
         # Pass the coordinate system to the hand detector so it uses the same instance
@@ -128,7 +128,8 @@ class Vision:
         show_image: bool = True,
         draw_cubes: bool = True,
         detect_hands: bool = False,
-        detect_gestures: bool = False
+        detect_gestures: bool = False,
+        detect_markers: bool = True
     ) -> None:
         """Continuously run pose estimation, write data, and show video feed.
 
@@ -138,28 +139,40 @@ class Vision:
             detect_hands: Whether to detect and track hands
             detect_gestures: Whether to detect rock-paper-scissors gestures
             draw_cubes: Whether to draw 3D cubes on the markers
+            detect_markers: Whether to detect and process markers
         """
         while True:
-            img = self.run_once(
-                *allowed_tags,
-                return_image=True,
-                draw_cubes=draw_cubes,
-                detect_hands=detect_hands,
-                detect_gestures=detect_gestures
-            )
+            # Initialize img as None
+            img = None
 
-            if show_image and img is not None:
-                cv2.imshow("Pose Estimation Feed", img)
+            # Process markers if enabled
+            if detect_markers:
+                img = self.run_once(
+                    *allowed_tags,
+                    return_image=True,
+                    draw_cubes=draw_cubes,
+                    detect_hands=detect_hands,
+                    detect_gestures=detect_gestures
+                )
+
+            if show_image:
+            
+                if img is None:
+                    img = self.camera.get_color_frame()
+                    window_title = "Camera Feed"
+                else:
+                    window_title = "Pose Estimation Feed"
+
+                if img is not None:
+                    cv2.imshow(window_title, img)
 
             if cv2.waitKey(1) & 0xFF == 27:  # ESC to break
                 cv2.destroyAllWindows()
                 break
-
 
 # =====================================================
 # Example Usage
 # =====================================================
 if __name__ == "__main__":
     vision = Vision()
-    # Example usage: Run with gesture detection enabled
-    vision.run(show_image=True, draw_cubes=True, detect_gestures=True)
+    vision.run(show_image=True, detect_markers=False)

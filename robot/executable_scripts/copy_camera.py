@@ -119,7 +119,6 @@ def printmenu():
     print("Press 4 to toggle arm torque")
     print("press 5 to exit")
     print("press 6 to follow the tag like a silly lil goose")
-    print("press 7 to show camera feed")
     print("press HAGLE to follow DU")
     return 
 
@@ -153,12 +152,8 @@ def main(bot):
             case 6:
                 follow_tag(bot,tagid, vision)
                 
-            case 7:
-                vision.run(detect_markers=False, show_image=True)
-                
             case 42453:
                 follow_DU(bot, tagid, vision)
-                
             case _:
                 print("invalid input. Try again.")
 

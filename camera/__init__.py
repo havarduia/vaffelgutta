@@ -8,6 +8,5 @@ from camera.parts.base import Camera
 from camera.parts.realsense import RealSense
 from camera.parts.markers import Aruco
 from camera.parts.coordinates import CoordinateSystem
-from camera.parts.camera_manager import CameraManager
 
-__all__ = ['Vision', 'Camera', 'RealSense', 'Aruco', 'CoordinateSystem', 'CameraManager']
+__all__ = ['Vision', 'Camera', 'RealSense', 'Aruco', 'CoordinateSystem']

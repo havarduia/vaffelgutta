@@ -66,7 +66,8 @@ class Vision:
         *allowed_tags: Union[str, int],
         return_image: bool = False,
         draw_cubes: bool = True,
-        detect_hands: bool = False
+        detect_hands: bool = False,
+        detect_gestures: bool = False
     ) -> Optional[np.ndarray]:
         """Process a single frame and update tag positions.
 
@@ -74,6 +75,7 @@ class Vision:
             *allowed_tags: Optional list of tag IDs to track
             return_image: Whether to return the annotated image
             detect_hands: Whether to detect and track hands
+            detect_gestures: Whether to detect rock-paper-scissors gestures
             draw_cubes: Whether to draw 3D cubes on the markers
 
         Returns:
@@ -92,12 +94,28 @@ class Vision:
         # Save to JSON
         self.jsonreader.write("camera_readings", tags)
 
-        # Process hand detection on the same image if requested
-        if detect_hands:
+        # Process hand detection or gesture recognition on the same image if requested
+        if detect_hands or detect_gestures:
             # Get the color and depth frames from the camera
             color_frame = image
             depth_frame = self.camera.get_depth_frame()
-            _, image = self.hand_detector.process_frame(color_frame, depth_frame)
+            # If detect_gestures is True, we want to disable 3D coordinate calculation
+            # and use gesture recognition instead
+            get_3d_coords = not detect_gestures
+            result, image = self.hand_detector.process_frame(color_frame, depth_frame, get_3d_coords)
+
+            # If we're detecting gestures, save the result to a JSON file
+            if detect_gestures and result:
+                try:
+                    # Try to read the existing file first
+                    existing_data = self.jsonreader.read("hand_gesture")
+                except:
+                    # If the file doesn't exist, create an empty dictionary
+                    existing_data = {}
+
+                # Update the data with the new gesture
+                existing_data["gesture"] = result
+                self.jsonreader.write("hand_gesture", existing_data)
 
         # Return image if requested
         if return_image:
@@ -109,7 +127,8 @@ class Vision:
         *allowed_tags: Union[str, int],
         show_image: bool = True,
         draw_cubes: bool = True,
-        detect_hands: bool = False
+        detect_hands: bool = False,
+        detect_gestures: bool = False
     ) -> None:
         """Continuously run pose estimation, write data, and show video feed.
 
@@ -117,6 +136,7 @@ class Vision:
             *allowed_tags: Optional list of tag IDs to track
             show_image: Whether to display the video feed
             detect_hands: Whether to detect and track hands
+            detect_gestures: Whether to detect rock-paper-scissors gestures
             draw_cubes: Whether to draw 3D cubes on the markers
         """
         while True:
@@ -124,7 +144,8 @@ class Vision:
                 *allowed_tags,
                 return_image=True,
                 draw_cubes=draw_cubes,
-                detect_hands=detect_hands
+                detect_hands=detect_hands,
+                detect_gestures=detect_gestures
             )
 
             if show_image and img is not None:
@@ -140,4 +161,5 @@ class Vision:
 # =====================================================
 if __name__ == "__main__":
     vision = Vision()
-    vision.run(show_image=True, draw_cubes=True, detect_hands=True)
+    # Example usage: Run with gesture detection enabled
+    vision.run(show_image=True, draw_cubes=True, detect_gestures=True)

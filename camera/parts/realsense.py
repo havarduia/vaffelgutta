@@ -19,6 +19,8 @@ class RealSense(Camera):
 
         if camera_id is None:
             raise TypeError("No camera specified!")
+        if not camera_id in self.config_loader:
+            raise KeyError("Bomboclat")
 
         # Get the actual serial number from the config using the camera_id as the key
         self.serial_number = self.config_loader.get(camera_id)

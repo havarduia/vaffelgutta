@@ -24,6 +24,7 @@ class RealSense(Camera):
         # Camera setup
         self.pipeline = rs.pipeline()
         self.config = rs.config()
+        self.camera_id = camera_id
 
         # Configure streams
         resolution = self.config_loader.get("resolution")

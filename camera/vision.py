@@ -146,6 +146,10 @@ class Vision:
             hand_detector = self.hand_detectors[0]
             result, image = self._process_hand(image, depth, False, hand_detector)
 
+            self.jsonreader.clear("hand_position")
+            if result is not None:
+                self.jsonreader.write("hand_position", {"position" : result})
+
         if detect_gestures:
             assert not detect_hands, "detect_hands and detect_gestures should never run at the same time"
             camera = self.cameras[1]
@@ -154,7 +158,7 @@ class Vision:
             result, image = self._process_hand(image, depth, True, hand_detector)
             
             self.jsonreader.clear("hand_gesture")
-            if result:
+            if result is not None:
                 self.jsonreader.write("hand_gesture", {"gesture" : result})
 
         # save tags to file 
@@ -175,7 +179,7 @@ class Vision:
         self.jsonreader.write("camera_readings", tags)
 
         # Return image if requested
-        return imglist if return_image else None
+        return imglist[0] if return_image else None
 
     def run(
         self,

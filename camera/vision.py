@@ -130,10 +130,11 @@ class Vision:
         # aruco detection:
         aruco_processes = list()
         aruco_results = Queue() 
-        for i, aruco in enumerate(self.arucos):
+        images = [camera.get_color_frame() for camera in self.cameras]
+        for i, image, aruco in zip(range(len(images), images, self.arucos)):
             aruco_process = Process(
                     target=process_aruco,
-                    args = (aruco, self.coord_sys, draw_cubes, aruco_results,i)
+                    args = (aruco, self.coord_sys, draw_cubes, aruco_results, i, image)
                     )
             aruco_processes.append(aruco_process)
             aruco_process.start()

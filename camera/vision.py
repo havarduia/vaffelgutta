@@ -19,7 +19,7 @@ class Vision:
         self.aruco = Aruco(self.camera)
         self.coord_sys = CoordinateSystem()
         # Pass the coordinate system to the hand detector so it uses the same instance
-        self.hand_detector = HandDetector(self.camera)
+        self.hand_detector = HandDetector(self.camera, self.coord_sys)
 
     def __del__(self):
         """Clean up resources when the object is deleted."""
@@ -94,7 +94,10 @@ class Vision:
 
         # Process hand detection on the same image if requested
         if detect_hands:
-            image, _, _ = self.hand_detector.process_frame(image=image)
+            # Get the color and depth frames from the camera
+            color_frame = image
+            depth_frame = self.camera.get_depth_frame()
+            _, image = self.hand_detector.process_frame(color_frame, depth_frame)
 
         # Return image if requested
         if return_image:
@@ -137,4 +140,4 @@ class Vision:
 # =====================================================
 if __name__ == "__main__":
     vision = Vision()
-    vision.run(show_image=True, draw_cubes=True, detect_hands=False)
+    vision.run(show_image=True, draw_cubes=True, detect_hands=True)

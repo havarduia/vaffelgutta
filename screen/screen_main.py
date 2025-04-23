@@ -31,7 +31,25 @@ class TouchScreenApp(ctk.CTk):
         self.page_controller = PageController(self)
         self.page_controller.grid(row=0, column=1, sticky="nsew")
 
+    def rxmsg(self, operation, msg):
+        match operation:
+            case "manual_mode_collision":
+                botbox, objbox = msg
+                text = f"""
+                Collision has been found along path.
+                {botbox}
+                has collided with 
+                {objbox}.
+                Do you want to move anyway?
+                """
+                self.show_confirmation(text,self.send_collision_feedback)
+            case "show_message":
+                self.show_notification(msg)
+            case _:
+                raise NotImplementedError
         
+    def send_collision_feedback(self, result):
+        self.maleman.send_male("robot", "collision_detected_response", result)
 
     def on_button_click(self, button_name):
         if button_name == "Back":

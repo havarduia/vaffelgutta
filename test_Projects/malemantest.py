@@ -35,7 +35,8 @@ class  Bot:
             print("starting in "+str( (5-i)))
         self.maleman.send_male("screen", "manual_mode_collision", ["boxbox", "objectivebox"])
         execute_movement = self.read_male() 
-        print(execute_movement)
+        sleep(1)
+        self.maleman.send_male("screen", "show_message", f"You pressed {execute_movement}")
 
 def main():
     maleman = MaleMan()

@@ -1,13 +1,15 @@
 from robot.tools.file_manipulation import Jsonreader
 from main.waffle_states.waffle_states import State, Tags
 from robot.robot_controllers.movements.action_header import Actions
+from camera.vision import Vision
 
-def put_down_spray(state: "CurrentState", bot: "Wafflebot"):
+def put_down_spray(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
     actions = Actions(bot)
     reader = Jsonreader()
+    camera_1 = vision.add_camera(name="cam1")
     
     reader.pop("camera_readings", Tags.LADLE_TAG)
-    bot.cam.start("all")
+    vision.cam1.run_once(return_image=False, detect_hands=False, detect_markers=True)
     tags = reader.read("camera_readings")
 
     if Tags.LADLE_TAG in tags.keys(): # tag id 4 is ladle

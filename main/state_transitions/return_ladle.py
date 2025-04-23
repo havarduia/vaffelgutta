@@ -1,11 +1,15 @@
 from robot.tools.file_manipulation import Jsonreader
 from robot.robot_controllers.movements.action_header import Actions
 from main.waffle_states.waffle_states import State, Tags
-def return_ladle(state: "CurrentState", bot: "Wafflebot"):
+from camera.vision import Vision
+
+def return_ladle(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
     reader = Jsonreader()
     actions = Actions(bot)
+    camera_1 = vision.add_camera(name="cam1")
+    
     reader.pop("camera_readings",Tags.OPENED_IRON_TAG)
-    bot.cam.start("all")
+    vision.cam1.run_once(return_image=False, detect_markers=True, detect_hands=False)
     tags = reader.read("camera_readings")
     try:
         if Tags.IRON_TAG not in tags.keys():     

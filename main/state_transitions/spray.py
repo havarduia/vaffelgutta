@@ -1,5 +1,7 @@
 from main.waffle_states.waffle_states import State
 from robot.robot_controllers.movements.action_header import Actions
+from camera.vision import Vision
+
 
 
 def spray(state: "CurrentState", bot: "Wafflebot"):

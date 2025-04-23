@@ -1,14 +1,16 @@
 from robot.tools.file_manipulation import Jsonreader
 from main.waffle_states.waffle_states import State, Tags
 from robot.robot_controllers.movements.action_header import Actions
+from camera.vision import Vision
 
-def pick_up_spray(state: "CurrentState", bot: "Wafflebot"):
+def pick_up_spray(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
 
     actions = Actions(bot)
     reader = Jsonreader()
+    camera_1 = vision.add_camera(name="cam1")
 
     reader.pop("camera_readings", Tags.IRON_TAG) # tag id 2 is opened iron
-    bot.cam.start("all")
+    vision.cam1.run_once(return_image=False, detect_hands=False, detect_markers=True)
     tags = reader.read("camera_readings")
 
     if Tags.IRON_TAG not in tags.keys(): # If not there, assume it is open.

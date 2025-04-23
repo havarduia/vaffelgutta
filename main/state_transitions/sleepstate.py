@@ -1,5 +1,6 @@
 
 from main.waffle_states.waffle_states import State
+from camera.vision import Vision
 
 def sleepstate(state: "CurrentState", bot: "Wafflebot"):
 

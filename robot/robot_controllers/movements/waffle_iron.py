@@ -24,8 +24,7 @@ def open_waffle_iron(bot: Wafflebot, reverse:bool = False):
         lift_positions.reverse()
     bot.move(lift_positions[0], ignore=["waffle_iron", "sticks"])
     bot.gripper.grasp()
-    for position in lift_positions:
-        bot.move(position, ignore=["waffle_iron", "sticks"])
+    bot.move("waffle_iron_open", ignore=["waffle_iron", "sticks"])
     bot.gripper.release()
 
 

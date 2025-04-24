@@ -6,9 +6,8 @@ from camera.parts.realsense import RealSense
 from camera.parts.markers import Aruco
 from camera.parts.coordinates import CoordinateSystem
 from camera.parts.hand_detection import HandDetector
-from multiprocessing import Process, Manager
 
-def process_aruco(aruco, coord_sys, results, draw_cubes, order, image):
+def process_aruco(aruco, coord_sys, draw_cubes, image):
     """
     Process a single frame to detect markers and transform coordinates.
     """
@@ -16,13 +15,11 @@ def process_aruco(aruco, coord_sys, results, draw_cubes, order, image):
     poses, image = aruco.estimate_poses(image, draw_cubes=draw_cubes)
     posematrices = poses.values()
     distances = [np.linalg.norm(np.array([p[3][0], p[3][1], p[3][2]])) for p in posematrices]
-    
 
     # Transform poses to robot coordinate system
     transformed_poses = coord_sys.transform_poses(poses)
-    out = [order, transformed_poses, image, distances]
-    results.put(out)
-    return
+    out = [ transformed_poses, image, distances]
+    return out
 
 class Vision:
     """Main vision class that integrates camera, marker detection, and coordinate transformation."""
@@ -32,8 +29,8 @@ class Vision:
         self.jsonreader = Jsonreader()
         # Initialize components
         self.cameras = dict()
-        self.arucos = []
-        self.hand_detectors = []
+        self.arucos = dict()
+        self.hand_detectors = dict() 
         self.coord_sys = CoordinateSystem()
 
         for i in range(10):
@@ -42,9 +39,8 @@ class Vision:
                 self.cameras.update({id:RealSense(id)})
             except KeyError: 
                 continue
-            self.arucos.append(Aruco(self.cameras[id]))
-            self.hand_detectors.append(HandDetector(self.cameras[id], self.coord_sys))
-
+            self.arucos.update({id : Aruco(self.cameras[id])})
+            self.hand_detectors.update({id: HandDetector(self.cameras[id], self.coord_sys)})
 
     def __del__(self):
         """Clean up resources when the object is deleted."""
@@ -123,74 +119,65 @@ class Vision:
             Optional[np.ndarray]: Annotated image if return_image is True, otherwise None
         """
         # aruco detection:
-        aruco_processes = list()
-        manager = Manager()
-        aruco_results = manager.Queue() 
-        images = [camera.get_color_frame() for camera in self.cameras.values()]
-        i = 0
-        for image, aruco in zip(images, self.arucos):
-            aruco_process = Process(
-                    target=process_aruco,
-                    args = (aruco, self.coord_sys, aruco_results, draw_cubes, i, image)
-                    )
-            aruco_processes.append(aruco_process)
-            aruco_process.start()
-            i+=1
+        images = dict()
+        depths = dict()
+        for id, camera in self.cameras.items():
+            image, depth = camera.get_aligned_frames()
+            images.update({id: image}) 
+            depths.update({id: depth})
 
-        handimg = None
-        # Process hand detection or gesture recognition
-        if detect_hands:
-            assert not detect_gestures, "detect_hands and detect_gestures should never run at the same time"
-            try:
-                camera = self.cameras["id2"]
-                image, depth = camera.get_aligned_frames()
-                hand_detector = self.hand_detectors[0]
-                result, image = self._process_hand(image, depth, False, hand_detector)
-                handimg = image
-
-                self.jsonreader.clear("hand_position")
-                if result is not None:
-                    self.jsonreader.write("hand_position", {"position" : str(result)})
-                    pass
-            except KeyError:
-                print("camera not connected!")
-
-        if detect_gestures:
-            assert not detect_hands, "detect_hands and detect_gestures should never run at the same time"
-            try:
-                camera = self.cameras["id1"]
-                image, depth = camera.get_aligned_frames()
-                hand_detector = self.hand_detectors[0]
-                result, image = self._process_hand(image, depth, True, hand_detector)
-                handimg = image
-                
-                self.jsonreader.clear("hand_gesture")
-                if result is not None:
-                    self.jsonreader.write("hand_gesture", {"gesture" : str(result)})
-            except KeyError:
-                print("camera not connected!")
-
+        results = dict()
+        for id, image, aruco in zip(images.keys(), images.values(), self.arucos.values()):
+            results.update({id: process_aruco(aruco, self.coord_sys, draw_cubes, image)})
         # save tags to file 
-        for p in aruco_processes:
-            p.join()
-        taglist = [0]*len(self.arucos) 
-        imglist = [0]*len(self.arucos) 
-        distancelist = [0]*len(self.arucos)
-        while not aruco_results.empty():
-            results = aruco_results.get()
-            (order, transformed_poses, image, distances) =results
-            taglist[order] = transformed_poses
-            imglist[order] = image
-            distancelist[order] = distances
+        taglist = dict() 
+        distancelist = dict() 
+        for id,result in results.items():
+            (transformed_poses, image, distances) =result
+            taglist[id] = transformed_poses
+            distancelist[id] = distances
+            images[id] = image
         
-        tags = self._shortest_tags(taglist,distancelist)
+        tags = self._shortest_tags(taglist.values(),distancelist.values())
         tags = self._sort_tags(tags, allowed_tags)
         # Save to JSON
         self.jsonreader.write("camera_readings", tags)
 
-        if handimg is not None: imglist.append(handimg)
+        # Process hand detection or gesture recognition
+        if detect_gestures:
+            try:
+                image = images["id1"]
+                depth = depths["id1"]
+                hand_detector = self.hand_detectors["id1"]
+                result, image = self._process_hand(image, depth, True, hand_detector)
+                images.update({"id1": image})
+            except (KeyError, IndexError):
+                print("main camera not connected!")
+                raise RuntimeError
+            self.jsonreader.clear("hand_gesture")
+            if result is not None:
+                self.jsonreader.write("hand_gesture", {"gesture" : str(result)})
+
+        if detect_hands:
+            try:
+                image = images["id2"]
+                depth = depths["id2"]
+                hand_detector = self.hand_detectors["id2"]
+                result, image = self._process_hand(image, depth, False, hand_detector)
+                images.update({"id2": image})
+            except KeyError:
+                print("support camera not connected!")
+                raise RuntimeError
+            self.jsonreader.clear("hand_position")
+            if result is not None:
+                self.jsonreader.write("hand_position", {"position" : str(result)})
+                pass
+
+    
+
+
         # Return image if requested
-        return imglist if return_image else None
+        return images.values() if return_image else None
 
     def run(
         self,
@@ -219,6 +206,7 @@ class Vision:
             )
             if show_image and imglist is not None:
                 for i, img in enumerate(imglist):
+                    cv2.namedWindow(f"Pose Estimation Feed {i+1}", cv2.WINDOW_NORMAL)
                     cv2.imshow(f"Pose Estimation Feed {i+1}", img)
 
             if cv2.waitKey(1) & 0xFF == 27:  # ESC to break
@@ -232,4 +220,4 @@ class Vision:
 if __name__ == "__main__":
     vision = Vision()
     # Example usage: Run with gesture detection enabled
-    vision.run(show_image=True, draw_cubes=True, detect_hands=True)
+    vision.run(show_image=True, draw_cubes=True, detect_gestures=True, detect_hands=True)

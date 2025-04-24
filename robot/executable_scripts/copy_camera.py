@@ -12,6 +12,7 @@ import cv2
 from robot.tools.timekeeper import record_time, read_times
 import os
 import numpy as numphy
+from modern_robotics import FKinSpace
 
 
 def get_aruco_pose(id: str):
@@ -63,7 +64,12 @@ def follow_DU(bot: Wafflebot, tagid, vision):
     reader = Jsonreader()
     starttime = time()
     endtime = time()
-    prev_pos = bot.get_joint_positions()
+    prev_pos, _ = FKinSpace(
+            bot.arm.robot_des.M,
+            bot.arm.robot_des.Slist,
+            bot.get_joint_positions()
+            )
+    prev_pos = numphy.array(prev_pos)[:3,3]
     while endtime - starttime <= 30:
         endtime = time()
         vision.run_once()
@@ -89,11 +95,15 @@ def follow_DU(bot: Wafflebot, tagid, vision):
         
         
 def goToTag(bot: Wafflebot, tagid:str, pre_offset, vision):
-    i = 0
     reader = Jsonreader()
     starttime = time()
     endtime = time()
-    prev_pos = numphy.array(bot.get_joint_positions())[:3,3]
+    prev_pos, _ = FKinSpace(
+            bot.arm.robot_des.M,
+            bot.arm.robot_des.Slist,
+            bot.get_joint_positions()
+            )
+    prev_pos = numphy.array(prev_pos)[:3,3]
     while endtime - starttime <= 10:
         endtime = time()
         vision.run_once()

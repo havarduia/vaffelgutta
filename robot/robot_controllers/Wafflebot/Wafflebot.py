@@ -190,7 +190,7 @@ class Wafflebot:
                 execute_movement = input("Do you want to proceed anyway? (y/n): ")
                 if not (execute_movement.lower() == "y" or execute_movement.lower() == "yes"):
                     return False
-        success = self.arm.set_joint_positions(target, moving_time=2.0/(speed_scaling*self.speed), blocking = blocking)
+        success = self.arm.set_joint_positions(target, blocking = blocking)
         if not blocking:
             sleep(0.1)
         return success
@@ -199,8 +199,8 @@ class Wafflebot:
         waypoints = get_trajectory_joints(target)
         wp_count = len(waypoints)
         for waypoint in waypoints:
-            print(self.bot.arm.set_joint_positions(waypoint, blocking = False, moving_time = 1.0/wp_count))
-            sleep(2.0/wp_count)
+            print(self.bot.arm.set_joint_positions(waypoint, blocking = False))
+            sleep(3.0/wp_count)
         self.bot.arm.set_trajectory_time(moving_time=2.0)
 
     def grasp(self):

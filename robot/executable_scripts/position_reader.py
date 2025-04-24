@@ -71,8 +71,8 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
     input("\nPress enter to record") 
     bot.core.robot_torque_enable("group", "arm", True)
     sleep(0.5)
-    vision.run_once()
 
+    vision.run_once()
     # Record position
     bot.arm.capture_joint_positions()
     position_joints = bot.arm.get_joint_positions()
@@ -81,7 +81,7 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
     if bot.arm._check_joint_limits(position_joints):
         position_mat = bot.arm.get_ee_pose().tolist()
         if tagid != 100:
-            tag = Jsonreader().read("camera_readings").get(tagid)
+            tag = Jsonreader().read("camera_readings")[tagid]
             position_offset = create_offset_matrix(position_mat, tag)
         else:
             position_offset = 100

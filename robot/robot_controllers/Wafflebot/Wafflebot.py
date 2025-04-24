@@ -14,7 +14,7 @@ from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import Col
 from rclpy.logging import LoggingSeverity
 from threading import Event
 
-from robot.tools.file_manipulation import Jsonreader
+from robot.tools.file_manipulation import Jsonreader, table_print
 import numpy as numphy
 
 class Wafflebot:
@@ -135,9 +135,14 @@ class Wafflebot:
         if self.emergency_stop.isSet():
             raise FloatingPointError # unused error used as signal.
         if isinstance(target,str):
-            camerareadings = Jsonreader().read("recordings")
-            if (target+"_0") in camerareadings.keys():
+            recordings = Jsonreader().read("recordings")
+            if target.startswith("waffle"):
+                table_print(recordings.keys())
+                print(target+"_0")
+            if (target+"_0") in recordings.keys():
+                print(target)
                 self.movetotrajectory(target)
+                return
         use_joints = not self.automatic_mode
         (target, returncode) = interpret_target_command.interpret_target_command(target, use_joints,self.debug_print)
         if returncode == -1:
@@ -175,8 +180,7 @@ class Wafflebot:
     def move_to_joints(self, target: list[float], ignore: Optional[list[str]] = None, speed_scaling: float = 1.0, blocking: bool = True) -> bool: 
         if self.emergency_stop.isSet():
             raise FloatingPointError # unused error used as signal.
-            raise RuntimeError("This feature is only avaliable in dynamic mode")
-            return False
+           
         assert (not self.automatic_mode), "This function is intended for manual mode only"
         if self.detect_collisions:
             start_joints = self.bot.arm.get_joint_positions()
@@ -195,19 +199,19 @@ class Wafflebot:
         waypoints = get_trajectory_joints(target)
         wp_count = len(waypoints)
         for waypoint in waypoints:
-            self.bot.arm.set_joint_positions(waypoint, blocking = False, moving_time = 1.0/wp_count)
+            print(self.bot.arm.set_joint_positions(waypoint, blocking = False, moving_time = 1.0/wp_count))
             sleep(2.0/wp_count)
         self.bot.arm.set_trajectory_time(moving_time=2.0)
 
     def grasp(self):
-        if self.automatic_mode:
+        if self.automatic_mode or True:
             for _ in range(500):
                 self.bot.gripper.grasp(0.005)
         else:
             self.bot.gripper.grasp()
 
     def release(self):
-        if self.automatic_mode:
+        if self.automatic_mode or True:
             for _ in range(500):
                 self.bot.gripper.release(0.005)
         else:

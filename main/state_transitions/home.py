@@ -5,20 +5,24 @@ from camera.vision import Vision
 
 
 def home(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
-    
+
     actions = Actions(bot)
     reader = Jsonreader()
-    camera_1 = vision.add_camera(name="cam1")
-    
-    reader.pop("camera_readings", Tags.IRON_TAG)
-    vision.cam1.run_once(return_image=False, detect_hands=False, detect_markers=True)
+
+    # Clear any existing tag data
+    reader.clear("camera_readings")
+    # Run camera to detect markers
+    vision.run_once(return_image=False, detect_hands=False)
     tags = reader.read("camera_readings")
-    
-    if Tags.IRON_TAG in tags.keys():
+
+    # Check for iron tag (both as string and integer)
+    iron_tag_value = Tags.IRON_TAG.value
+    if iron_tag_value in tags.keys() or int(iron_tag_value) in tags.keys():
         try:
-            bot.move("waffle_iron")
-            actions.open_waffle_iron() 
-            bot.move("waffle_iron")
+            bot.move("front_of_waffle_iron")
+            bot.move("bottom_of_waffle_iron")
+            actions.open_waffle_iron()
+            bot.move("top_of_waffle_iron")
         except FloatingPointError: # unused error used as signal.
             state.set(State.ERROR)
             return

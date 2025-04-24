@@ -123,10 +123,7 @@ def _recordtrajectory(bot: Wafflebot, tagid: int, pose_name: str, event: Event, 
         # Test for valid position
         if bot.arm._check_joint_limits(position_joints):
             position_mat = bot.arm.get_ee_pose().tolist() 
-            if tagid != 100:
-                position_offset = create_offset_matrix(position_mat, tag)
-            else:
-                position_offset = 100
+            position_offset = 100
         else:
             print("Joints are not within their limits. Try again bozo.")
             bot.core.robot_torque_enable("group", "arm", True)

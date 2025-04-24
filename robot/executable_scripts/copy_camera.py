@@ -63,6 +63,7 @@ def follow_DU(bot: Wafflebot, tagid, vision):
     reader = Jsonreader()
     starttime = time()
     endtime = time()
+    prev_pos = bot.get_joint_positions()
     while endtime - starttime <= 30:
         endtime = time()
         vision.run_once()
@@ -76,10 +77,15 @@ def follow_DU(bot: Wafflebot, tagid, vision):
         out_pos[:3,:3] = R
         out_pos = out_pos.tolist()
 
-        print("Moving robot")
-        # plan a:
-        print(f"movement success? {bot.move(out_pos, speed_scaling=1.0)}")
-        sleep(0.5)
+        # distance checking:
+        target = numphy.array(out_pos)
+        pos = target[:3,3]
+
+        if numphy.linalg.norm([pos-prev_pos]) > 0.05:
+            prev_pos = pos
+            print("Moving robot")
+            print(f"movement success? {bot.move(out_pos, speed_scaling=5.0)}")
+            sleep(1)
         
         
 def goToTag(bot: Wafflebot, tagid:str, pre_offset, vision):
@@ -87,10 +93,10 @@ def goToTag(bot: Wafflebot, tagid:str, pre_offset, vision):
     reader = Jsonreader()
     starttime = time()
     endtime = time()
+    prev_pos = numphy.array(bot.get_joint_positions())[:3,3]
     while endtime - starttime <= 10:
         endtime = time()
         vision.run_once()
-        
         tag_pos = reader.read("camera_readings")[tagid]
         if pre_offset is not None:
             offset = pre_offset
@@ -98,9 +104,16 @@ def goToTag(bot: Wafflebot, tagid:str, pre_offset, vision):
             offset = reader.read("offsets")["copy_camera"]
         target = abs_position_from_offset(tag_pos, offset)
 
-        print("Moving robot")
-        print(f"movement success? {bot.move(target, speed_scaling=3.0)}")
-        sleep(0.5)
+        # distance checking:
+        target = numphy.array(target)
+        pos = target[:3,3]
+
+        if numphy.linalg.norm([pos-prev_pos]) > 0.05:
+            prev_pos = pos
+            target = target.tolist()
+            print("Moving robot")
+            print(f"movement success? {bot.move(target, speed_scaling=5.0)}")
+            sleep(1)
 
 def follow_tag(bot, tagid, vision):
     offset =[

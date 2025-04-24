@@ -137,18 +137,21 @@ class Vision:
             aruco_process.start()
             i+=1
 
+        handimg = None
         # Process hand detection or gesture recognition
         if detect_hands:
             assert not detect_gestures, "detect_hands and detect_gestures should never run at the same time"
             try:
-                camera = self.cameras["id0"]
+                camera = self.cameras["id2"]
                 image, depth = camera.get_aligned_frames()
                 hand_detector = self.hand_detectors[0]
                 result, image = self._process_hand(image, depth, False, hand_detector)
+                handimg = image
 
                 self.jsonreader.clear("hand_position")
                 if result is not None:
-                    self.jsonreader.write("hand_position", {"position" : result})
+                    self.jsonreader.write("hand_position", {"position" : str(result)})
+                    pass
             except KeyError:
                 print("camera not connected!")
 
@@ -157,12 +160,13 @@ class Vision:
             try:
                 camera = self.cameras["id1"]
                 image, depth = camera.get_aligned_frames()
-                hand_detector = self.hand_detectors[1]
+                hand_detector = self.hand_detectors[0]
                 result, image = self._process_hand(image, depth, True, hand_detector)
+                handimg = image
                 
                 self.jsonreader.clear("hand_gesture")
                 if result is not None:
-                    self.jsonreader.write("hand_gesture", {"gesture" : result})
+                    self.jsonreader.write("hand_gesture", {"gesture" : str(result)})
             except KeyError:
                 print("camera not connected!")
 
@@ -184,8 +188,9 @@ class Vision:
         # Save to JSON
         self.jsonreader.write("camera_readings", tags)
 
+        if handimg is not None: imglist.append(handimg)
         # Return image if requested
-        return imglist[0] if return_image else None
+        return imglist if return_image else None
 
     def run(
         self,
@@ -205,17 +210,16 @@ class Vision:
             draw_cubes: Whether to draw 3D cubes on the markers
         """
         while True:
-            img = self.run_once(
+            imglist = self.run_once(
                 *allowed_tags,
                 return_image=True,
                 draw_cubes=draw_cubes,
                 detect_hands=detect_hands,
                 detect_gestures=detect_gestures
             )
-
-            if show_image and img is not None:
-                cv2.imshow("Pose Estimation Feed", img)
-                pass
+            if show_image and imglist is not None:
+                for i, img in enumerate(imglist):
+                    cv2.imshow(f"Pose Estimation Feed {i+1}", img)
 
             if cv2.waitKey(1) & 0xFF == 27:  # ESC to break
                 cv2.destroyAllWindows()

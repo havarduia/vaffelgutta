@@ -6,25 +6,22 @@ from camera.parts.realsense import RealSense
 from camera.parts.markers import Aruco
 from camera.parts.coordinates import CoordinateSystem
 from camera.parts.hand_detection import HandDetector
-from multiprocessing import Queue, Process 
+from multiprocessing import Process, Manager
 
-
-def process_aruco(aruco, coord_sys, results: Queue, draw_cubes, order, image):
-    """Process a single frame to detect markers and transform coordinates.
-
-    Args:
-        draw_cubes: Whether to draw 3D cubes on the markers
-
-    Returns:
-        tuple: (transformed_poses, annotated_image)
+def process_aruco(aruco, coord_sys, results, draw_cubes, order, image):
+    """
+    Process a single frame to detect markers and transform coordinates.
     """
     # Detect markers and estimate poses
     poses, image = aruco.estimate_poses(image, draw_cubes=draw_cubes)
     posematrices = poses.values()
-    distances = [np.linalg.norm(p[3][0], p[3][1],p[3][2]) for p in posematrices]
+    distances = [np.linalg.norm(np.array([p[3][0], p[3][1], p[3][2]])) for p in posematrices]
+    
+
     # Transform poses to robot coordinate system
     transformed_poses = coord_sys.transform_poses(poses)
-    results.put([order, transformed_poses, image, distances])
+    out = [order, transformed_poses, image, distances]
+    results.put(out)
     return
 
 class Vision:
@@ -34,8 +31,7 @@ class Vision:
         """Initialize the vision system."""
         self.jsonreader = Jsonreader()
         # Initialize components
-        self.camera_ids = []
-        self.cameras = []
+        self.cameras = dict()
         self.arucos = []
         self.hand_detectors = []
         self.coord_sys = CoordinateSystem()
@@ -43,12 +39,11 @@ class Vision:
         for i in range(10):
             try:
                 id = f"id{i+1}"
-                self.cameras.append(RealSense(id))
+                self.cameras.update({id:RealSense(id)})
             except KeyError: 
-                break
-            self.camera_ids.append(i)
-            self.arucos.append(Aruco(self.cameras[i]))
-            self.hand_detectors.append(HandDetector(self.cameras[i], self.coord_sys))
+                continue
+            self.arucos.append(Aruco(self.cameras[id]))
+            self.hand_detectors.append(HandDetector(self.cameras[id], self.coord_sys))
 
 
     def __del__(self):
@@ -129,13 +124,14 @@ class Vision:
         """
         # aruco detection:
         aruco_processes = list()
-        aruco_results = Queue() 
-        images = [camera.get_color_frame() for camera in self.cameras]
+        manager = Manager()
+        aruco_results = manager.Queue() 
+        images = [camera.get_color_frame() for camera in self.cameras.values()]
         i = 0
         for image, aruco in zip(images, self.arucos):
             aruco_process = Process(
                     target=process_aruco,
-                    args = (aruco, self.coord_sys, draw_cubes, aruco_results, i, image)
+                    args = (aruco, self.coord_sys, aruco_results, draw_cubes, i, image)
                     )
             aruco_processes.append(aruco_process)
             aruco_process.start()
@@ -144,38 +140,45 @@ class Vision:
         # Process hand detection or gesture recognition
         if detect_hands:
             assert not detect_gestures, "detect_hands and detect_gestures should never run at the same time"
-            camera = self.cameras[0]
-            image, depth = camera.get_aligned_frames()
-            hand_detector = self.hand_detectors[0]
-            result, image = self._process_hand(image, depth, False, hand_detector)
+            try:
+                camera = self.cameras["id0"]
+                image, depth = camera.get_aligned_frames()
+                hand_detector = self.hand_detectors[0]
+                result, image = self._process_hand(image, depth, False, hand_detector)
 
-            self.jsonreader.clear("hand_position")
-            if result is not None:
-                self.jsonreader.write("hand_position", {"position" : result})
+                self.jsonreader.clear("hand_position")
+                if result is not None:
+                    self.jsonreader.write("hand_position", {"position" : result})
+            except KeyError:
+                print("camera not connected!")
 
         if detect_gestures:
             assert not detect_hands, "detect_hands and detect_gestures should never run at the same time"
-            camera = self.cameras[1]
-            image, depth = camera.get_aligned_frames()
-            hand_detector = self.hand_detectors[1]
-            result, image = self._process_hand(image, depth, True, hand_detector)
-            
-            self.jsonreader.clear("hand_gesture")
-            if result is not None:
-                self.jsonreader.write("hand_gesture", {"gesture" : result})
+            try:
+                camera = self.cameras["id1"]
+                image, depth = camera.get_aligned_frames()
+                hand_detector = self.hand_detectors[1]
+                result, image = self._process_hand(image, depth, True, hand_detector)
+                
+                self.jsonreader.clear("hand_gesture")
+                if result is not None:
+                    self.jsonreader.write("hand_gesture", {"gesture" : result})
+            except KeyError:
+                print("camera not connected!")
 
         # save tags to file 
         for p in aruco_processes:
             p.join()
-        taglist = list()
-        imglist = list()
-        distancelist = list()
+        taglist = [0]*len(self.arucos) 
+        imglist = [0]*len(self.arucos) 
+        distancelist = [0]*len(self.arucos)
         while not aruco_results.empty():
-            (order, transformed_poses, image, distances) = aruco_results.get()
+            results = aruco_results.get()
+            (order, transformed_poses, image, distances) =results
             taglist[order] = transformed_poses
             imglist[order] = image
             distancelist[order] = distances
-
+        
         tags = self._shortest_tags(taglist,distancelist)
         tags = self._sort_tags(tags, allowed_tags)
         # Save to JSON
@@ -212,6 +215,7 @@ class Vision:
 
             if show_image and img is not None:
                 cv2.imshow("Pose Estimation Feed", img)
+                pass
 
             if cv2.waitKey(1) & 0xFF == 27:  # ESC to break
                 cv2.destroyAllWindows()
@@ -224,4 +228,4 @@ class Vision:
 if __name__ == "__main__":
     vision = Vision()
     # Example usage: Run with gesture detection enabled
-    vision.run(show_image=True, draw_cubes=True, detect_gestures=True)
+    vision.run(show_image=True, draw_cubes=True, detect_hands=True)

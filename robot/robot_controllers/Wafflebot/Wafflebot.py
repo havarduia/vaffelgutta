@@ -43,7 +43,7 @@ class Wafflebot:
         self.gripper = self.bot.gripper
         self.core = self.bot.core
         # misc inits
-        self.speed = 1.0
+        self.speed = 0.6
         self.detect_collisions = detect_collisions
         self.debug_print = debug_print
         self.home_pose = self.arm.robot_des.M if self.automatic_mode else [0]*6

@@ -78,10 +78,9 @@ def follow_DU(bot: Wafflebot, tagid, vision):
 
         print("Moving robot")
         # plan a:
-        print(f"movement success? {bot.move(out_pos, speed_scaling=4.0)}")
+        print(f"movement success? {bot.move(out_pos, speed_scaling=1.0)}")
+        sleep(0.5)
         
-        
-
         
 def goToTag(bot: Wafflebot, tagid:str, pre_offset, vision):
     i = 0
@@ -100,8 +99,8 @@ def goToTag(bot: Wafflebot, tagid:str, pre_offset, vision):
         target = abs_position_from_offset(tag_pos, offset)
 
         print("Moving robot")
-        print(f"movement success? {bot.move(target, speed_scaling=9.0)}")
-    return
+        print(f"movement success? {bot.move(target, speed_scaling=3.0)}")
+        sleep(0.5)
 
 def follow_tag(bot, tagid, vision):
     offset =[

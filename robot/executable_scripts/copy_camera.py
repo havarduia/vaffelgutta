@@ -64,7 +64,7 @@ def follow_DU(bot: Wafflebot, tagid, vision):
     reader = Jsonreader()
     starttime = time()
     endtime = time()
-    prev_pos, _ = FKinSpace(
+    prev_pos = FKinSpace(
             bot.arm.robot_des.M,
             bot.arm.robot_des.Slist,
             bot.get_joint_positions()
@@ -98,7 +98,7 @@ def goToTag(bot: Wafflebot, tagid:str, pre_offset, vision):
     reader = Jsonreader()
     starttime = time()
     endtime = time()
-    prev_pos, _ = FKinSpace(
+    prev_pos = FKinSpace(
             bot.arm.robot_des.M,
             bot.arm.robot_des.Slist,
             bot.get_joint_positions()

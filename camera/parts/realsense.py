@@ -6,6 +6,7 @@ import pyrealsense2 as rs
 import numpy as np
 from camera.parts.base import Camera
 from camera.config.configloader import ConfigLoader
+import subprocess
 
 
 class RealSense(Camera):
@@ -16,16 +17,22 @@ class RealSense(Camera):
         """
         super().__init__()
         self.config_loader = ConfigLoader()
+        # Get the actual serial number from the config using the camera_id as the key
+        self.serial_number = self.config_loader.get(camera_id)
 
         if camera_id is None:
             raise TypeError("No camera specified!")
-
-        # Get the actual serial number from the config using the camera_id as the key
-        self.serial_number = self.config_loader.get(camera_id)
+        if self.serial_number is None:
+            raise KeyError("camera id not in config.yaml")
+        cmd = "rs-enumerate-devices | grep "+ str(self.serial_number)
+        cameracheck = subprocess.run(["bash","-c", cmd], capture_output=True, text=True)
+        if not self.serial_number in cameracheck.stdout:
+            raise KeyError("Camera is not connected")
 
         # Camera setup
         self.pipeline = rs.pipeline()
         self.config = rs.config()
+
 
         # Configure streams
         resolution = self.config_loader.get("resolution")
@@ -37,12 +44,15 @@ class RealSense(Camera):
         print(f"Using camera ID: '{self.camera_id}' with serial number: '{self.serial_number}'")
         self.config.enable_device(self.serial_number)
 
+        # TODO @Håvard denne linjen er en duplicate?
         self.config.enable_stream(
             rs.stream.color, resolution[0], resolution[1], rs.format.bgr8, fps
         )
         self.config.enable_stream(
             rs.stream.depth, resolution_d[0], resolution_d[1], rs.format.z16, fps_d
         )
+    
+        
 
         # Start streaming
         self._start_streaming()

@@ -7,6 +7,19 @@ from camera.parts.markers import Aruco
 from camera.parts.coordinates import CoordinateSystem
 from camera.parts.hand_detection import HandDetector
 
+def process_aruco(aruco, coord_sys, draw_cubes, image):
+    """
+    Process a single frame to detect markers and transform coordinates.
+    """
+    # Detect markers and estimate poses
+    poses, image = aruco.estimate_poses(image, draw_cubes=draw_cubes)
+    posematrices = poses.values()
+    distances = [np.linalg.norm(np.array([p[3][0], p[3][1], p[3][2]])) for p in posematrices]
+
+    # Transform poses to robot coordinate system
+    transformed_poses = coord_sys.transform_poses(poses)
+    out = [ transformed_poses, image, distances]
+    return out
 
 class Vision:
     """Main vision class that integrates camera, marker detection, and coordinate transformation."""
@@ -15,32 +28,24 @@ class Vision:
         """Initialize the vision system."""
         self.jsonreader = Jsonreader()
         # Initialize components
-        self.camera = RealSense("id1")
-        self.aruco = Aruco(self.camera)
+        self.cameras = dict()
+        self.arucos = dict()
+        self.hand_detectors = dict() 
         self.coord_sys = CoordinateSystem()
-        # Pass the coordinate system to the hand detector so it uses the same instance
-        self.hand_detector = HandDetector(self.camera, self.coord_sys)
+
+        for i in range(10):
+            try:
+                id = f"id{i+1}"
+                self.cameras.update({id:RealSense(id)})
+            except KeyError: 
+                continue
+            self.arucos.update({id : Aruco(self.cameras[id])})
+            self.hand_detectors.update({id: HandDetector(self.cameras[id], self.coord_sys)})
 
     def __del__(self):
         """Clean up resources when the object is deleted."""
         pass
 
-    def _process_frame(self, draw_cubes=True):
-        """Process a single frame to detect markers and transform coordinates.
-
-        Args:
-            draw_cubes: Whether to draw 3D cubes on the markers
-
-        Returns:
-            tuple: (transformed_poses, annotated_image)
-        """
-        # Detect markers and estimate poses
-        poses, image = self.aruco.estimate_poses(draw_cubes=draw_cubes)
-
-        # Transform poses to robot coordinate system
-        transformed_poses = self.coord_sys.transform_poses(poses)
-
-        return transformed_poses, image
 
     def _filter_tags(self, tags: Dict, allowed_tags: List[str]) -> Dict:
         """Filter tags based on allowed tag IDs.
@@ -60,6 +65,38 @@ class Vision:
             if str(tag_id) in allowed_tags:
                 filtered_tags[tag_id] = pose
         return filtered_tags
+
+
+    def _shortest_tags(self, taglist, distancelist) -> dict:
+        # sort tags by distance
+        tags = dict() 
+        distances = dict()
+        for temptags, tempdistances in zip(taglist, distancelist):
+            for (tagid, tagvalue), distance in zip(temptags.items(), tempdistances):
+                #if tag does not exist yet, write it without question
+                if tagid not in tags or distances[tagid] < distance:
+                    tags.update({tagid:tagvalue})
+                    distances.update({tagid:distance})
+        return tags
+
+    def _sort_tags(self, tags, allowed_tags) -> dict:
+        # Convert allowed_tags to strings
+        allowed_tag_strings = [str(tag) for tag in allowed_tags]
+
+        # Filter tags if needed
+        if allowed_tag_strings:
+            tags = self._filter_tags(tags, allowed_tag_strings)
+        return tags
+
+    def _process_hand(self, image, depth, detect_gestures, hand_detector):
+            # Get the color and depth frames from the camera
+            color_frame = image
+            depth_frame = depth
+            # If detect_gestures is True, we want to disable 3D coordinate calculation
+            # and use gesture recognition instead
+            get_3d_coords = not detect_gestures
+            return hand_detector.process_frame(color_frame, depth_frame, get_3d_coords)
+
 
     def run_once(
         self,
@@ -81,46 +118,66 @@ class Vision:
         Returns:
             Optional[np.ndarray]: Annotated image if return_image is True, otherwise None
         """
-        # Convert allowed_tags to strings
-        allowed_tag_strings = [str(tag) for tag in allowed_tags]
+        # aruco detection:
+        images = dict()
+        depths = dict()
+        for id, camera in self.cameras.items():
+            image, depth = camera.get_aligned_frames()
+            images.update({id: image}) 
+            depths.update({id: depth})
 
-        # Process frame
-        tags, image = self._process_frame(draw_cubes=draw_cubes)
-
-        # Filter tags if needed
-        if allowed_tag_strings:
-            tags = self._filter_tags(tags, allowed_tag_strings)
-
+        results = dict()
+        for id, image, aruco in zip(images.keys(), images.values(), self.arucos.values()):
+            results.update({id: process_aruco(aruco, self.coord_sys, draw_cubes, image)})
+        # save tags to file 
+        taglist = dict() 
+        distancelist = dict() 
+        for id,result in results.items():
+            (transformed_poses, image, distances) =result
+            taglist[id] = transformed_poses
+            distancelist[id] = distances
+            images[id] = image
+        
+        tags = self._shortest_tags(taglist.values(),distancelist.values())
+        tags = self._sort_tags(tags, allowed_tags)
         # Save to JSON
         self.jsonreader.write("camera_readings", tags)
 
-        # Process hand detection or gesture recognition on the same image if requested
-        if detect_hands or detect_gestures:
-            # Get the color and depth frames from the camera
-            color_frame = image
-            depth_frame = self.camera.get_depth_frame()
-            # If detect_gestures is True, we want to disable 3D coordinate calculation
-            # and use gesture recognition instead
-            get_3d_coords = not detect_gestures
-            result, image = self.hand_detector.process_frame(color_frame, depth_frame, get_3d_coords)
+        # Process hand detection or gesture recognition
+        if detect_gestures:
+            try:
+                image = images["id1"]
+                depth = depths["id1"]
+                hand_detector = self.hand_detectors["id1"]
+                result, image = self._process_hand(image, depth, True, hand_detector)
+                images.update({"id1": image})
+            except (KeyError, IndexError):
+                print("main camera not connected!")
+                raise RuntimeError
+            self.jsonreader.clear("hand_gesture")
+            if result is not None:
+                self.jsonreader.write("hand_gesture", {"gesture" : str(result)})
 
-            # If we're detecting gestures, save the result to a JSON file
-            if detect_gestures and result:
-                try:
-                    # Try to read the existing file first
-                    existing_data = self.jsonreader.read("hand_gesture")
-                except:
-                    # If the file doesn't exist, create an empty dictionary
-                    existing_data = {}
+        if detect_hands:
+            try:
+                image = images["id2"]
+                depth = depths["id2"]
+                hand_detector = self.hand_detectors["id2"]
+                result, image = self._process_hand(image, depth, False, hand_detector)
+                images.update({"id2": image})
+            except KeyError:
+                print("support camera not connected!")
+                raise RuntimeError
+            self.jsonreader.clear("hand_position")
+            if result is not None:
+                self.jsonreader.write("hand_position", {"position" : str(result)})
+                pass
 
-                # Update the data with the new gesture
-                existing_data["gesture"] = result
-                self.jsonreader.write("hand_gesture", existing_data)
+    
+
 
         # Return image if requested
-        if return_image:
-            return image
-        return None
+        return images.values() if return_image else None
 
     def run(
         self,
@@ -140,16 +197,17 @@ class Vision:
             draw_cubes: Whether to draw 3D cubes on the markers
         """
         while True:
-            img = self.run_once(
+            imglist = self.run_once(
                 *allowed_tags,
                 return_image=True,
                 draw_cubes=draw_cubes,
                 detect_hands=detect_hands,
                 detect_gestures=detect_gestures
             )
-
-            if show_image and img is not None:
-                cv2.imshow("Pose Estimation Feed", img)
+            if show_image and imglist is not None:
+                for i, img in enumerate(imglist):
+                    cv2.namedWindow(f"Pose Estimation Feed {i+1}", cv2.WINDOW_NORMAL)
+                    cv2.imshow(f"Pose Estimation Feed {i+1}", img)
 
             if cv2.waitKey(1) & 0xFF == 27:  # ESC to break
                 cv2.destroyAllWindows()
@@ -162,4 +220,4 @@ class Vision:
 if __name__ == "__main__":
     vision = Vision()
     # Example usage: Run with gesture detection enabled
-    vision.run(show_image=True, draw_cubes=True, detect_gestures=True)
+    vision.run(show_image=True, draw_cubes=True, detect_gestures=True, detect_hands=True)

@@ -23,6 +23,7 @@ def home(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
             bot.move("front_of_waffle_iron_b")
             bot.move("bottom_of_waffle_iron")
             actions.open_waffle_iron()
+            bot.move("top_of_waffle_iron")
         except FloatingPointError: # unused error used as signal.
             state.set(State.ERROR)
             return

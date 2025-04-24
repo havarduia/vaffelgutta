@@ -11,7 +11,7 @@ def open_iron(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
     # Clear any existing tag data
     reader.clear("camera_readings")
     # Run camera to detect markers
-    vision.run_once(return_image=False, detect_hands=False)
+    vision.run_once()
     tags = reader.read("camera_readings")
 
     # Check for spray tag (both as string and integer)

@@ -13,6 +13,7 @@ marker_sizes:
   33: 0.0330        # marker 23 has a size of 0.06 m
   0: 0.0700
   10: 0.0470
+  3: 0.067
 origin_id: 0
 offset_x: -0.091
 offset_y: -0.091

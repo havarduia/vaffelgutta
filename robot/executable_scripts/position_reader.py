@@ -62,14 +62,16 @@ def playposition(bot: Wafflebot, data_type: Literal["joints", "basepose"]):
         sleep(1)
     return    
 
-def recordposition(bot: Wafflebot, tagid: int):
+def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
     # detorque arm
+    
     bot.core.robot_torque_enable("group", "arm", False)
     sleep(0.25)    
     # wait for input before retorquing
     input("\nPress enter to record") 
     bot.core.robot_torque_enable("group", "arm", True)
     sleep(0.5)
+    vision.run_once()
 
     # Record position
     bot.arm.capture_joint_positions()
@@ -106,6 +108,8 @@ def recordposition(bot: Wafflebot, tagid: int):
         )
         jsonreader.write("recordings", data)
         print(f'Successfully written "{name}" to recordings.')
+    
+    
     return name
 
 
@@ -143,7 +147,7 @@ def _recordtrajectory(bot: Wafflebot, tagid: int, pose_name: str, event: Event, 
         
 def recordtrajectory(bot: Wafflebot, tagid: int):
     bot.core.robot_torque_enable("group", "arm", False)
-    pose_name = input("Enter pose name to begin recording. press enter to cancel.")
+    pose_name = input("Enter pose name to begin recording. press enter to cancel.\n")
     if pose_name == "":
         return
     q = Queue()
@@ -183,7 +187,7 @@ def main(bot):
         userinput = input()
         if userinput == str(1):
             vision.run_once()
-            recordposition(bot, tagid)
+            recordposition(bot, tagid, vision)
         elif userinput == str(2):
             tagid = int(input("New ID: "))
         elif userinput == str(3):

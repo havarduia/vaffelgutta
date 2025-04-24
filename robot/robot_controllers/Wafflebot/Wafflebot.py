@@ -43,7 +43,7 @@ class Wafflebot:
         self.gripper = self.bot.gripper
         self.core = self.bot.core
         # misc inits
-        self.speed = 0.6
+        self.speed = 0.5
         self.detect_collisions = detect_collisions
         self.debug_print = debug_print
         self.home_pose = self.arm.robot_des.M if self.automatic_mode else [0]*6
@@ -56,6 +56,12 @@ class Wafflebot:
     # return the methods of the child class (interbotixmanipulatorxs)
     def __getattr__(self, name):
         return getattr(self.bot, name)
+
+    def get_joint_positions(self):
+        if self.automatic_mode:
+            return self.motionplanner.update_joint_states()
+        else: 
+            return self.bot.arm.get_joint_positions()
 
     def go_to_home_pose(self):
         if self.automatic_mode:

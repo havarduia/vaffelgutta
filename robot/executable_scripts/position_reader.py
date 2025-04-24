@@ -81,7 +81,7 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
     if bot.arm._check_joint_limits(position_joints):
         position_mat = bot.arm.get_ee_pose().tolist()
         if tagid != 100:
-            tag = Jsonreader().read("camera_readings")[tagid]
+            tag = Jsonreader().read("camera_readings")[str(tagid)]
             position_offset = create_offset_matrix(position_mat, tag)
         else:
             position_offset = 100

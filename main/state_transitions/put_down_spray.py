@@ -6,12 +6,11 @@ from camera.vision import Vision
 def put_down_spray(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
     actions = Actions(bot)
     reader = Jsonreader()
-    camera_1 = vision.add_camera(name="cam1")
 
     # Clear any existing tag data
     reader.clear("camera_readings")
     # Run camera to detect markers
-    vision.cam1.run_once(return_image=False, detect_hands=False, detect_markers=True)
+    vision.run_once(return_image=False, detect_hands=False)
     tags = reader.read("camera_readings")
 
     # Check for ladle tag (both as string and integer)

@@ -8,12 +8,11 @@ from camera.vision import Vision
 
 def return_stick(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
     # TODO finish logic
-    camera_1 = vision.add_camera(name="cam1")
     reader = Jsonreader()
 
 
     reader.clear("camera_readings")
-    vision.cam1.run_once(show_image=False, detect_markers=True, detect_hands=False)
+    vision.run_once(show_image=False, detect_hands=False)
     tags = reader.read("camera_readings")
 
     # Check for iron tag (both as string and integer)

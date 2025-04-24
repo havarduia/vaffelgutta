@@ -6,12 +6,11 @@ from camera.vision import Vision
 def return_ladle(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
     reader = Jsonreader()
     actions = Actions(bot)
-    camera_1 = vision.add_camera(name="cam1")
 
     # Clear any existing tag data
     reader.clear("camera_readings")
     # Run camera to detect markers
-    vision.cam1.run_once(return_image=False, detect_markers=True, detect_hands=False)
+    vision.run_once(return_image=False, detect_hands=False)
     tags = reader.read("camera_readings")
 
     # Check for iron tag (both as string and integer)

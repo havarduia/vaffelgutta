@@ -18,8 +18,8 @@ def open_iron(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
     spray_tag_value = Tags.SPRAY_TAG.value
     if spray_tag_value in tags.keys() or int(spray_tag_value) in tags.keys(): # tag 3 is the lube
         try:
-            bot.move("front_of_tool_station")
             actions.pick_up_lube()
+            bot.move("test_movement")
             state.set(State.PICK_UP_SPRAY)
         except FloatingPointError: # unused error used as signal.
             state.set(State.ERROR)

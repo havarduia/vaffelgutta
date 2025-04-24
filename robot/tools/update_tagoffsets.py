@@ -36,7 +36,7 @@ def position_from_name(name: str):
     positions = reader.read("recordings")
     offset = positions[name]["offset"]
     tagid = positions[name]["tag"]
-    tag = tags[tagid]
+    tag = tags[str(tagid)]
     pos = abs_position_from_offset(tag, offset)
     return pos
 

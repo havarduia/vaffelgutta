@@ -9,13 +9,19 @@ def pick_up_spray(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
     reader = Jsonreader()
     camera_1 = vision.add_camera(name="cam1")
 
-    reader.pop("camera_readings", Tags.IRON_TAG) # tag id 2 is opened iron
+    # Clear any existing tag data
+    reader.clear("camera_readings")
+    # Run camera to detect markers
     vision.cam1.run_once(return_image=False, detect_hands=False, detect_markers=True)
     tags = reader.read("camera_readings")
 
-    if Tags.IRON_TAG not in tags.keys(): # If not there, assume it is open.
+    # Check for iron tag (both as string and integer)
+    iron_tag_value = Tags.IRON_TAG.value
+    iron_tag_present = iron_tag_value in tags.keys() or int(iron_tag_value) in tags.keys()
+
+    if not iron_tag_present: # If not there, assume it is open.
         try:
-            actions.spray_lube() 
+            actions.spray_lube()
             state.set(State.SPRAY)
         except FloatingPointError: # unused error used as signal.
             state.set(State.ERROR)
@@ -26,4 +32,4 @@ def pick_up_spray(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
 if __name__ == "__main__":
     # to resolve type annotation
     from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
-    from main.waffle_states.waffle_states import CurrentState 
+    from main.waffle_states.waffle_states import CurrentState

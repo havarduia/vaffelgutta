@@ -12,6 +12,7 @@ import cv2
 from robot.tools.timekeeper import record_time, read_times
 import os
 import numpy as numphy
+from modern_robotics import FKinSpace
 
 
 def get_aruco_pose(id: str):
@@ -63,6 +64,12 @@ def follow_DU(bot: Wafflebot, tagid, vision):
     reader = Jsonreader()
     starttime = time()
     endtime = time()
+    prev_pos = FKinSpace(
+            bot.arm.robot_des.M,
+            bot.arm.robot_des.Slist,
+            bot.get_joint_positions()
+            )
+    prev_pos = numphy.array(prev_pos)[:3,3]
     while endtime - starttime <= 30:
         endtime = time()
         vision.run_once()
@@ -76,22 +83,29 @@ def follow_DU(bot: Wafflebot, tagid, vision):
         out_pos[:3,:3] = R
         out_pos = out_pos.tolist()
 
-        print("Moving robot")
-        # plan a:
-        print(f"movement success? {bot.move(out_pos, speed_scaling=4.0)}")
-        
-        
+        # distance checking:
+        target = numphy.array(out_pos)
+        pos = target[:3,3]
 
+        if numphy.linalg.norm([pos-prev_pos]) > 0.05:
+            prev_pos = pos
+            print("Moving robot")
+            print(f"movement success? {bot.move(out_pos, speed_scaling=5.0)}")
+        
         
 def goToTag(bot: Wafflebot, tagid:str, pre_offset, vision):
-    i = 0
     reader = Jsonreader()
     starttime = time()
     endtime = time()
+    prev_pos = FKinSpace(
+            bot.arm.robot_des.M,
+            bot.arm.robot_des.Slist,
+            bot.get_joint_positions()
+            )
+    prev_pos = numphy.array(prev_pos)[:3,3]
     while endtime - starttime <= 10:
         endtime = time()
         vision.run_once()
-        
         tag_pos = reader.read("camera_readings")[tagid]
         if pre_offset is not None:
             offset = pre_offset
@@ -99,9 +113,15 @@ def goToTag(bot: Wafflebot, tagid:str, pre_offset, vision):
             offset = reader.read("offsets")["copy_camera"]
         target = abs_position_from_offset(tag_pos, offset)
 
-        print("Moving robot")
-        print(f"movement success? {bot.move(target, speed_scaling=9.0)}")
-    return
+        # distance checking:
+        target = numphy.array(target)
+        pos = target[:3,3]
+
+        if numphy.linalg.norm([pos-prev_pos]) > 0.05:
+            prev_pos = pos
+            target = target.tolist()
+            print("Moving robot")
+            print(f"movement success? {bot.move(target, speed_scaling=5.0)}")
 
 def follow_tag(bot, tagid, vision):
     offset =[

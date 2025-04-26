@@ -88,6 +88,12 @@ class Wafflebot:
         self.empty_malebox()
         return male
 
+    def get_joint_positions(self):
+        if self.automatic_mode:
+            return self.motionplanner.update_joint_states()
+        else: 
+            return self.bot.arm.get_joint_positions()
+
     def go_to_home_pose(self):
         if self.automatic_mode:
             self.move(self.home_pose)
@@ -163,7 +169,7 @@ class Wafflebot:
         if isinstance(target,str):
             camerareadings = Jsonreader().read("recordings")
             if (target+"_0") in camerareadings.keys():
-                self.movetotrajectory(target)
+                self.movetotrajectory(target,speed_scaling)
         use_joints = not self.automatic_mode
         (target, returncode) = interpret_target_command.interpret_target_command(target, use_joints,self.debug_print)
         if returncode == -1:
@@ -226,13 +232,13 @@ class Wafflebot:
             sleep(0.1)
         return success
 
-    def movetotrajectory(self, target: str):
+    def movetotrajectory(self, target: str, speed_scaling = 1.0):
         waypoints = get_trajectory_joints(target)
         wp_count = len(waypoints)
         for waypoint in waypoints:
-            self.bot.arm.set_joint_positions(waypoint, blocking = False, moving_time = 1.0/wp_count)
-            sleep(2.0/wp_count)
-        self.bot.arm.set_trajectory_time(moving_time=2.0)
+            self.bot.arm.set_joint_positions(waypoint, blocking = False)
+            sleep(2.0/(speed_scaling*wp_count))
+        self.bot.arm.set_joint_positions(waypoints[-1], moving_time=2.0)
 
     def grasp(self):
         if self.automatic_mode:

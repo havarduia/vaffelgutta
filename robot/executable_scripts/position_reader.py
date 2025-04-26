@@ -70,7 +70,7 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
     # wait for input before retorquing
     input("\nPress enter to record") 
     bot.core.robot_torque_enable("group", "arm", True)
-    sleep(0.5)
+    sleep(2.5)
 
     vision.run_once()
     # Record position
@@ -79,6 +79,7 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
     
     # Test for valid position
     if bot.arm._check_joint_limits(position_joints):
+        bot.set_joint_positions(position_joints)
         position_mat = bot.arm.get_ee_pose().tolist()
         if tagid != 100:
             tag = Jsonreader().read("camera_readings")[str(tagid)]

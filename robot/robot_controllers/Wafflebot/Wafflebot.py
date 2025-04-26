@@ -46,7 +46,7 @@ class Wafflebot:
         self.gripper = self.bot.gripper
         self.core = self.bot.core
         # misc inits
-        self.speed = 1.0
+        self.speed = 0.5
         self.detect_collisions = detect_collisions
         self.debug_print = debug_print
         self.home_pose = self.arm.robot_des.M if self.automatic_mode else [0]*6
@@ -59,6 +59,12 @@ class Wafflebot:
     # return the methods of the child class (interbotixmanipulatorxs)
     def __getattr__(self, name):
         return getattr(self.bot, name)
+
+    def get_joint_positions(self):
+        if self.automatic_mode:
+            return self.motionplanner.update_joint_states()
+        else: 
+            return self.bot.arm.get_joint_positions()
 
     def go_to_home_pose(self):
         if self.automatic_mode:
@@ -135,14 +141,9 @@ class Wafflebot:
         if self.emergency_stop.isSet():
             raise FloatingPointError # unused error used as signal.
         if isinstance(target,str):
-            recordings = Jsonreader().read("recordings")
-            if target.startswith("waffle"):
-                table_print(recordings.keys())
-                print(target+"_0")
-            if (target+"_0") in recordings.keys():
-                print(target)
-                self.movetotrajectory(target)
-                return
+            camerareadings = Jsonreader().read("recordings")
+            if (target+"_0") in camerareadings.keys():
+                self.movetotrajectory(target,speed_scaling)
         use_joints = not self.automatic_mode
         (target, returncode) = interpret_target_command.interpret_target_command(target, use_joints,self.debug_print)
         if returncode == -1:
@@ -195,13 +196,13 @@ class Wafflebot:
             sleep(0.1)
         return success
 
-    def movetotrajectory(self, target: str):
+    def movetotrajectory(self, target: str, speed_scaling = 1.0):
         waypoints = get_trajectory_joints(target)
         wp_count = len(waypoints)
         for waypoint in waypoints:
-            print(self.bot.arm.set_joint_positions(waypoint, blocking = False))
-            sleep(3.0/wp_count)
-        self.bot.arm.set_trajectory_time(moving_time=2.0)
+            self.bot.arm.set_joint_positions(waypoint, blocking = False)
+            sleep(2.0/(speed_scaling*wp_count))
+        self.bot.arm.set_joint_positions(waypoints[-1], moving_time=2.0)
 
     def grasp(self):
         if self.automatic_mode or True:

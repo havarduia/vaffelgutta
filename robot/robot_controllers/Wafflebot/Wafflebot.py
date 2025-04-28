@@ -143,7 +143,8 @@ class Wafflebot:
         if isinstance(target,str):
             camerareadings = Jsonreader().read("recordings")
             if (target+"_0") in camerareadings.keys():
-                self.movetotrajectory(target,speed_scaling)
+                return self.movetotrajectory(target,speed_scaling)
+                
         use_joints = not self.automatic_mode
         (target, returncode) = interpret_target_command.interpret_target_command(target, use_joints,self.debug_print)
         if returncode == -1:

@@ -9,15 +9,17 @@ def home(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
     actions = Actions(bot)
     reader = Jsonreader()
 
-    # Clear any existing tag data
+    
     reader.clear("camera_readings")
-    # Run camera to detect markers
-    vision.run_once(return_image=False, detect_hands=False)
+    
+    if bot.automatic_mode:
+        vision.run_once()
+        
     tags = reader.read("camera_readings")
 
     # Check for iron tag (both as string and integer)
     iron_tag_value = Tags.IRON_TAG.value
-    if iron_tag_value in tags.keys() or int(iron_tag_value) in tags.keys():
+    if iron_tag_value in tags.keys() or int(iron_tag_value) in tags.keys() or not bot.automatic_mode:
         try:
             bot.move("front_of_waffle_iron_a")
             bot.move("front_of_waffle_iron_b")

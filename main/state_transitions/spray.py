@@ -8,9 +8,9 @@ def spray(state: "CurrentState", bot: "Wafflebot"):
     actions = Actions(bot)
 
     try:
-        bot.move("front_of_tool_station")
+        bot.move("prep_lube")
         actions.put_down_lube()
-        bot.move("front_of_tool_station")
+        bot.move("prep_lube")
     except FloatingPointError: # unused error used as signal.
         state.set(State.ERROR)
         return

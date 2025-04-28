@@ -10,15 +10,17 @@ def pick_up_spray(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
 
     # Clear any existing tag data
     reader.clear("camera_readings")
-    # Run camera to detect markers
-    vision.run_once(return_image=False, detect_hands=False)
+    
+    if bot.automatic_mode:
+        vision.run_once()
+        
     tags = reader.read("camera_readings")
 
     # Check for iron tag (both as string and integer)
     iron_tag_value = Tags.IRON_TAG.value
     iron_tag_present = iron_tag_value in tags.keys() or int(iron_tag_value) in tags.keys()
 
-    if not iron_tag_present: # If not there, assume it is open.
+    if not iron_tag_present or not bot.automatic_mode: # If not there, assume it is open.
         try:
             actions.spray_lube()
             state.set(State.SPRAY)

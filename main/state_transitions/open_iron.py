@@ -7,20 +7,21 @@ def open_iron(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
 
     actions = Actions(bot)
     reader = Jsonreader()
-
-    # Clear any existing tag data
     reader.clear("camera_readings")
-    # Run camera to detect markers
-    vision.run_once()
+    
+    if bot.automatic_mode:
+        vision.run_once()
+        
     tags = reader.read("camera_readings")
 
     # Check for spray tag (both as string and integer)
     spray_tag_value = Tags.SPRAY_TAG.value
-    if spray_tag_value in tags.keys() or int(spray_tag_value) in tags.keys(): # tag 3 is the lube
+    if spray_tag_value in tags.keys() or int(spray_tag_value) in tags.keys() or not bot.automatic_mode: # tag 3 is the lube
         try:
-            bot.move("prepare_to_pick_up_lube")
+            bot.move("prep_ladle")
+            bot.move("prep_lube")
             actions.pick_up_lube()
-            bot.move("test_movement")
+            bot.move("prep_lube")
             state.set(State.PICK_UP_SPRAY)
         except FloatingPointError: # unused error used as signal.
             state.set(State.ERROR)

@@ -19,9 +19,9 @@ def return_ladle(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
 
     try:
         if not iron_tag_present:
-            bot.move("front_of_waffle_iron")
+            bot.move("top_of_waffle_iron")
             actions.close_waffle_iron()
-            bot.move("front_of_waffle_iron")
+            bot.move("bottom_of_waffle_iron")
             state.set(State.CLOSE_IRON)
         elif iron_tag_present:
             state.set(State.CLOSE_IRON)

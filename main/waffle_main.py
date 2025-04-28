@@ -14,7 +14,7 @@ from main.state_transitions import *
 def init():
     # Inits the camera systems and inserts the instance to Wafflebot.
     vision = Vision()
-    bot = Wafflebot(automatic_mode=True, detect_collisions=False)
+    bot = Wafflebot(automatic_mode=False, detect_collisions=False)
     userstate_input = input("Input the start state: \n")
     try:
         # Try to match the input to a state enum
@@ -26,6 +26,8 @@ def init():
             userstate = State.REST
         elif userstate_input == 'HOMESTATE':
             userstate = State.HOME
+        elif userstate_input == 'OPENIRON':
+            userstate = State.OPEN_IRON
         else:
             # Otherwise, try to match it directly to a state enum
             userstate = State[userstate_input]
@@ -50,28 +52,32 @@ def main():
                 rest(state, bot)
 
             case State.HOME:
-                print("Im HOMING AHHH! 👺")
+                print("Opening IRON!!")
                 home(state, bot, vision)
 
             case State.SLEEP:
-                print("Sleeping 😇")
+                print("I am risin up")
                 sleepstate(state, bot)
 
             case State.OPEN_IRON:
-                print("Opening iron!")
+                print("Picking up spray 👺")
                 open_iron(state, bot, vision)
 
             case State.PICK_UP_SPRAY:
-                print("Picking up spray 👺")
+                print("Im spraying AHHHH!")
                 pick_up_spray(state, bot, vision)
 
             case State.SPRAY:
-                print("Im spraying AHHHH!")
+                print("Sorry i dont have anything left to spray...")
                 spray(state, bot)
 
             case State.PUT_DOWN_SPRAY:
-                print("Sorry i dont have anything left to spray...")
+                print("IM PICKING UP THE LADLE AHSAHASDHHAHHHHH")
                 put_down_spray(state, bot, vision)
+                
+            case State.PICK_UP_LADLE:
+                print("IM POURING AHHHH")
+                pick_up_ladle(state, bot)
 
             case State.CLOSE_IRON:
                 print("Its all going well, closing iron! 👺")
@@ -80,6 +86,14 @@ def main():
             case State.FUN_TIME:
                 print("This is where the fun begins 😏")
                 fun_time(state, bot)
+            
+            case State.POUR_BATTER:
+                print("IM RETURNING LADLE AHHH")
+                pour_batter(state, bot)
+                
+            case State.RETURN_LADLE:
+                print("I HAVE RETURNED THE LADLE")
+                return_ladle(state, bot, vision)
 
             case State.OPEN_IRON2:
                 print("Waffle is done opening iron! 🥴")
@@ -88,6 +102,10 @@ def main():
             case State.RETURN_STICK:
                 print("Stick to IRON!!!")
                 return_stick(state, bot, vision)
+                
+            case State.PICK_UP_WAFFLE:
+                print("123")
+                pick_up_waffle(state,bot,vision)
 
             case State.ERROR:
                 print("Hagle")

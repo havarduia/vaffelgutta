@@ -28,7 +28,7 @@ def pick_up_lube(bot: Wafflebot, reverse: bool = False):
     else:
         top_of_lube_pos = positions["top_of_lube"]["joints"]
 
-    bot.move(top_of_lube_pos, ["lube", "toolstation"])
+    bot.move(top_of_lube_pos, ignore=["lube", "toolstation"])
 
     # Go to lube
 
@@ -44,7 +44,6 @@ def pick_up_lube(bot: Wafflebot, reverse: bool = False):
     else:
         bot.gripper.grasp()    
 
-    bot.move(top_of_lube_pos, ["lube", "toolstation"])
 
 def spray():
     raise NotImplementedError("The spray hardware does not exist yet.")
@@ -58,10 +57,10 @@ def spray_lube(bot:Wafflebot):
     
     pose_type = "basepose" if bot.automatic_mode else "joints"
     spray_positions = [
-         positions["spray_0"][pose_type],
          positions["spray_1"][pose_type],
          positions["spray_2"][pose_type],
          positions["spray_3"][pose_type],
+         positions["spray_4"][pose_type],
     ]
 
     #move to the front of the waffle iron

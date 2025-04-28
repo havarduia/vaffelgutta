@@ -20,7 +20,8 @@ def get_aruco_pose(id: str):
     tags = reader.read("camera_readings")        
     return tags.get(id)
 
-def recordOffset(bot: Wafflebot, tagid: str):
+def recordOffset(bot: Wafflebot, tagid: str, vision: Vision):
+    vision.run_once()
     bot_pos = bot.arm.get_ee_pose()
     reader = Jsonreader()
     tag_pos = reader.read("camera_readings")[tagid]
@@ -93,7 +94,7 @@ def follow_DU(bot: Wafflebot, tagid, vision):
             print(f"movement success? {bot.move(out_pos, speed_scaling=5.0)}")
         
         
-def goToTag(bot: Wafflebot, tagid:str, pre_offset, vision):
+def goToTag(bot: Wafflebot, tagid:str, pre_offset, vision: Vision):
     reader = Jsonreader()
     starttime = time()
     endtime = time()
@@ -158,10 +159,9 @@ def main(bot):
             print("That was not a number😡") # 😡
         match choice:
             case 1:
-                vision.run_once()
-                recordOffset(bot, tagid)
+                recordOffset(bot, tagid, vision)
             case 2:
-                goToTag(bot, tagid, vision)
+                goToTag(bot, tagid, None, vision)
             case 3: 
                 tagid = str(input("Input new ID: "))
             case 4:

@@ -30,13 +30,7 @@ def put_ladle_in_bowl(bot: Wafflebot):
     bot.move(front_of_bowl_pos, ignore=["ladle"])
 
 def thug_shake(bot: Wafflebot):
-    poses =(
-        get_trajectory_matrix("thug_shake")
-        if bot.automatic_mode else
-        get_trajectory_joints("thug_shake")
-        )
-    for pose in poses:
-        bot.move(pose, ignore=["ladle"], speed_scaling=3.0) # TODO adjust speed_scaling
+    bot.move("thug_shake", ignore=["ladle"], speed_scaling=3.0) # TODO adjust speed_scaling
 
 
 def pick_up_ladle(bot: Wafflebot):
@@ -73,14 +67,14 @@ def pour_batter(bot: Wafflebot):
     reader = Jsonreader()
     positions = reader.read("recordings")
     
-    bot.move("front_of_waffle_iron", ignore=["ladle"])
+    bot.move("front_of_waffle_iron_ladle", ignore=["ladle"])
 
     pose_type = "basepose" if bot.automatic_mode else "joints"
     pour_positions = [
-        positions["pour_0"][pose_type],
         positions["pour_1"][pose_type],
         positions["pour_2"][pose_type],
         positions["pour_3"][pose_type],
+        positions["pour_4"][pose_type],
     ]
     for pose in pour_positions:
         bot.move(pose, ignore=["ladle","waffle_iron"])

@@ -13,3 +13,4 @@ from .spray import spray
 from .pick_up_ladle import pick_up_ladle
 from .pour_batter import pour_batter
 from .return_ladle import return_ladle
+from .pick_up_waffle import pick_up_waffle

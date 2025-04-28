@@ -15,7 +15,8 @@ class State(Enum):
     CLOSE_IRON = 11
     FUN_TIME = 12
     OPEN_IRON2 = 13
-    RETURN_STICK = 14
+    PICK_UP_WAFFLE = 14
+    RETURN_STICK = 15
     ERROR = 666
     # ...fill in states here
 

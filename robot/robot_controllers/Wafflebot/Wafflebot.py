@@ -201,8 +201,8 @@ class Wafflebot:
         wp_count = len(waypoints)
         for waypoint in waypoints:
             movetime =2.0/(speed_scaling*wp_count) 
-            self.bot.arm.set_joint_positions(waypoint, moving_time=0.5*movetime, blocking = False)
-            sleep(movetime)
+            self.bot.arm.set_joint_positions(waypoint, moving_time=movetime, blocking = False)
+            sleep(0.5*movetime)
         self.bot.arm.set_joint_positions(waypoints[-1], moving_time=2.0)
 
     def grasp(self):

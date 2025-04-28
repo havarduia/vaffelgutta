@@ -1,3 +1,4 @@
+from time import sleep
 from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
 from robot.tools.file_manipulation import Jsonreader
 from robot.robot_controllers.path_planner import get_trajectory_joints, get_trajectory_matrix
@@ -24,7 +25,10 @@ def open_waffle_iron(bot: Wafflebot, reverse:bool = False):
         lift_positions.reverse()
     bot.move(lift_positions[0], ignore=["waffle_iron", "sticks"])
     bot.grasp()
-    bot.move("waffle_iron_open", ignore=["waffle_iron", "sticks"])
+    for i in range(len(lift_positions)):
+        bot.move(lift_positions[i], blocking = False, ignore=["waffle_iron", "sticks"])
+        sleep(2.0/(len(lift_positions)))
+    bot.move(lift_positions[-1], blocking = True, ignore=["waffle_iron", "sticks"])
     bot.release()
 
 

@@ -69,14 +69,13 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
     sleep(0.25)    
     # wait for input before retorquing
     input("\nPress enter to record") 
-    bot.core.robot_torque_enable("group", "arm", True)
-    sleep(5)
-
     vision.run_once()
     # Record position
     bot.arm.capture_joint_positions()
     position_joints = bot.get_joint_positions()
-    
+    bot.core.robot_torque_enable("group", "arm", True)
+    sleep(0.5)
+
     # Test for valid position
     checked_joints = fix_joint_limits(position_joints)
     if len(checked_joints) == 6: # if not "False" (tech debt...)

@@ -27,7 +27,7 @@ def open_waffle_iron(bot: Wafflebot, reverse:bool = False):
     bot.grasp()
     for i in range(len(lift_positions)):
         bot.move(lift_positions[i], blocking = False, ignore=["waffle_iron", "sticks"])
-        sleep(2.0/(len(lift_positions)))
+        sleep(1.0/(len(lift_positions)))
     bot.move(lift_positions[-1], blocking = True, ignore=["waffle_iron", "sticks"])
     bot.release()
 

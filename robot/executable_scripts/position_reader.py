@@ -11,6 +11,7 @@ from typing import Literal
 from threading import Thread, Event
 from queue import Queue
 import numpy as numphy
+from robot.robot_controllers.safety_functions import fix_joint_limits
 
 
 def printmenu():
@@ -64,21 +65,22 @@ def playposition(bot: Wafflebot, data_type: Literal["joints", "basepose"]):
 
 def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
     # detorque arm
-    
     bot.core.robot_torque_enable("group", "arm", False)
     sleep(0.25)    
     # wait for input before retorquing
     input("\nPress enter to record") 
     bot.core.robot_torque_enable("group", "arm", True)
-    sleep(2.5)
+    sleep(5)
 
     vision.run_once()
     # Record position
     bot.arm.capture_joint_positions()
-    position_joints = bot.arm.get_joint_positions()
+    position_joints = bot.get_joint_positions()
     
     # Test for valid position
-    if bot.arm._check_joint_limits(position_joints):
+    checked_joints = fix_joint_limits(position_joints)
+    if len(checked_joints) == 6: # if not "False" (tech debt...)
+        position_joints=checked_joints 
         bot.set_joint_positions(position_joints)
         position_mat = bot.arm.get_ee_pose().tolist()
         if tagid != 100:

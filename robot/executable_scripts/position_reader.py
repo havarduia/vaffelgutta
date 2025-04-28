@@ -81,7 +81,7 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
     if len(checked_joints) == 6: # if not "False" (tech debt...)
         position_joints=checked_joints 
         temp_joints = position_joints
-        temp_joints[1] -= 0.05 
+        temp_joints[1] -= 0.15 
         bot.move(temp_joints)
         bot.move(position_joints)
         position_mat = bot.arm.get_ee_pose().tolist()

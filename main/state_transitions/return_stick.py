@@ -12,7 +12,7 @@ def return_stick(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
     reader.clear("camera_readings")
     
     if bot.automatic_mode:
-        vision.run_once(show_image=False, detect_hands=False)
+        vision.run_once()
         
     tags = reader.read("camera_readings")
 

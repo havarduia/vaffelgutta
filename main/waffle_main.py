@@ -14,7 +14,7 @@ from main.state_transitions import *
 def init():
     # Inits the camera systems and inserts the instance to Wafflebot.
     vision = Vision()
-    bot = Wafflebot(automatic_mode=False, detect_collisions=False)
+    bot = Wafflebot(automatic_mode=True, detect_collisions=False)
     userstate_input = input("Input the start state: \n")
     try:
         # Try to match the input to a state enum

@@ -21,7 +21,7 @@ def pick_up_lube(bot: Wafflebot, reverse: bool = False):
 
     #ensure gripper is open for the movement 
     if not reverse:
-        bot.gripper.release()
+        bot.release()
     # move to prep
     if bot.automatic_mode:
         top_of_lube_pos = position_from_name("top_of_lube") 
@@ -40,9 +40,9 @@ def pick_up_lube(bot: Wafflebot, reverse: bool = False):
     bot.move(lube_toolstation_pos, ["lube", "toolstation"])
 
     if reverse:
-        bot.gripper.release()
+        bot.release()
     else:
-        bot.gripper.grasp()    
+        bot.grasp()    
 
 
 def spray():

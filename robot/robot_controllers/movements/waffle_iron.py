@@ -16,14 +16,12 @@ def open_waffle_iron(bot: Wafflebot, reverse:bool = False):
     else:
         bot.move("bottom_of_waffle_iron",ignore=["waffle_iron", "sticks"])
 
-    if bot.automatic_mode:
-        lift_positions = get_trajectory_matrix("waffle_iron_open")
-    else:
-        lift_positions = get_trajectory_joints("waffle_iron_open")
+ 
+    lift_positions = get_trajectory_joints("waffle_iron_open")
 
     if reverse:
         lift_positions.reverse()
-    bot.move(lift_positions[0], ignore=["waffle_iron", "sticks"])
+    bot.move_to_joints(lift_positions[0], ignore=["waffle_iron", "sticks"])
     bot.grasp()
     wp_length = len(lift_positions)
     for pos in lift_positions:

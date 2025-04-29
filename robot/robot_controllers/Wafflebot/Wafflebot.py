@@ -206,18 +206,12 @@ class Wafflebot:
         self.bot.arm.set_joint_positions(waypoints[-1], moving_time=2.0)
 
     def grasp(self):
-        if self.automatic_mode or True:
-            for _ in range(500):
-                self.bot.gripper.grasp(0.005)
-        else:
-            self.bot.gripper.grasp()
+        for _ in range(500):
+            self.bot.gripper.grasp(0.005)
 
     def release(self):
-        if self.automatic_mode or True:
-            for _ in range(500):
-                self.bot.gripper.release(0.005)
-        else:
-            self.bot.gripper.release()
+        for _ in range(500):
+            self.bot.gripper.release(0.005)
 
     def clear_error(self):
         if self.emergency_stop.is_set():

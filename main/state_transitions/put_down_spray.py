@@ -21,9 +21,7 @@ def put_down_spray(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
 
     if ladle_tag_present or not bot.automatic_mode: # tag id 1 is ladle
         try:
-            bot.move("prep_ladle")
             actions.pick_up_ladle()
-            bot.move("prep_ladle")
             state.set(State.PICK_UP_LADLE)
         except FloatingPointError: # unused error used as signal.
             state.set(State.ERROR)

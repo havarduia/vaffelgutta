@@ -119,7 +119,7 @@ def main(bot: Wafflebot):
 
 if __name__ == "__main__":
     try:
-        bot = Wafflebot(automatic_mode=False, detect_collisions=True)
+        bot = Wafflebot(automatic_mode=False, detect_collisions=False)
         main(bot)
     except Exception as e:
         handle_error(e)

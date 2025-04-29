@@ -81,10 +81,10 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
     if not checked_joints is False:  # if not "False" (tech debt...)
         position_joints=checked_joints 
         temp_joints = position_joints
-        temp_joints[1] -= 0.15 
-        bot.move(temp_joints)
-        bot.move(position_joints)
-        print(bot.move(position_joints))
+        temp_joints[1] -= 0.25 
+        bot.move(temp_joints, speed_scaling=4.0)
+        sleep(2)
+        print(bot.move(position_joints, speed_scaling=2.0))
         position_mat = bot.arm.get_ee_pose().tolist()
         if tagid != 100:
             tag = Jsonreader().read("camera_readings")[str(tagid)]

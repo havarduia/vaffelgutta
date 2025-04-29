@@ -1,6 +1,7 @@
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from robot.robot_controllers.robot_bounding_boxes import update_robot_bounding_box
 from robot.tools.file_manipulation import Jsonreader
+from robot.robot_controllers.Wafflebot.add_collisionobjects import add_collisionobjects
 import numpy as numphy
 from os import getcwd
 
@@ -120,7 +121,9 @@ def check_collisions(pose: list, overrides: list = None):
 
     reader = Jsonreader("robot/assets/boundingboxes/")
     robotboxes = reader.read("robot")
-    boundingboxes: dict = reader.read("static").update(reader.read("dynamic"))
+
+    
+    boundingboxes, _ = add_collisionobjects(overrides)
 
     # Test for collision:
     for object_boxname, object_box in boundingboxes.items():

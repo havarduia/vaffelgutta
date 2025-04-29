@@ -14,7 +14,6 @@ from main.state_transitions import *
 def init():
     # Inits the camera systems and inserts the instance to Wafflebot.
     vision = Vision()
-    bot = Wafflebot(automatic_mode=False, detect_collisions=True)
     userstate_input = input("Input the start state: \n")
     try:
         # Try to match the input to a state enum
@@ -35,14 +34,14 @@ def init():
     except KeyError:
         print(f"State '{userstate_input}' not found. Defaulting to SLEEP state.")
         state = CurrentState(State.SLEEP)
-    return bot, vision, state
+    return vision, state
 
 
-def main():
+def main(bot: Wafflebot):
     """
     Executes the next action in the actions list.
     """
-    bot, vision, state = init()
+    vision, state = init()
     while True:
         current_state = state.get()
         match current_state:
@@ -120,6 +119,7 @@ def main():
 
 if __name__ == "__main__":
     try:
-        main()
+        bot = Wafflebot(automatic_mode=False, detect_collisions=True)
+        main(bot)
     except Exception as e:
         handle_error(e)

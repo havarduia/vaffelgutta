@@ -4,6 +4,7 @@ This script outlines main()
 It should however be viewed as a template and not funtional
 """
 
+from rclpy.action.server import RCLError
 from camera.vision import Vision
 from robot.tools.errorhandling import handle_error
 from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
@@ -119,7 +120,7 @@ def main(bot: Wafflebot):
 
 if __name__ == "__main__":
     try:
-        bot = Wafflebot(automatic_mode=False, detect_collisions=False)
+        bot = Wafflebot(automatic_mode=False, detect_collisions=True)
         main(bot)
-    except Exception as e:
+    except (Exception, RCLError) as e:
         handle_error(e)

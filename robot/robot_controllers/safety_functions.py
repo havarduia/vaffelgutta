@@ -131,7 +131,12 @@ def check_collisions(pose: list, overrides: list = None):
             continue
         for robot_boxname, robot_box in zip(robotboxes.keys(), robotboxes.values()):
             if _test_collision(robot_box, object_box): 
+                print(robot_boxname)
+                print(robot_box)
+                print(object_boxname)
+                print(object_box)
                 return(True, robot_boxname, object_boxname)
+                
     #if not collision:
     return(False, None, None)
      

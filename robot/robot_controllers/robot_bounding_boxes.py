@@ -140,7 +140,7 @@ def update_robot_bounding_box(
 
     "First arm joint"
     # Declare arm dimensions
-    arm_1_origin = shoulder_origin
+    arm_1_origin = shoulder_origin.copy()
     arm_1_dimensions = [3e-2, 10e-2, 6e-2] # hand measurements
     arm_1_offset = [-elem/2 for elem in arm_1_dimensions] # x, y offsets are half of the arm size
     arm_1_offset[2] = 0 # the motor is the origin from the z axis
@@ -158,7 +158,7 @@ def update_robot_bounding_box(
     
     
     # measured dimensions:
-    arm_1_division_origin = arm_1_origin
+    arm_1_division_origin = arm_1_origin.copy()
     arm_1_division_dimensions = [2e-2, 4e-2,33e-2]
     arm_1_division_offset = [-elem/2 for elem in arm_1_division_dimensions] # x, y offsets are half of the arm size
     arm_1_division_offset[2] = 0 # z is aligned with origin
@@ -180,12 +180,12 @@ def update_robot_bounding_box(
         # create a cube and apply rotation
         
         subdivision_corners = _bb_from_endpoints(subdivision_start,subdivision_end)
-        subdivision_corners = _pitch_cube(subdivision_corners, -shoulder_angle, shoulder_origin)
+        subdivision_corners = _pitch_cube(subdivision_corners, -shoulder_angle, arm_1_division_origin)
         subdivision_corners = _yaw_cube(subdivision_corners, waist_angle, base_origin)
         (subdivision_start, subdivision_end) = _endpoints_from_bb(subdivision_corners)
         
         #save results:
-        bounding_boxes[f"arm_1_box_{(dt+1)}"] = (subdivision_start.copy(), subdivision_end.copy()) 
+        #bounding_boxes[f"arm_1_box_{(dt+1)}"] = (subdivision_start.copy(), subdivision_end.copy()) 
 
 
     "Arm link"
@@ -347,5 +347,6 @@ def update_robot_bounding_box(
     path +="/robot/assets/boundingboxes/robot.py"
     with open(path, "w") as file:
         reader = Jsonreader("robot/assets/boundingboxes/")
+        reader.clear("robot")
         reader.write("robot",bounding_boxes)
          

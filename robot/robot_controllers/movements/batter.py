@@ -22,12 +22,12 @@ def put_ladle_in_bowl(bot: Wafflebot):
         inside_bowl_pos = positions["inside_bowl"]["joints"]
         front_of_bowl_pos= positions["front_of_bowl"]["joints"]
 
-    bot.move(front_of_bowl_pos, ignore=["ladle"])
+    #bot.move(front_of_bowl_pos, ignore=["ladle"])
     bot.move(top_of_bowl_pos, ignore=["ladle"])
     bot.move(inside_bowl_pos, ignore= ["ladle", "bowl"])
     bot.gripper.release()
     bot.move(top_of_bowl_pos, ignore=["ladle", "bowl"])
-    bot.move(front_of_bowl_pos, ignore=["ladle"])
+    #bot.move(front_of_bowl_pos, ignore=["ladle"])
 
 def thug_shake(bot: Wafflebot):
     bot.move("thug_shake_1", ignore=["ladle"], speed_scaling=3.0) # TODO adjust speed_scaling
@@ -82,5 +82,5 @@ def pour_batter(bot: Wafflebot):
     for pose in pour_positions:
         bot.move(pose, ignore=["ladle","waffle_iron"])
 
-    bot.move("front_of_waffle_iron", ignore=["ladle","waffle_iron"])
+    bot.move("front_of_waffle_iron_ladle", ignore=["ladle","waffle_iron"])
 

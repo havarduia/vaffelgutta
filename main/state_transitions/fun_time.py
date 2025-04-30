@@ -4,6 +4,8 @@ from robot.robot_controllers.movements.action_header import Actions
 
 def fun_time(state: "CurrentState", bot: "Wafflebot"):
 
+
+    input("Press enter when waffle ready")
     actions = Actions(bot)
 
     try:

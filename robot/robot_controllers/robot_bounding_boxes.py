@@ -185,7 +185,7 @@ def update_robot_bounding_box(
         (subdivision_start, subdivision_end) = _endpoints_from_bb(subdivision_corners)
         
         #save results:
-        #bounding_boxes[f"arm_1_box_{(dt+1)}"] = (subdivision_start.copy(), subdivision_end.copy()) 
+        bounding_boxes[f"arm_1_box_{(dt+1)}"] = (subdivision_start.copy(), subdivision_end.copy()) 
 
 
     "Arm link"
@@ -343,10 +343,7 @@ def update_robot_bounding_box(
     bounding_boxes["gripper"] = (gripper_min,gripper_max)
    
     "save positions"
-    path = getcwd()
-    path +="/robot/assets/boundingboxes/robot.py"
-    with open(path, "w") as file:
-        reader = Jsonreader("robot/assets/boundingboxes/")
-        reader.clear("robot")
-        reader.write("robot",bounding_boxes)
+    reader = Jsonreader("robot/assets/boundingboxes/")
+    reader.clear("robot")
+    reader.write("robot",bounding_boxes)
          

@@ -5,9 +5,9 @@ build/
 install/
 log/
 /robot/assets/boundingboxes/publish/
+/robot/assets/boundingboxes/robot.json
 /robot/assets/misc/time_recordings.json
 /robot/assets/position_data/camera_readings.json
 /robot/assets/position_data/offsets.json
 /robot/assets/position_data/recordings.json
-/robot/assets/position_data/robot.json
 

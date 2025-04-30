@@ -120,7 +120,7 @@ def main(bot: Wafflebot):
 
 if __name__ == "__main__":
     try:
-        bot = Wafflebot(automatic_mode=False, detect_collisions=False)
+        bot = Wafflebot(automatic_mode=False, detect_collisions=True)
         main(bot)
     except (Exception, KeyboardInterrupt, RCLError) as e:
         handle_error(e, bot)

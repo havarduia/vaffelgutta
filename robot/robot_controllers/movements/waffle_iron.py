@@ -49,7 +49,7 @@ def insert_sticks(bot: Wafflebot):
     
     bot.move(front_of_waffle_iron_pos, ignore=["sticks"])
     bot.move(waffle_iron_sticks_pos, ignore=["sticks", "waffle_iron"])
-    bot.gripper.release()
+    bot.release()
     bot.move(front_of_waffle_iron_pos,  ignore=["sticks", "waffle_iron"])
 
 

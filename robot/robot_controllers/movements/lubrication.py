@@ -36,7 +36,10 @@ def pick_up_lube(bot: Wafflebot, reverse: bool = False):
     # Go to lube
 
     if bot.automatic_mode:
-        lube_toolstation_pos = position_from_name("lube_toolstation") 
+        if reverse:
+            lube_toolstation_pos= positions["lube_toolstation"]["basepose"]
+        else:
+            lube_toolstation_pos = position_from_name("lube_toolstation") 
     else:
         lube_toolstation_pos = positions["lube_toolstation"]["joints"]
 

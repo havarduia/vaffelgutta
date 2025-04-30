@@ -5,6 +5,7 @@ from robot.robot_controllers.movements.action_header import Actions
 def fun_time(state: "CurrentState", bot: "Wafflebot"):
 
     actions = Actions(bot)
+
     try:
         bot.move("front_of_waffle_iron")
         actions.open_waffle_iron()

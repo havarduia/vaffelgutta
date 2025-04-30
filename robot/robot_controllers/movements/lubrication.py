@@ -24,7 +24,10 @@ def pick_up_lube(bot: Wafflebot, reverse: bool = False):
         bot.release()
     # move to prep
     if bot.automatic_mode:
-        top_of_lube_pos = position_from_name("top_of_lube") 
+        if reverse:
+            top_of_lube_pos = positions["top_of_lube"]["basepose"]
+        else:
+            top_of_lube_pos = position_from_name("top_of_lube") 
     else:
         top_of_lube_pos = positions["top_of_lube"]["joints"]
 

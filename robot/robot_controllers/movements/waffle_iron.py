@@ -57,14 +57,16 @@ def take_out_waffle(bot: Wafflebot):
     reader  = Jsonreader()
     positions = reader.read("recordings")
 
-    # innitialize positions:
+    # initialize positions:
     movement_type = "basepose" if bot.automatic_mode else "joints"
     front_of_waffle_iron_pos = positions["front_of_waffle_iron"][movement_type]
+    waffle_iron_sticks_prep_pos = positions["waffle_iron_sticks_prepare"][movement_type]
     waffle_iron_sticks_pos = positions["waffle_iron_sticks"][movement_type]
     
     #movement sequence:
     bot.gripper.release()
     bot.move(front_of_waffle_iron_pos,  ignore=["sticks", "waffle_iron"])
+    bot.move(waffle_iron_sticks_prep_pos,ignore=["sticks", "waffle_iron"])
     bot.move(waffle_iron_sticks_pos,    ignore=["sticks", "waffle_iron"])
     bot.gripper.grasp()
     bot.move(front_of_waffle_iron_pos,  ignore=["sticks", "waffle_iron"])

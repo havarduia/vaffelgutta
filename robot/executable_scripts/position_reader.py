@@ -66,8 +66,10 @@ def playposition(bot: Wafflebot, data_type: Literal["joints", "basepose"]):
 def replicate_movement(bot, tagid, vision, offset):
     vision.run_once()
     tagmat = Jsonreader().read("camera_readings")[str(tagid)]
-    target = tagmat @ offset
-    bot.arm.set_ee_pose(target)
+    tagmat = numphy.array(tagmat)
+    offset = numphy.array(offset)
+    target = tagmat * offset
+    bot.arm.set_ee_pose(target.tolist())
     
 
 
@@ -114,6 +116,7 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
         bot.core.robot_torque_enable("group", "arm", False)
         return
     if input("test movement? (y/n)\n").lower() == "y":
+        bot.move(temp_joints, speed_scaling=5.0)
         replicate_movement(bot, tagid, vision, position_offset)
     # Get the user to name the positions
     name = input("Write the name of your position:\n"

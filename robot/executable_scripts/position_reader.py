@@ -68,8 +68,9 @@ def replicate_movement(bot, tagid, vision, offset):
     tagmat = Jsonreader().read("camera_readings")[str(tagid)]
     tagmat = numphy.array(tagmat)
     offset = numphy.array(offset)
-    target = tagmat * offset
-    bot.arm.set_ee_pose_matrix(target.tolist())
+    target = tagmat @ offset
+    print(target)
+    bot.arm.set_ee_pose_matrix(target.tolist(), custom_guess = bot.arm.get_joint_positions())
     
 
 
@@ -98,7 +99,7 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
     position_joints = fix_joint_limits(position_joints)
     if not position_joints is False:  # if not "False" (tech debt...)
         temp_joints = position_joints.copy()
-        temp_joints[1] -= 0.25 
+        temp_joints[1] -= 0.15 
         bot.move(temp_joints, speed_scaling=5.0)
         sleep(1)
         bot.move(position_joints, speed_scaling=2.0)

@@ -21,7 +21,8 @@ def open_waffle_iron(bot: Wafflebot, reverse:bool = False):
 
     if reverse:
         lift_positions.reverse()
-    bot.move_to_joints(lift_positions[0], ignore=["waffle_iron", "sticks"])
+
+    bot.arm.set_joint_positions(lift_positions[0], blocking = True, moving_time=2.0)
     bot.grasp()
     wp_length = len(lift_positions)
     for pos in lift_positions:

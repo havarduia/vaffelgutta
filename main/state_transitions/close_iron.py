@@ -18,6 +18,7 @@ def close_iron(state: "CurrentState", bot: "Wafflebot"):
         else:
             do_funtime() #ask for prompt and do prompt
     """       
+    input("Press enter when waffle ready")
     state.set(State.FUN_TIME)  
 
 

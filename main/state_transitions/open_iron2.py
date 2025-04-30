@@ -10,7 +10,6 @@ def open_iron2(state: "CurrentState", bot: "Wafflebot"):
     actions = Actions(bot)
     
     try:
-        bot.move("sticks")
         actions.take_out_waffle() # Take out sticks from waffle iron with the waffle attached hopefully.
         bot.move("front_of_waffle_iron") # Here for changing state
         state.set(State.PICK_UP_WAFFLE)

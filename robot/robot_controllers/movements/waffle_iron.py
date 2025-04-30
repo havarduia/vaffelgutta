@@ -84,13 +84,8 @@ def take_waffle_off_sticks(bot:Wafflebot):
     ]
 
     if bot.automatic_mode:
-        tags = reader.read("camera_readings") 
-        tagid = targets[0]["tag"] #all these tags are the same. using first.
-        tag = tags[tagid]
-        for target in targets:
-            offset = target["offset"]
-            pose = abs_position_from_offset(tag, offset)
-            bot.move(pose, ignore=["sticks", "pole"]) 
+        for target in targets: 
+            bot.move(target["basepose"], ignore=["sticks", "pole"]) 
     else:
         [bot.move(target["joints"], ignore=["sticks", "pole"]) for target in targets]
 

@@ -69,7 +69,7 @@ def replicate_movement(bot, tagid, vision, offset):
     tagmat = numphy.array(tagmat)
     offset = numphy.array(offset)
     target = tagmat * offset
-    bot.arm.set_ee_pose(target.tolist())
+    bot.arm.set_ee_pose_matrix(target.tolist())
     
 
 

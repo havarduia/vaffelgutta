@@ -68,7 +68,7 @@ def take_out_waffle(bot: Wafflebot):
     bot.move(front_of_waffle_iron_pos,  ignore=["sticks", "waffle_iron"])
     bot.move(waffle_iron_sticks_prep_pos,ignore=["sticks", "waffle_iron"])
     bot.move(waffle_iron_sticks_pos,    ignore=["sticks", "waffle_iron"])
-    bot.gripper.grasp()
+    bot.grasp()
     bot.move(front_of_waffle_iron_pos,  ignore=["sticks", "waffle_iron"])
 
 def take_waffle_off_sticks(bot:Wafflebot):

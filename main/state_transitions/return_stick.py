@@ -16,6 +16,11 @@ def return_stick(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
         
     tags = reader.read("camera_readings")
 
+    if not input("Do another round? (y/n)\n").lower().startswith("y"):
+        bot.safe_stop()
+        return
+
+
     # Check for iron tag (both as string and integer)
     iron_tag_value = Tags.IRON_TAG.value
     iron_tag_present = iron_tag_value in tags.keys() or int(iron_tag_value) in tags.keys()

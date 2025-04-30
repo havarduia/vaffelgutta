@@ -8,8 +8,8 @@ def pick_up_waffle(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
 
     #gjør noe for å servere vaffel
     actions = Actions(bot)
-    
     actions.take_waffle_off_sticks()
+    actions.insert_sticks()
     state.set(State.RETURN_STICK)
 
 

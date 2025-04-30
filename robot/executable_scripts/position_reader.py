@@ -63,6 +63,14 @@ def playposition(bot: Wafflebot, data_type: Literal["joints", "basepose"]):
         sleep(1)
     return    
 
+def replicate_movement(bot, tagid, vision, offset):
+    vision.run_once()
+    tagmat = Jsonreader().read("camera_readings")[str(tagid)]
+    target = tagmat @ offset
+    bot.arm.set_ee_pose(target)
+    
+
+
 def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
     # detorque arm
     bot.core.robot_torque_enable("group", "arm", False)
@@ -80,6 +88,7 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
     # Record position
     bot.arm.capture_joint_positions()
     position_joints = bot.get_joint_positions()
+    position_mat = bot.arm.get_ee_pose().tolist()
     bot.core.robot_torque_enable("group", "arm", True)
     sleep(0.5)
 
@@ -90,8 +99,7 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
         temp_joints[1] -= 0.25 
         bot.move(temp_joints, speed_scaling=5.0)
         sleep(1)
-        print(bot.move(position_joints, speed_scaling=2.0))
-        position_mat = bot.arm.get_ee_pose().tolist()
+        bot.move(position_joints, speed_scaling=2.0)
         if tagid != 100:
             try:
                 tag = tags[str(tagid)]
@@ -105,6 +113,8 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
         print("Joints are not within their limits. Try again bozo.")
         bot.core.robot_torque_enable("group", "arm", False)
         return
+    if input("test movement? (y/n)\n").lower() == "y":
+        replicate_movement(bot, tagid, vision, position_offset)
     # Get the user to name the positions
     name = input("Write the name of your position:\n"
                 + "Press enter to cancel recording\n").lower().strip()
@@ -124,7 +134,6 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
         )
         jsonreader.write("recordings", data)
         print(f'Successfully written "{name}" to recordings.')
-    
     
     return name
 
@@ -206,6 +215,7 @@ def main(bot):
             recordposition(bot, tagid, vision)
         elif userinput == str(2):
             tagid = int(input("New ID: "))
+            vision.run_once()
         elif userinput == str(3):
             playposition(bot, "joints")
         elif userinput == str(4):

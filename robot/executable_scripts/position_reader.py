@@ -93,7 +93,11 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
         print(bot.move(position_joints, speed_scaling=2.0))
         position_mat = bot.arm.get_ee_pose().tolist()
         if tagid != 100:
-            tag = tags(str(tagid))
+            try:
+                tag = tags[str(tagid)]
+            except KeyError:
+                print("Tag not found")
+                return
             position_offset = create_offset_matrix(position_mat, tag)
         else:
             position_offset = 100

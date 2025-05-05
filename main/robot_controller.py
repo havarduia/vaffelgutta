@@ -103,13 +103,51 @@ class Robot:
             state_name: The name of the state to change to
         """
         try:
-            new_state = State[state_name]
+            # Check if robot and vision are initialized
+            if self.bot is None or self.vision is None:
+                self.status_queue.put("ERROR: Robot or vision system not initialized. Reinitializing...")
+                if not self.initialize():
+                    self.status_queue.put("ERROR: Failed to initialize robot. Cannot change state.")
+                    return
+                self.status_queue.put("Reinitialization successful. Continuing with state change.")
+
+            # Get the new state from the enum
+            try:
+                new_state = State[state_name]
+            except (KeyError, ValueError):
+                self.status_queue.put(f"ERROR: Invalid state: {state_name}")
+                return
+
+            # Set the new state
             self.state.set(new_state)
             self.status_queue.put(f"State changed to {new_state.name}")
-            # Only start processing states if explicitly changed by user
+
+            # Enable state processing
             self.process_states = True
-        except (KeyError, ValueError):
-            self.status_queue.put(f"Invalid state: {state_name}")
+
+            # Immediately execute the state action
+            self.status_queue.put(f"Executing state action for {new_state.name}...")
+            try:
+                # Set the processing flag
+                Robot._processing_state_action = True
+                self._execute_state_action(new_state)
+                self.status_queue.put(f"State action for {new_state.name} executed successfully")
+                Robot._processing_state_action = False
+            except Exception as e:
+                error_message = f"Error executing state action for {new_state.name}: {str(e)}"
+                self.status_queue.put(f"ERROR: {error_message}")
+                print(error_message)
+                import traceback
+                print(traceback.format_exc())
+                self.state.set(State.ERROR)
+                Robot._processing_state_action = False
+
+        except Exception as e:
+            error_message = f"Error changing state to {state_name}: {str(e)}"
+            self.status_queue.put(f"ERROR: {error_message}")
+            print(error_message)
+            import traceback
+            print(traceback.format_exc())
 
     def _emergency_stop(self):
         """Handle emergency stop command."""
@@ -147,11 +185,31 @@ class Robot:
         self.process_states = True
         self.status_queue.put("State set to SLEEP, beginning waffle sequence...")
 
+        # Immediately execute the state action
+        try:
+            self.status_queue.put("Executing SLEEP state action...")
+            # Set the processing flag
+            Robot._processing_state_action = True
+            self._execute_state_action(State.SLEEP)
+            self.status_queue.put("SLEEP state action executed successfully")
+            Robot._processing_state_action = False
+        except Exception as e:
+            error_message = f"Error executing SLEEP state action: {str(e)}"
+            self.status_queue.put(f"ERROR: {error_message}")
+            print(error_message)
+            import traceback
+            print(traceback.format_exc())
+            self.state.set(State.ERROR)
+            Robot._processing_state_action = False
+
     def _exit(self):
         """Handle exit command."""
         self.status_queue.put("Shutting down...")
         self.bot.safe_stop()
         # The main loop will check the stop_event and exit
+
+    # Flag to track if we're currently processing a state action
+    _processing_state_action = False
 
     def process_state(self):
         """Process the current state and execute the corresponding action."""
@@ -171,10 +229,16 @@ class Robot:
             self.process_states = False
             return False
 
+        # Prevent concurrent state processing
+        if Robot._processing_state_action:
+            return False
+
         # Execute state action
         try:
+            Robot._processing_state_action = True
             self.status_queue.put(f"Executing state action for {current_state.name}...")
             self._execute_state_action(current_state)
+            Robot._processing_state_action = False
             return True
         except Exception as e:
             error_message = f"Error in state {current_state.name}: {str(e)}"
@@ -184,6 +248,7 @@ class Robot:
             import traceback
             print(traceback.format_exc())
             self.state.set(State.ERROR)
+            Robot._processing_state_action = False
             return False
 
     def _execute_state_action(self, current_state: State):

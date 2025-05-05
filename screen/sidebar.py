@@ -29,5 +29,18 @@ class Sidebar(ctk.CTkFrame):
 
     def create_buttons(self):
         for i, name in enumerate(self.button_names):
-            btn = SidebarButton(self, name=name, command=lambda n=name: self.button_callback(n))
+            # Special styling for Emergency button
+            if name == "Emergency":
+                btn = SidebarButton(
+                    self,
+                    name=name,
+                    command=lambda n=name: self.button_callback(n),
+                    fg_color="#E53935",  # Red color
+                    hover_color="#C62828",  # Darker red on hover
+                    border_width=2,
+                    border_color="#B71C1C"  # Even darker red border
+                )
+            else:
+                btn = SidebarButton(self, name=name, command=lambda n=name: self.button_callback(n))
+
             btn.grid(row=i + 1, column=0, sticky="nsew", padx=3, pady=3)

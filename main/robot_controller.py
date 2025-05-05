@@ -82,19 +82,31 @@ class Robot:
             command: The command to process
             data: Optional data associated with the command
         """
+        print(f"DEBUG: Robot controller received command: {command}, data: {data}")
         try:
             if command == "CHANGE_STATE":
+                print(f"DEBUG: Processing CHANGE_STATE command with data: {data}")
                 self._change_state(data)
             elif command == "EMERGENCY_STOP":
+                print("DEBUG: Processing EMERGENCY_STOP command")
                 self._emergency_stop()
             elif command == "STOP_ROBOT":
+                print("DEBUG: Processing STOP_ROBOT command")
                 self._stop_robot()
             elif command == "MAKE_WAFFLE":
+                print("DEBUG: Processing MAKE_WAFFLE command")
                 self._make_waffle()
             elif command == "EXIT":
+                print("DEBUG: Processing EXIT command")
                 self._exit()
+            else:
+                print(f"DEBUG: Unknown command received: {command}")
         except Exception as e:
-            self.status_queue.put(f"Error processing command {command}: {str(e)}")
+            error_message = f"Error processing command {command}: {str(e)}"
+            print(f"DEBUG: {error_message}")
+            import traceback
+            print(traceback.format_exc())
+            self.status_queue.put(error_message)
 
     def _change_state(self, state_name: str):
         """Change the robot's state.
@@ -482,14 +494,20 @@ class Robot:
             while not self.stop_event.is_set():
                 # Check for commands
                 try:
+                    print("DEBUG: Checking command queue...")
                     command, data = self.command_queue.get(block=False)
+                    print(f"DEBUG: Found command in queue: {command}, data: {data}")
                     self.status_queue.put(f"Received command: {command}")
                     self.process_command(command, data)
 
                     # Check for exit command
                     if command == "EXIT":
+                        print("DEBUG: EXIT command received, breaking main loop")
                         break
                 except queue.Empty:
+                    # Print this message only occasionally to avoid flooding the console
+                    if int(time.time()) % 5 == 0:  # Print every 5 seconds
+                        print("DEBUG: No commands in queue")
                     pass
 
                 # Process current state

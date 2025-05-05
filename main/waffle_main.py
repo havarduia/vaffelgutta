@@ -94,7 +94,9 @@ class WaffleApp(ctk.CTk):
 
     def send_command(self, command, data=None):
         """Send a command to the robot control thread."""
+        print(f"DEBUG: Sending command to robot: {command}, data: {data}")
         self.command_queue.put((command, data))
+        print(f"DEBUG: Command {command} added to queue")
 
     def exit_application(self):
         """Clean exit of the application."""

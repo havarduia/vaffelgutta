@@ -107,7 +107,7 @@ class HomePage(BasePage):
             fg_color="#F9A825",  # Golden/orange color for waffles
             border_color="#F57F17",  # Darker orange border
             hover_color="#F57F17",  # Darker orange on hover
-            command=self.on_make_waffle,
+            command=lambda: self._on_make_waffle_click(),  # Use a lambda to call a private method
             **button_config
         )
         self.make_waffle_btn.grid(row=0, column=0, padx=30, pady=30, sticky="nsew")
@@ -118,7 +118,7 @@ class HomePage(BasePage):
             fg_color="#2196F3",  # Blue for settings/state changes
             border_color="#1565C0",  # Darker blue border
             hover_color="#1565C0",  # Darker blue on hover
-            command=self.change_state,
+            command=lambda: self._on_change_state_click(),  # Use a lambda to call a private method
             **button_config
         )
         self.settings_btn.grid(row=0, column=1, padx=30, pady=30, sticky="nsew")
@@ -129,7 +129,7 @@ class HomePage(BasePage):
             fg_color="#000000",  # Orange for caution/pause
             border_color="#E65100",  # Darker orange border
             hover_color="#E65100",  # Darker orange on hover
-            command=self.stop_robot,
+            command=lambda: self._on_stop_robot_click(),  # Use a lambda to call a private method
             **button_config
         )
         self.status_btn.grid(row=1, column=0, padx=30, pady=30, sticky="nsew")
@@ -140,30 +140,54 @@ class HomePage(BasePage):
             fg_color="#757575",  # Gray for exit
             border_color="#424242",  # Darker gray border
             hover_color="#424242",  # Darker gray on hover
-            command=self.exit,
+            command=lambda: self._on_exit_click(),  # Use a lambda to call a private method
             **button_config
         )
         self.help_btn.grid(row=1, column=1, padx=30, pady=30, sticky="nsew")
 
+    def _on_make_waffle_click(self):
+        """Private method to handle the button click event"""
+        print("Make Waffle button clicked - private handler")
+        # Call the public method that will be overridden by the page connector
+        self.on_make_waffle()
+
     def on_make_waffle(self):
-        """Handle Make Waffle button click"""
-        print("Make Waffle button clicked")
-        # Add your functionality here
+        """Public method that will be overridden by the page connector"""
+        print("Make Waffle button clicked - public handler")
+        # This method will be overridden by the page connector
+
+    def _on_change_state_click(self):
+        """Private method to handle the Change State button click event"""
+        print("Change State button clicked - private handler")
+        # Call the public method that will be overridden by the page connector
+        self.change_state()
 
     def change_state(self):
-        """Handle Change State button click"""
-        print("Change State button clicked")
-        # Add your functionality here
+        """Public method that will be overridden by the page connector"""
+        print("Change State button clicked - public handler")
+        # This method will be overridden by the page connector
+
+    def _on_stop_robot_click(self):
+        """Private method to handle the Stop Robot button click event"""
+        print("Stop Robot button clicked - private handler")
+        # Call the public method that will be overridden by the page connector
+        self.stop_robot()
 
     def stop_robot(self):
-        """Handle Stop Robot button click"""
-        print("Stop Robot button clicked")
-        # Add your functionality here
+        """Public method that will be overridden by the page connector"""
+        print("Stop Robot button clicked - public handler")
+        # This method will be overridden by the page connector
+
+    def _on_exit_click(self):
+        """Private method to handle the Exit button click event"""
+        print("Exit button clicked - private handler")
+        # Call the public method that will be overridden by the page connector
+        self.exit()
 
     def exit(self):
-        """Handle Exit button click"""
-        print("Exit button clicked")
-        # Add your functionality here
+        """Public method that will be overridden by the page connector"""
+        print("Exit button clicked - public handler")
+        # This method will be overridden by the page connector
         self.master.master.quit()  # This will exit the application
 
 class EmergencyPage(BasePage):

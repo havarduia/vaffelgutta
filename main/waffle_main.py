@@ -11,8 +11,8 @@ import customtkinter as ctk
 from robot.tools.errorhandling import handle_error
 from screen.sidebar import Sidebar
 from screen.pagecontroller import PageController
-from main.robot_controller import RobotController
-from main.page_connector import PageConnector
+from main.robot_controller import Robot
+from main.page_connector import Screen
 
 # Global appearance for the GUI
 ctk.set_appearance_mode("dark")
@@ -111,7 +111,7 @@ def main():
     stop_event = threading.Event()
 
     # Create the robot controller
-    robot_controller = RobotController(command_queue, state_queue, status_queue, stop_event)
+    robot_controller = Robot(command_queue, state_queue, status_queue, stop_event)
 
     # Start the robot control thread
     robot_thread = threading.Thread(target=robot_controller.run, daemon=True)
@@ -121,7 +121,7 @@ def main():
     app = WaffleApp(command_queue, state_queue, status_queue, stop_event)
 
     # Connect the GUI pages to the robot controller
-    page_connector = PageConnector(
+    page_connector = Screen(
         app,
         app.page_controller,
         app.send_command,

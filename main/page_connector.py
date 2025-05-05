@@ -12,7 +12,7 @@ import customtkinter as ctk
 from main.waffle_states.waffle_states import State
 
 
-class PageConnector:
+class Screen:
     """Connects the GUI pages to the robot controller."""
     
     def __init__(self, app, page_controller, command_sender: Callable, state_queue: queue.Queue, status_queue: queue.Queue):

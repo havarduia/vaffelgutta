@@ -21,8 +21,6 @@ def home(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
     iron_tag_value = Tags.IRON_TAG.value
     if iron_tag_value in tags.keys() or int(iron_tag_value) in tags.keys() or not bot.automatic_mode:
         try:
-            bot.move("front_of_waffle_iron_a")
-            bot.move("front_of_waffle_iron_b")
             bot.move("bottom_of_waffle_iron")
             actions.open_waffle_iron()
             bot.move("top_of_waffle_iron")

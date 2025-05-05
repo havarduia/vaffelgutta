@@ -125,14 +125,103 @@ class Robot:
             # Enable state processing
             self.process_states = True
 
-            # Immediately execute the state action
-            self.status_queue.put(f"Executing state action for {new_state.name}...")
+            # Directly execute the state action based on the state
+            self.status_queue.put(f"Directly executing action for {new_state.name}...")
             try:
                 # Set the processing flag
                 Robot._processing_state_action = True
-                self._execute_state_action(new_state)
+
+                # Direct execution of state actions
+                if new_state == State.REST:
+                    self.status_queue.put("Robot is resting")
+                    print("Calling rest() function directly")
+                    rest(self.state, self.bot)
+
+                elif new_state == State.HOME:
+                    self.status_queue.put("Moving to home position")
+                    print("Calling home() function directly")
+                    home(self.state, self.bot, self.vision)
+
+                elif new_state == State.SLEEP:
+                    self.status_queue.put("Robot is in sleep state")
+                    print("Calling start() function directly")
+                    start(self.state, self.bot, self.vision)
+
+                elif new_state == State.OPEN_IRON:
+                    self.status_queue.put("Opening waffle iron")
+                    print("Calling open_iron() function directly")
+                    open_iron(self.state, self.bot, self.vision)
+
+                elif new_state == State.PICK_UP_SPRAY:
+                    self.status_queue.put("Picking up spray")
+                    print("Calling pick_up_spray() function directly")
+                    pick_up_spray(self.state, self.bot, self.vision)
+
+                elif new_state == State.SPRAY:
+                    self.status_queue.put("Spraying waffle iron")
+                    print("Calling spray() function directly")
+                    spray(self.state, self.bot)
+
+                elif new_state == State.PUT_DOWN_SPRAY:
+                    self.status_queue.put("Putting down spray")
+                    print("Calling put_down_spray() function directly")
+                    put_down_spray(self.state, self.bot, self.vision)
+
+                elif new_state == State.PICK_UP_LADLE:
+                    self.status_queue.put("Picking up ladle")
+                    print("Calling pick_up_ladle() function directly")
+                    pick_up_ladle(self.state, self.bot)
+
+                elif new_state == State.CLOSE_IRON:
+                    self.status_queue.put("Closing waffle iron")
+                    print("Calling close_iron() function directly")
+                    close_iron(self.state, self.bot)
+
+                elif new_state == State.FUN_TIME:
+                    self.status_queue.put("Cooking waffle")
+                    print("Calling fun_time() function directly")
+                    fun_time(self.state, self.bot)
+
+                elif new_state == State.POUR_BATTER:
+                    self.status_queue.put("Pouring batter")
+                    print("Calling pour_batter() function directly")
+                    pour_batter(self.state, self.bot)
+
+                elif new_state == State.RETURN_LADLE:
+                    self.status_queue.put("Returning ladle")
+                    print("Calling return_ladle() function directly")
+                    return_ladle(self.state, self.bot, self.vision)
+
+                elif new_state == State.OPEN_IRON2:
+                    self.status_queue.put("Opening iron to check waffle")
+                    print("Calling open_iron2() function directly")
+                    open_iron2(self.state, self.bot)
+
+                elif new_state == State.RETURN_STICK:
+                    self.status_queue.put("Returning stick")
+                    print("Calling return_stick() function directly")
+                    return_stick(self.state, self.bot, self.vision)
+
+                elif new_state == State.PICK_UP_WAFFLE:
+                    self.status_queue.put("Picking up waffle")
+                    print("Calling pick_up_waffle() function directly")
+                    pick_up_waffle(self.state, self.bot, self.vision)
+                    # Increment waffle counter
+                    self.waffle_counter += 1
+
+                elif new_state == State.ERROR:
+                    self.status_queue.put("ERROR: Robot needs attention!")
+                    print("Calling error() function directly")
+                    error(self.state, self.bot)
+
+                else:
+                    self.status_queue.put("Unknown state encountered")
+                    print("Unknown state, calling safe_stop() directly")
+                    self.bot.safe_stop(slow=True)
+
                 self.status_queue.put(f"State action for {new_state.name} executed successfully")
                 Robot._processing_state_action = False
+
             except Exception as e:
                 error_message = f"Error executing state action for {new_state.name}: {str(e)}"
                 self.status_queue.put(f"ERROR: {error_message}")
@@ -185,12 +274,17 @@ class Robot:
         self.process_states = True
         self.status_queue.put("State set to SLEEP, beginning waffle sequence...")
 
-        # Immediately execute the state action
+        # Directly execute the start function
         try:
-            self.status_queue.put("Executing SLEEP state action...")
+            self.status_queue.put("Directly executing SLEEP state action...")
+            print("Directly calling start() function for waffle making")
+
             # Set the processing flag
             Robot._processing_state_action = True
-            self._execute_state_action(State.SLEEP)
+
+            # Direct call to start function
+            start(self.state, self.bot, self.vision)
+
             self.status_queue.put("SLEEP state action executed successfully")
             Robot._processing_state_action = False
         except Exception as e:
@@ -257,76 +351,121 @@ class Robot:
         Args:
             current_state: The current state of the robot
         """
-        match current_state:
-            case State.REST:
-                self.status_queue.put("Robot is resting")
-                rest(self.state, self.bot)
+        print(f"DEBUG: Executing state action for {current_state.name}")
+        self.status_queue.put(f"DEBUG: Executing state action for {current_state.name}")
 
-            case State.HOME:
-                self.status_queue.put("Moving to home position")
-                home(self.state, self.bot, self.vision)
+        try:
+            match current_state:
+                case State.REST:
+                    self.status_queue.put("Robot is resting")
+                    print("DEBUG: Calling rest() function")
+                    rest(self.state, self.bot)
+                    print("DEBUG: rest() function completed")
 
-            case State.SLEEP:
-                self.status_queue.put("Robot is in sleep state")
-                start(self.state, self.bot, self.vision)
+                case State.HOME:
+                    self.status_queue.put("Moving to home position")
+                    print("DEBUG: Calling home() function")
+                    home(self.state, self.bot, self.vision)
+                    print("DEBUG: home() function completed")
 
-            case State.OPEN_IRON:
-                self.status_queue.put("Opening waffle iron")
-                open_iron(self.state, self.bot, self.vision)
+                case State.SLEEP:
+                    self.status_queue.put("Robot is in sleep state")
+                    print("DEBUG: Calling start() function")
+                    start(self.state, self.bot, self.vision)
+                    print("DEBUG: start() function completed")
 
-            case State.PICK_UP_SPRAY:
-                self.status_queue.put("Picking up spray")
-                pick_up_spray(self.state, self.bot, self.vision)
+                case State.OPEN_IRON:
+                    self.status_queue.put("Opening waffle iron")
+                    print("DEBUG: Calling open_iron() function")
+                    open_iron(self.state, self.bot, self.vision)
+                    print("DEBUG: open_iron() function completed")
 
-            case State.SPRAY:
-                self.status_queue.put("Spraying waffle iron")
-                spray(self.state, self.bot)
+                case State.PICK_UP_SPRAY:
+                    self.status_queue.put("Picking up spray")
+                    print("DEBUG: Calling pick_up_spray() function")
+                    pick_up_spray(self.state, self.bot, self.vision)
+                    print("DEBUG: pick_up_spray() function completed")
 
-            case State.PUT_DOWN_SPRAY:
-                self.status_queue.put("Putting down spray")
-                put_down_spray(self.state, self.bot, self.vision)
+                case State.SPRAY:
+                    self.status_queue.put("Spraying waffle iron")
+                    print("DEBUG: Calling spray() function")
+                    spray(self.state, self.bot)
+                    print("DEBUG: spray() function completed")
 
-            case State.PICK_UP_LADLE:
-                self.status_queue.put("Picking up ladle")
-                pick_up_ladle(self.state, self.bot)
+                case State.PUT_DOWN_SPRAY:
+                    self.status_queue.put("Putting down spray")
+                    print("DEBUG: Calling put_down_spray() function")
+                    put_down_spray(self.state, self.bot, self.vision)
+                    print("DEBUG: put_down_spray() function completed")
 
-            case State.CLOSE_IRON:
-                self.status_queue.put("Closing waffle iron")
-                close_iron(self.state, self.bot)
+                case State.PICK_UP_LADLE:
+                    self.status_queue.put("Picking up ladle")
+                    print("DEBUG: Calling pick_up_ladle() function")
+                    pick_up_ladle(self.state, self.bot)
+                    print("DEBUG: pick_up_ladle() function completed")
 
-            case State.FUN_TIME:
-                self.status_queue.put("Cooking waffle")
-                fun_time(self.state, self.bot)
+                case State.CLOSE_IRON:
+                    self.status_queue.put("Closing waffle iron")
+                    print("DEBUG: Calling close_iron() function")
+                    close_iron(self.state, self.bot)
+                    print("DEBUG: close_iron() function completed")
 
-            case State.POUR_BATTER:
-                self.status_queue.put("Pouring batter")
-                pour_batter(self.state, self.bot)
+                case State.FUN_TIME:
+                    self.status_queue.put("Cooking waffle")
+                    print("DEBUG: Calling fun_time() function")
+                    fun_time(self.state, self.bot)
+                    print("DEBUG: fun_time() function completed")
 
-            case State.RETURN_LADLE:
-                self.status_queue.put("Returning ladle")
-                return_ladle(self.state, self.bot, self.vision)
+                case State.POUR_BATTER:
+                    self.status_queue.put("Pouring batter")
+                    print("DEBUG: Calling pour_batter() function")
+                    pour_batter(self.state, self.bot)
+                    print("DEBUG: pour_batter() function completed")
 
-            case State.OPEN_IRON2:
-                self.status_queue.put("Opening iron to check waffle")
-                open_iron2(self.state, self.bot)
+                case State.RETURN_LADLE:
+                    self.status_queue.put("Returning ladle")
+                    print("DEBUG: Calling return_ladle() function")
+                    return_ladle(self.state, self.bot, self.vision)
+                    print("DEBUG: return_ladle() function completed")
 
-            case State.RETURN_STICK:
-                self.status_queue.put("Returning stick")
-                return_stick(self.state, self.bot, self.vision)
+                case State.OPEN_IRON2:
+                    self.status_queue.put("Opening iron to check waffle")
+                    print("DEBUG: Calling open_iron2() function")
+                    open_iron2(self.state, self.bot)
+                    print("DEBUG: open_iron2() function completed")
 
-            case State.PICK_UP_WAFFLE:
-                self.status_queue.put("Picking up waffle")
-                pick_up_waffle(self.state, self.bot, self.vision)
-                # Increment waffle counter
-                self.waffle_counter += 1
+                case State.RETURN_STICK:
+                    self.status_queue.put("Returning stick")
+                    print("DEBUG: Calling return_stick() function")
+                    return_stick(self.state, self.bot, self.vision)
+                    print("DEBUG: return_stick() function completed")
 
-            case State.ERROR:
-                self.status_queue.put("ERROR: Robot needs attention!")
-                error(self.state, self.bot)
+                case State.PICK_UP_WAFFLE:
+                    self.status_queue.put("Picking up waffle")
+                    print("DEBUG: Calling pick_up_waffle() function")
+                    pick_up_waffle(self.state, self.bot, self.vision)
+                    print("DEBUG: pick_up_waffle() function completed")
+                    # Increment waffle counter
+                    self.waffle_counter += 1
 
-            case _:
-                self.status_queue.put("Unknown state encountered")
-                self.bot.safe_stop(slow=True)
+                case State.ERROR:
+                    self.status_queue.put("ERROR: Robot needs attention!")
+                    print("DEBUG: Calling error() function")
+                    error(self.state, self.bot)
+                    print("DEBUG: error() function completed")
+
+                case _:
+                    self.status_queue.put("Unknown state encountered")
+                    print("DEBUG: Unknown state, calling safe_stop()")
+                    self.bot.safe_stop(slow=True)
+                    print("DEBUG: safe_stop() completed")
+        except Exception as e:
+            error_message = f"Exception in _execute_state_action for {current_state.name}: {str(e)}"
+            print(error_message)
+            import traceback
+            print(traceback.format_exc())
+            self.status_queue.put(f"ERROR: {error_message}")
+            raise  # Re-raise the exception to be caught by the caller
 
     def run(self):
         """Main control loop for the robot controller."""

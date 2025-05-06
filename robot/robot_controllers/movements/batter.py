@@ -25,7 +25,7 @@ def put_ladle_in_bowl(bot: Wafflebot):
     bot.move(front_of_bowl_pos, ignore=["ladle"])
     bot.move(top_of_bowl_pos, ignore=["ladle"])
     bot.move(inside_bowl_pos, ignore= ["ladle", "bowl"])
-    bot.gripper.release()
+    bot.release()
     bot.move(top_of_bowl_pos, ignore=["ladle", "bowl"])
     bot.move(front_of_bowl_pos, ignore=["ladle"])
 
@@ -42,7 +42,7 @@ def pick_up_ladle(bot: Wafflebot):
     and moves it to the front of the waffle iron.
     """
 
-    bot.gripper.release()
+    bot.release()
     reader = Jsonreader()
     positions = reader.read("recordings")
 
@@ -57,7 +57,7 @@ def pick_up_ladle(bot: Wafflebot):
 
     bot.move(front_of_bowl_pos)
     bot.move(inside_bowl_pos, ignore= ["ladle", "bowl"])
-    bot.gripper.grasp()
+    bot.grasp()
     bot.move(top_of_bowl_pos, ignore=["ladle", "bowl"])
     thug_shake(bot)
     bot.move(top_of_bowl_pos, ignore=["ladle", "bowl"])

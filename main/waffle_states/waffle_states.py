@@ -37,7 +37,7 @@ class Tags(Enum):
     SPRAY_TAG = "3"
     STICKS_TAG = "4"
     JAM_TAG = "5"
-    FOLLOW_ME_TAG = "6"
+    FOLLOW_ME_TAG = "25"
     ORIGIN_TAG = "0"
     
     # ...fill in tags here

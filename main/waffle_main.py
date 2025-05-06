@@ -80,11 +80,11 @@ def main(bot: Wafflebot):
                 pick_up_ladle(state, bot)
 
             case State.CLOSE_IRON:
-                print("Its all going well, closing iron! 👺")
+                print("Its all going well, This is where the fun begins 😏")
                 close_iron(state, bot)
 
             case State.FUN_TIME:
-                print("This is where the fun begins 😏")
+                print("Waffle is done!")
                 fun_time(state, bot)
             
             case State.POUR_BATTER:
@@ -92,23 +92,23 @@ def main(bot: Wafflebot):
                 pour_batter(state, bot)
                 
             case State.RETURN_LADLE:
-                print("I HAVE RETURNED THE LADLE")
+                print("Closing IRON!")
                 return_ladle(state, bot, vision)
 
             case State.OPEN_IRON2:
-                print("Waffle is done opening iron! 🥴")
+                print("Opening iron! 🥴")
                 open_iron2(state, bot)
 
             case State.RETURN_STICK:
-                print("Stick to IRON!!!")
+                print("I have Returned the stick!")
                 return_stick(state, bot, vision)
                 
             case State.PICK_UP_WAFFLE:
-                print("123")
+                print("I have picked up the waffle!")
                 pick_up_waffle(state,bot,vision)
 
             case State.ERROR:
-                print("Hagle")
+                print("Hagle!")
                 error(state, bot)
 
             case _:

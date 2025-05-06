@@ -26,7 +26,7 @@ def open_waffle_iron(bot: Wafflebot, reverse:bool = False):
     bot.grasp()
     wp_length = len(lift_positions)
     for pos in lift_positions:
-        bot.arm.set_joint_positions(pos, blocking=False)
+        bot.arm.set_joint_positions(pos, moving_time=0.2, blocking=False)
         sleep(2.0/(wp_length))
     bot.arm.set_joint_positions(lift_positions[-1], blocking = True, moving_time=2.0)
     bot.release()
@@ -76,11 +76,11 @@ def take_waffle_off_sticks(bot:Wafflebot):
     positions = reader.read("recordings")
 
     targets = [
-        positions["pole_a"],
-        positions["pole_b"],
-        positions["pole_c"],
-        positions["pole_d"],
-        positions["pole_e"],
+        positions["pole_1"],
+        positions["pole_2"],
+        positions["pole_3"],
+        positions["pole_4"],
+        positions["pole_5"],
     ]
 
     if bot.automatic_mode:

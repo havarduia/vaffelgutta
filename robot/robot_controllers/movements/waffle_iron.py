@@ -10,7 +10,7 @@ from robot.tools.update_tagoffsets import abs_position_from_offset, position_fro
 def open_waffle_iron(bot: Wafflebot, reverse:bool = False):
     """Opens the waffle iron"""
     
-    bot.gripper.release()
+    bot.release()
     if reverse:
         bot.move("top_of_waffle_iron", ignore=["waffle_iron"])
     else:
@@ -45,8 +45,10 @@ def insert_sticks(bot: Wafflebot):
 
     movement_type = "basepose" if bot.automatic_mode else "joints"
     front_of_waffle_iron_pos = positions["front_of_waffle_iron"][movement_type]
+    front_of_waffle_iron_sticks_pos = positions["front_of_waffle_iron_sticks"][movement_type]
     waffle_iron_sticks_pos = positions["waffle_iron_sticks"][movement_type]
     
+    bot.move(front_of_waffle_iron_sticks_pos, ignore=["sticks", "waffle_iron"])
     bot.move(front_of_waffle_iron_pos, ignore=["sticks"])
     bot.move(waffle_iron_sticks_pos, ignore=["sticks", "waffle_iron"])
     bot.release()
@@ -64,11 +66,12 @@ def take_out_waffle(bot: Wafflebot):
     waffle_iron_sticks_pos = positions["waffle_iron_sticks"][movement_type]
     
     #movement sequence:
-    bot.gripper.release()
+    bot.release()
     bot.move(front_of_waffle_iron_pos,  ignore=["sticks", "waffle_iron"])
     bot.move(waffle_iron_sticks_prep_pos,ignore=["sticks", "waffle_iron"])
     bot.move(waffle_iron_sticks_pos,    ignore=["sticks", "waffle_iron"])
     bot.grasp()
+    bot.move(waffle_iron_sticks_prep_pos,ignore=["sticks", "waffle_iron"])
     bot.move(front_of_waffle_iron_pos,  ignore=["sticks", "waffle_iron"])
 
 def take_waffle_off_sticks(bot:Wafflebot):

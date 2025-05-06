@@ -43,6 +43,7 @@ def main(bot: Wafflebot):
     Executes the next action in the actions list.
     """
     vision, state = init()
+    bot.go_to_home_pose()
     while True:
         current_state = state.get()
         match current_state:
@@ -120,7 +121,7 @@ def main(bot: Wafflebot):
 
 if __name__ == "__main__":
     try:
-        bot = Wafflebot(automatic_mode=True, detect_collisions=True)
+        bot = Wafflebot(automatic_mode=False, detect_collisions=False)
         main(bot)
     except (Exception, KeyboardInterrupt, RCLError) as e:
         handle_error(e, bot)

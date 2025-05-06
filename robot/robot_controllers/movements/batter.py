@@ -30,10 +30,10 @@ def put_ladle_in_bowl(bot: Wafflebot):
     #bot.move(front_of_bowl_pos, ignore=["ladle"])
 
 def thug_shake(bot: Wafflebot):
-    bot.move("thug_shake_1", ignore=["ladle"], speed_scaling=3.0) # TODO adjust speed_scaling
-    bot.move("thug_shake_2", ignore=["ladle"], speed_scaling=3.0) # TODO adjust speed_scaling
-    bot.move("thug_shake_3", ignore=["ladle"], speed_scaling=3.0) # TODO adjust speed_scaling
-    bot.move("thug_shake_4", ignore=["ladle"], speed_scaling=3.0) # TODO adjust speed_scaling
+    bot.move("thug_shake_1", ignore=["ladle"], speed_scaling=6.0) # TODO adjust speed_scaling
+    bot.move("thug_shake_2", ignore=["ladle"], speed_scaling=6.0) # TODO adjust speed_scaling
+    bot.move("thug_shake_3", ignore=["ladle"], speed_scaling=6.0) # TODO adjust speed_scaling
+    bot.move("thug_shake_4", ignore=["ladle"], speed_scaling=6.0) # TODO adjust speed_scaling
 
 
 def pick_up_ladle(bot: Wafflebot):
@@ -60,6 +60,7 @@ def pick_up_ladle(bot: Wafflebot):
     bot.gripper.grasp()
     bot.move(top_of_bowl_pos, ignore=["ladle", "bowl"])
     thug_shake(bot)
+    bot.move(top_of_bowl_pos, ignore=["ladle", "bowl"])
     bot.move(front_of_bowl_pos, ignore=["ladle"])
 
 

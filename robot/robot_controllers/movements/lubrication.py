@@ -1,6 +1,10 @@
 from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
 from robot.tools.file_manipulation import Jsonreader
 from robot.tools.update_tagoffsets import position_from_name
+from sys import modules as sysmodules
+if "Jetson.GPIO" in sysmodules:
+    import Jetson.GPIO as GPIO
+from time import sleep
 
 
 import numpy as numphy
@@ -52,7 +56,26 @@ def pick_up_lube(bot: Wafflebot, reverse: bool = False):
 
 
 def spray():
-    raise NotImplementedError("The spray hardware does not exist yet.")
+    if "Jetson.GPIO" in sysmodules:
+        servo_pin = 33
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(servo_pin, GPIO.OUT)
+        pwm = GPIO.PWM(servo_pin, 50)
+        pwm.start(0)
+        pwm.ChangeDutyCycle(10)        
+        sleep(0.1)
+        pwm.ChangeDutyCycle(17)        
+        sleep(0.5)
+        pwm.ChangeDutyCycle(10)        
+        sleep(0.5)
+        pwm.ChangeDutyCycle(0)
+
+
+
+
+
+    else:
+        raise NotImplementedError("The spray hardware does not exist.")
 
 def spray_lube(bot:Wafflebot): 
     """

@@ -5,9 +5,9 @@ def pour_batter(state: "CurrentState", bot: "Wafflebot"):
 
     actions = Actions(bot)
     try:
-        bot.move("prep_ladle") 
+        bot.move("front_of_bowl") 
         actions.put_ladle_in_bowl() 
-        bot.move("prep_ladle")
+        bot.move("front_of_bowl")
         state.set(State.RETURN_LADLE)
     except FloatingPointError: # unused error used as signal.
         state.set(State.ERROR)

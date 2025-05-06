@@ -76,11 +76,11 @@ def take_waffle_off_sticks(bot:Wafflebot):
     positions = reader.read("recordings")
 
     targets = [
-        positions["pole_a"],
-        positions["pole_b"],
-        positions["pole_c"],
-        positions["pole_d"],
-        positions["pole_e"],
+        positions["pole_1"],
+        positions["pole_2"],
+        positions["pole_3"],
+        positions["pole_4"],
+        positions["pole_5"],
     ]
 
     if bot.automatic_mode:

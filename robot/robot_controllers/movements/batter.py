@@ -22,12 +22,12 @@ def put_ladle_in_bowl(bot: Wafflebot):
         inside_bowl_pos = positions["inside_bowl"]["joints"]
         front_of_bowl_pos= positions["front_of_bowl"]["joints"]
 
-    #bot.move(front_of_bowl_pos, ignore=["ladle"])
+    bot.move(front_of_bowl_pos, ignore=["ladle"])
     bot.move(top_of_bowl_pos, ignore=["ladle"])
     bot.move(inside_bowl_pos, ignore= ["ladle", "bowl"])
     bot.gripper.release()
     bot.move(top_of_bowl_pos, ignore=["ladle", "bowl"])
-    #bot.move(front_of_bowl_pos, ignore=["ladle"])
+    bot.move(front_of_bowl_pos, ignore=["ladle"])
 
 def thug_shake(bot: Wafflebot):
     bot.move("thug_shake_1", ignore=["ladle"], speed_scaling=6.0) # TODO adjust speed_scaling
@@ -47,11 +47,11 @@ def pick_up_ladle(bot: Wafflebot):
     positions = reader.read("recordings")
 
     if bot.automatic_mode:
-        front_of_bowl_pos= positions["prep_ladle"]["basepose"]
+        front_of_bowl_pos= positions["front_of_bowl"]["basepose"]
         inside_bowl_pos = position_from_name("inside_bowl")
         top_of_bowl_pos = position_from_name("top_of_bowl")
     else:
-        front_of_bowl_pos= positions["prep_ladle"]["joints"]
+        front_of_bowl_pos= positions["front_of_bowl"]["joints"]
         inside_bowl_pos= positions["inside_bowl"]["joints"]
         top_of_bowl_pos= positions["top_of_bowl"]["joints"]
 

@@ -22,6 +22,7 @@ def interpret_target_command(
 
     #handle string positions:
     if isinstance(target, str):
+        print("interpret_target_command_debug:\npose name is:\n"+target)
         reader = Jsonreader()
         positions = reader.read("recordings")
         #joints:

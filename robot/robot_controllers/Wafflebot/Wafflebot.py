@@ -46,7 +46,7 @@ class Wafflebot:
         self.gripper = self.bot.gripper
         self.core = self.bot.core
         # misc inits
-        self.speed = 0.5
+        self.speed = 1.5
         self.detect_collisions = detect_collisions
         self.debug_print = debug_print
         self.home_pose = self.arm.robot_des.M if self.automatic_mode else [0]*6
@@ -192,7 +192,7 @@ class Wafflebot:
                 execute_movement = input("Do you want to proceed anyway? (y/n): ")
                 if not (execute_movement.lower() == "y" or execute_movement.lower() == "yes"):
                     return False
-        success = self.arm.set_joint_positions(target, blocking = blocking)
+        success = self.arm.set_joint_positions(target, blocking = blocking, moving_time = 2.0/(self.speed*speed_scaling))
         if not blocking:
             sleep(0.1)
         return success

@@ -22,18 +22,19 @@ def put_ladle_in_bowl(bot: Wafflebot):
         inside_bowl_pos = positions["inside_bowl"]["joints"]
         front_of_bowl_pos= positions["front_of_bowl"]["joints"]
 
-    bot.move(front_of_bowl_pos, ignore=["ladle"])
+    #bot.move(front_of_bowl_pos, ignore=["ladle"])
     bot.move(top_of_bowl_pos, ignore=["ladle"])
     bot.move(inside_bowl_pos, ignore= ["ladle", "bowl"])
     bot.release()
     bot.move(top_of_bowl_pos, ignore=["ladle", "bowl"])
-    bot.move(front_of_bowl_pos, ignore=["ladle"])
+    #bot.move(front_of_bowl_pos, ignore=["ladle"])
 
 def thug_shake(bot: Wafflebot):
-    bot.move("thug_shake_1", ignore=["ladle"], speed_scaling=6.0) # TODO adjust speed_scaling
-    bot.move("thug_shake_2", ignore=["ladle"], speed_scaling=6.0) # TODO adjust speed_scaling
-    bot.move("thug_shake_3", ignore=["ladle"], speed_scaling=6.0) # TODO adjust speed_scaling
-    bot.move("thug_shake_4", ignore=["ladle"], speed_scaling=6.0) # TODO adjust speed_scaling
+    bot.move("thug_shake_1", ignore=["ladle"], speed_scaling=1.2) # TODO adjust speed_scaling
+    bot.move("thug_shake_2", ignore=["ladle"], speed_scaling=1.2) # TODO adjust speed_scaling
+    bot.move("thug_shake_3", ignore=["ladle"], speed_scaling=1.2) # TODO adjust speed_scaling
+    bot.move("thug_shake_4", ignore=["ladle"], speed_scaling=1.2) # TODO adjust speed_scaling
+    bot.grasp()
 
 
 def pick_up_ladle(bot: Wafflebot):
@@ -61,7 +62,7 @@ def pick_up_ladle(bot: Wafflebot):
     bot.move(top_of_bowl_pos, ignore=["ladle", "bowl"])
     thug_shake(bot)
     bot.move(top_of_bowl_pos, ignore=["ladle", "bowl"])
-    bot.move(front_of_bowl_pos, ignore=["ladle"])
+    #bot.move(front_of_bowl_pos, ignore=["ladle"])
 
 
 def pour_batter(bot: Wafflebot): 
@@ -71,7 +72,7 @@ def pour_batter(bot: Wafflebot):
     reader = Jsonreader()
     positions = reader.read("recordings")
     
-    bot.move("front_of_waffle_iron_ladle", ignore=["ladle"])
+    bot.move("front_of_waffle_iron_ladle", ignore=["ladle"], speed_scaling = 0.6)
 
     pose_type = "basepose" if bot.automatic_mode else "joints"
     pour_positions = [

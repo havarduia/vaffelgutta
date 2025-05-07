@@ -7,7 +7,7 @@ from camera.vision import Vision
 
 def close_iron(state: "CurrentState", bot: "Wafflebot"):
     bot.move("front_of_waffle_iron", ignore=["sticks", "waffle_iron"])
-    bot.go_to_home_pose()
+    #bot.go_to_home_pose()
     # if waffle_count > 0:
     #   ...
 

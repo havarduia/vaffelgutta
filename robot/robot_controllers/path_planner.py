@@ -47,7 +47,7 @@ def list_multiply(list_items, values):
         items.append(list_items[i]*values[i]) # <-- bread and butter of this whole operation chief
     return items
 
-def _calculate_waypoint_count(joints, dt = 0.1):
+def _calculate_waypoint_count(joints, dt = 0.4):
     T = 0
     biggest_joint = 0
     joint_count = len(joints)

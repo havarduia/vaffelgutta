@@ -51,6 +51,7 @@ def pick_up_lube(bot: Wafflebot, reverse: bool = False):
 
     if reverse:
         bot.release()
+        bot.move(top_of_lube_pos, ignore=["lube", "toolstation"])
     else:
         bot.grasp()    
 

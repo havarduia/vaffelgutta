@@ -8,7 +8,7 @@
    version="1.1"
    id="svg1"
    sodipodi:docname="collisionchecking.svg"
-   inkscape:version="1.4.1-rc (06eac75fbf, 2025-03-29)"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -23,15 +23,17 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="0.89827758"
-     inkscape:cx="506.52494"
-     inkscape:cy="412.45602"
+     inkscape:zoom="0.63517817"
+     inkscape:cx="442.39556"
+     inkscape:cy="353.44414"
      inkscape:window-width="1920"
-     inkscape:window-height="941"
+     inkscape:window-height="1066"
      inkscape:window-x="0"
-     inkscape:window-y="0"
+     inkscape:window-y="27"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1" />
+     inkscape:current-layer="layer1"
+     inkscape:pageshadow="2"
+     showgrid="false" />
   <defs
      id="defs1">
     <marker
@@ -252,7 +254,8 @@
       </g>
     </g>
     <g
-       id="g12">
+       id="g12"
+       transform="translate(99.928519)">
       <rect
          style="fill:#8dd35f;stroke:#1a1a1a;stroke-width:1;stroke-dasharray:none"
          id="rect1-6"
@@ -273,25 +276,29 @@
            x="125.36939"
            y="196.45767">No collision</tspan></text>
     </g>
-    <rect
-       style="fill:#ff5555;stroke:#1a1a1a;stroke-width:1;stroke-dasharray:none"
-       id="rect1-6-0"
-       width="76.445129"
-       height="25.44273"
-       x="207.24556"
-       y="181.10597"
-       ry="0.26634485" />
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1;stroke-dasharray:none"
-       x="230.79546"
-       y="196.45767"
-       id="text5-9-7"><tspan
-         sodipodi:role="line"
-         id="tspan5-3-8"
-         style="stroke:none;stroke-width:1"
+    <g
+       id="g41276"
+       transform="translate(-96.968127)">
+      <rect
+         style="fill:#ff5555;stroke:#1a1a1a;stroke-width:1;stroke-dasharray:none"
+         id="rect1-6-0"
+         width="76.445129"
+         height="25.44273"
+         x="207.24556"
+         y="181.10597"
+         ry="0.26634485" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1;stroke-dasharray:none"
          x="230.79546"
-         y="196.45767">Collision</tspan></text>
+         y="196.45767"
+         id="text5-9-7"><tspan
+           sodipodi:role="line"
+           id="tspan5-3-8"
+           style="stroke:none;stroke-width:1"
+           x="230.79546"
+           y="196.45767">Collision</tspan></text>
+    </g>
     <path
        style="fill:#ff5555;fill-opacity:1;stroke:#1a1a1a;stroke-width:1;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#ArrowWide)"
        d="m 148.54564,31.958153 c -0.15714,0.586446 0,8.836355 0,8.836355"
@@ -328,5 +335,71 @@
        d="m 185.41184,59.844443 h 59.89515"
        id="path13-0-1-7"
        sodipodi:nodetypes="cc" />
+    <text
+       xml:space="preserve"
+       style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:none;letter-spacing:0px;stroke-width:0.264583"
+       x="188.56897"
+       y="56.096882"
+       id="text28223"><tspan
+         sodipodi:role="line"
+         id="tspan28221"
+         style="stroke-width:0.264583"
+         x="188.56897"
+         y="56.096882">No</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:none;letter-spacing:0px;stroke-width:0.264583"
+       x="188.56897"
+       y="101.29873"
+       id="text30471"><tspan
+         sodipodi:role="line"
+         id="tspan30469"
+         style="stroke-width:0.264583"
+         x="188.56897"
+         y="101.29873">No</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:none;letter-spacing:0px;stroke-width:0.264583"
+       x="188.56897"
+       y="150.15283"
+       id="text32191"><tspan
+         sodipodi:role="line"
+         id="tspan32189"
+         style="stroke-width:0.264583"
+         x="188.56897"
+         y="150.15283">No</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:none;letter-spacing:0px;stroke-width:0.264583"
+       x="132.30426"
+       y="85.873825"
+       id="text37763"><tspan
+         sodipodi:role="line"
+         id="tspan37761"
+         style="stroke-width:0.264583"
+         x="132.30426"
+         y="85.873825">Yes</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:none;letter-spacing:0px;stroke-width:0.264583"
+       x="132.30426"
+       y="132.43576"
+       id="text38757"><tspan
+         sodipodi:role="line"
+         id="tspan38755"
+         style="stroke-width:0.264583"
+         x="132.30426"
+         y="132.43576">Yes</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:none;letter-spacing:0px;stroke-width:0.264583"
+       x="132.30426"
+       y="178.99768"
+       id="text40597"><tspan
+         sodipodi:role="line"
+         id="tspan40595"
+         style="stroke-width:0.264583"
+         x="132.30426"
+         y="178.99768">Yes</tspan></text>
   </g>
 </svg>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="121.10204mm"
+   height="120.91226mm"
+   viewBox="0 0 121.10204 120.91226"
+   version="1.1"
+   id="svg41405"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="movement_forcing_collision.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview41407"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.66331437"
+     inkscape:cx="-9.7992751"
+     inkscape:cy="241.96672"
+     inkscape:window-width="1920"
+     inkscape:window-height="1066"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <defs
+     id="defs41402">
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path5762" />
+    </marker>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-105.18104,-48.898292)">
+    <circle
+       style="fill:#b3b3b3;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none"
+       id="path41622"
+       cx="201.28603"
+       cy="144.81351"
+       r="24.497047" />
+    <rect
+       style="fill:#e6e6e6;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect41726"
+       width="9.0671816"
+       height="79.067184"
+       x="196.75244"
+       y="59.963646"
+       ry="0.19625257" />
+    <ellipse
+       style="fill:#ececec;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none"
+       id="path41750"
+       cx="201.28603"
+       cy="144.81351"
+       rx="4.7826772"
+       ry="4.7826777" />
+    <ellipse
+       style="fill:#e6e6e6;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none"
+       id="path41750-0"
+       cx="201.28603"
+       cy="54.180969"
+       rx="4.7826772"
+       ry="4.7826777" />
+    <rect
+       style="fill:#e6e6e6;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:6, 1;stroke-dashoffset:0"
+       id="rect41726-2"
+       width="9.0671816"
+       height="79.067184"
+       x="-149.34709"
+       y="116.43616"
+       ry="0.19625257"
+       transform="rotate(-90)" />
+    <ellipse
+       style="fill:#e6e6e6;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:6, 1;stroke-dashoffset:0"
+       id="path41750-0-2"
+       cx="-144.81351"
+       cy="110.46375"
+       rx="4.7826772"
+       ry="4.7826777"
+       transform="rotate(-90)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 196.81073,54.165719 c -51.69447,0.741193 -87.02522,19.718925 -86.37725,84.086601"
+       id="path42292"
+       sodipodi:nodetypes="cc" />
+    <g
+       id="g48602"
+       transform="translate(-1.7900806,-3.077344)">
+      <rect
+         style="fill:#d35f5f;stroke:#000000;stroke-width:1.1646;stroke-miterlimit:4;stroke-dasharray:none"
+         id="rect42418"
+         width="33.835396"
+         height="33.835396"
+         x="148.56438"
+         y="95.666542"
+         ry="0.27535465" />
+      <text
+         xml:space="preserve"
+         style="font-size:7.05556px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:none;letter-spacing:0px;stroke-width:0.264583"
+         x="165.58371"
+         y="110.80485"
+         id="text44984"><tspan
+           sodipodi:role="line"
+           id="tspan44982"
+           style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+           x="165.58371"
+           y="110.80485">Collision</tspan><tspan
+           sodipodi:role="line"
+           style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+           x="165.58371"
+           y="119.6243"
+           id="tspan44986">zone</tspan></text>
+    </g>
+  </g>
+</svg>

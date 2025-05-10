@@ -3,8 +3,8 @@
 
 <svg
    width="236.94867mm"
-   height="155.59833mm"
-   viewBox="0 0 236.94867 155.59833"
+   height="171.3867mm"
+   viewBox="0 0 236.94867 171.38671"
    version="1.1"
    id="svg5"
    inkscape:version="1.4.1-rc (06eac75fbf, 2025-03-29)"
@@ -23,9 +23,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="0.70710678"
-     inkscape:cx="482.95393"
-     inkscape:cy="277.89297"
+     inkscape:zoom="1.0208888"
+     inkscape:cx="467.7297"
+     inkscape:cy="315.90121"
      inkscape:window-width="1920"
      inkscape:window-height="941"
      inkscape:window-x="0"
@@ -36,6 +36,24 @@
      inkscape:deskcolor="#d1d1d1" />
   <defs
      id="defs2">
+    <marker
+       style="overflow:visible"
+       id="Stop"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Stop"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         style="fill:none;stroke:context-stroke;stroke-width:1"
+         d="M 0,4 V -4"
+         id="path23" />
+    </marker>
     <marker
        style="overflow:visible"
        id="Arrow1Send"
@@ -120,12 +138,30 @@
          d="M 0,0 5,-5 -12.5,0 5,5 Z"
          id="path5774-3" />
     </marker>
+    <marker
+       style="overflow:visible"
+       id="Stop-3"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Stop"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         style="fill:none;stroke:context-stroke;stroke-width:1"
+         d="M 0,4 V -4"
+         id="path23-6" />
+    </marker>
   </defs>
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-4.4063673,-45.930842)">
+     transform="translate(-4.4063673,-30.142461)">
     <g
        id="g2190"
        transform="translate(-26.935091,17.694355)"
@@ -325,5 +361,103 @@
          style="stroke-width:0.264583"
          x="227.735"
          y="156.86835">G2</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:7.05556px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;stroke:none;stroke-width:1"
+       x="41.985958"
+       y="171.70343"
+       id="text1"><tspan
+         sodipodi:role="line"
+         id="tspan1"
+         style="fill:#000000;stroke:none;stroke-width:1"
+         x="41.985958"
+         y="171.70343">A</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:7.05556px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;stroke:none;stroke-width:1"
+       x="29.257433"
+       y="71.070297"
+       id="text2"><tspan
+         sodipodi:role="line"
+         id="tspan2"
+         style="stroke-width:1"
+         x="29.257433"
+         y="71.070297">B</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:7.05556px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;stroke:none;stroke-width:1"
+       x="128.5486"
+       y="84.905449"
+       id="text3"><tspan
+         sodipodi:role="line"
+         id="tspan3"
+         style="stroke-width:1"
+         x="128.5486"
+         y="84.905449">C</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:7.05556px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;stroke:none;stroke-width:1"
+       x="143.28777"
+       y="157.89211"
+       id="text4"><tspan
+         sodipodi:role="line"
+         id="tspan4"
+         style="stroke-width:1"
+         x="143.28777"
+         y="157.89211">A</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:7.05556px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;stroke:none;stroke-width:1"
+       x="229.97725"
+       y="185.62325"
+       id="text5"><tspan
+         sodipodi:role="line"
+         id="tspan5"
+         style="stroke-width:1"
+         x="229.97725"
+         y="185.62325">B</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:7.05556px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;stroke:none;stroke-width:1"
+       x="215.62958"
+       y="84.905449"
+       id="text6"><tspan
+         sodipodi:role="line"
+         id="tspan6"
+         style="stroke-width:1"
+         x="215.62958"
+         y="84.905449">C</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-opacity:1;marker-start:url(#Stop);marker-end:url(#Stop)"
+       d="M 23.412916,42.302468 H 126.56241"
+       id="path6"
+       sodipodi:nodetypes="cc" />
+    <text
+       xml:space="preserve"
+       style="font-size:7.05556px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;stroke:none;stroke-width:1;stroke-opacity:1"
+       x="72.694954"
+       y="36.341568"
+       id="text7"><tspan
+         sodipodi:role="line"
+         id="tspan7"
+         style="fill:#000000;stroke:none;stroke-width:1"
+         x="72.694954"
+         y="36.341568">L</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-opacity:1;marker-start:url(#Stop-3);marker-end:url(#Stop-3)"
+       d="M 137.00304,42.302468 H 240.15253"
+       id="path6-5"
+       sodipodi:nodetypes="cc" />
+    <text
+       xml:space="preserve"
+       style="font-size:7.05556px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#000000;stroke:none;stroke-width:1;stroke-opacity:1"
+       x="186.28506"
+       y="36.341568"
+       id="text7-3"><tspan
+         sodipodi:role="line"
+         id="tspan7-5"
+         style="fill:#000000;stroke:none;stroke-width:1"
+         x="186.28506"
+         y="36.341568">L</tspan></text>
   </g>
 </svg>

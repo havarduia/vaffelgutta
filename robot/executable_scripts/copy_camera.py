@@ -172,7 +172,7 @@ def main(bot):
             case 6:
                 follow_tag(bot,tagid, vision)
                 
-            case 42453:
+            case 7:
                 follow_DU(bot, tagid, vision)
             case _:
                 print("invalid input. Try again.")

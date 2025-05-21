@@ -63,11 +63,6 @@ class Wafflebot:
     def __getattr__(self, name):
         return getattr(self.bot, name)
 
-    def get_joint_positions(self):
-        if self.automatic_mode:
-            return self.motionplanner.update_joint_states()
-        else: 
-            return self.bot.arm.get_joint_positions()
     def _set_collision(self, enable : bool):
         self.detect_collisions = enable
     def _get_collision(self):
@@ -95,6 +90,12 @@ class Wafflebot:
         male = self.male
         self.empty_malebox()
         return male
+
+    def get_joint_positions(self):
+        if self.automatic_mode:
+            return self.motionplanner.update_joint_states()
+        else: 
+            return self.bot.arm.get_joint_positions()
 
     def go_to_home_pose(self):
         if self.automatic_mode:

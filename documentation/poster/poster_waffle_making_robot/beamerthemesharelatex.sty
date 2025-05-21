@@ -1,0 +1,236 @@
+%==============================================================================
+% Beamer style for posters
+% // based on 'cpbgposter' beamer theme //
+
+% Modified by Morten H. Rudolfsen, University of Agder
+%==============================================================================
+
+
+\ProvidesPackage{beamerthemesharelatex}
+
+
+\RequirePackage{tikz}
+\usetikzlibrary{arrows,decorations.pathmorphing,backgrounds,calc}
+\RequirePackage[T1]{fontenc}
+\RequirePackage{lmodern}
+\RequirePackage{textcomp}
+\RequirePackage{amsmath,amssymb}
+\usefonttheme{professionalfonts}
+
+\usepackage{ragged2e}
+\usepackage[utf8]{inputenc}
+\usepackage[ddmmyyyy]{datetime}
+\renewcommand{\dateseparator}{.}
+\usepackage[backend=biber]{biblatex}
+\addbibresource{bibliography.bib}
+\DeclareBibliographyDriver{article}{%
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \printfield{journaltitle}%
+  \setunit{\space}%
+  \printtext[parens]{\printdate}%
+  \setunit{\addcomma\space}%
+  \usebibmacro{author/editor+others/translator+others}%
+  \setunit{\addcomma\space}%
+  \printfield{note}%
+  \newunit\newblock
+  \usebibmacro{finentry}}
+
+\linespread{1.15}
+
+
+% normal math font
+\usepackage{mathptmx}
+% funny math font
+%\usepackage{euler}
+
+%%% other text fonts
+%\usepackage{palatino}
+%\usepackage{bookman}
+%\usepackage{utopia}
+%\usepackage{tgpagella}
+%\usepackage{tgheros}
+%
+%\renewcommand\rmdefault{qtm}
+%\renewcommand\sfdefault{qhv}
+%\renewcommand\ttdefault{qcr}
+\renewcommand\ttdefault{lmvtt}
+
+% multicols
+\usepackage{multicol}
+\setlength{\columnsep}{80pt}
+
+% captions
+\usepackage[justification=justified,listformat=simple,format=plain,labelformat=simple]{caption}
+
+\usepackage{url}
+
+%==============================================================================
+% define basic colors 
+%==============================================================================
+%==============================================================================
+
+  \definecolor{color0}  {RGB}{0,0,0} %%% text color
+  \definecolor{color1}  {RGB}{19, 30, 41} 
+  \definecolor{color2}  {RGB}{208,0,43} %%% section color
+  \definecolor{color3}  {RGB}{255,253,250} %%% background color
+  \definecolor{color4}  {RGB}{236, 224, 210}
+  \definecolor{color5}  {RGB}{242, 243, 245}
+  \definecolor{color6}  {RGB}{19, 30, 41}
+
+
+%==============================================================================
+%==============================================================================
+
+%set the basic colors palette
+%   \setbeamercolor{palette primary}   {fg=color0,bg=color3}
+%   \setbeamercolor{palette secondary} {fg=color0,bg=color3}
+%   \setbeamercolor{palette tertiary}  {fg=color0,bg=color3}
+%   \setbeamercolor{palette quaternary}{fg=color0,bg=color3}
+  \setbeamercolor{structure}{fg=color1}
+%   \setbeamercolor{titlelike}         {bg=color1,fg=color3}
+%   \setbeamercolor{frametitle}        {bg=color2!10,fg=color2}
+%
+  \setbeamercolor{colorbar}{fg=color0,bg=color1}
+  \setbeamercolor{normal text}{fg=color0}
+
+% background color
+  \beamertemplatesolidbackgroundcolor{color3}
+  %\beamertemplateshadingbackground{color3}{color3!70!color1}
+
+%set the fonts
+  \setbeamerfont{section in head/foot}{series=\bfseries}
+  \setbeamerfont{block title}{series=\bfseries}
+  \setbeamerfont{block alerted title}{series=\bfseries}
+  \setbeamerfont{frametitle}{series=\bfseries}
+  \setbeamerfont{frametitle}{size=\Large}
+  \setbeamerfont{caption}{size=\normalsize}
+  \setbeamerfont{caption name}{size=\normalsize}
+
+%set some beamer theme options
+  \setbeamertemplate{title page}[default][colsep=-4bp,rounded=true]
+  \setbeamertemplate{sections/subsections in toc}[square]
+  \setbeamertemplate{items}[circle]
+  \setbeamertemplate{blocks}[width=0.0]
+  \beamertemplatenavigationsymbolsempty
+%set bibliography style
+ \setbeamertemplate{bibliography item}[text]
+ \setbeamercolor{bibliography item}{fg=color0,bg=color3}
+ \setbeamercolor{bibliography entry author}{fg=color0,bg=color3}
+ \setbeamerfont{bibliography item}{size=\small}
+ \setbeamerfont{bibliography entry author}{size=\small}
+
+\setlength{\parskip}{0.75\baselineskip}
+\makeatletter
+\newcommand{\@minipagerestore}{\setlength{\parskip}{0.75\baselineskip}}
+\makeatother
+
+%
+%==============================================================================
+% build the poster title
+%==============================================================================
+\setbeamertemplate{headline}{
+ \leavevmode
+%%%% Header %%%%
+\begin{center}
+    % Red box header
+    \vskip-0.3cm
+    \colorbox{color2}{
+        \parbox[t][10cm][c]{84cm}{
+            \centering
+                
+                \RaggedRight
+            \vskip 1.0cm
+            \hspace{2cm} \textcolor{color5}{\VeryHuge \inserttitle}\\ [5ex]
+            %\hspace{2cm} \textcolor{color5}{\Huge -\insertshorttitle}\\ [5ex]
+            
+            \hspace{3cm} \textcolor{color5} {\Large{\insertauthor}\\[1ex]}
+        }
+    }
+\end{center}
+\vskip1cm
+ }
+
+
+%==============================================================================
+% build the poster foot
+%==============================================================================
+\setbeamertemplate{footline}{
+ \leavevmode
+ 
+%\vskip-15cm % Add vertical space before the footer
+
+ \begin{beamercolorbox}[ht=10cm, dp=3cm, leftskip=.3cm, rightskip=.3cm]{author in head/foot}
+    \begin{minipage}[c][10cm][c]{0.99\textwidth} % Set the height of the minipage to 5 cm
+   
+   %  \parbox[t][5cm][c]{84cm}{
+      \begin{center}
+%
+     \begin{flushleft}
+     \vskip-0cm
+     \begin{tikzpicture}[
+remember picture,overlay,
+%background rectangle/.style={fill=color3},show background rectangle
+]
+       \shade [inner color=color2,outer color=color3] (0,0) rectangle (\textwidth,0.3cm);
+     \end{tikzpicture}
+     \end{flushleft}
+%
+  \vskip0cm
+  \begin{tabular}{l p{42cm} p{20cm} r}
+ \includegraphics[width=0.1\textwidth]{figures/logo.eps}
+       &  &     {\textcolor{color1}{{\large{\insertshorttitle}}}}  & \textcolor{color1}{\large{\today}}
+  \end{tabular}
+      \end{center}
+    \end{minipage}
+  \end{beamercolorbox}}
+
+ 
+
+
+
+
+%
+%==============================================================================
+% Section and subsection re-definitions
+
+\renewcommand{\section}[1]{
+%\par\vskip\medskipamount%
+%
+     \begin{flushleft}
+     \begin{tikzpicture}[remember picture,overlay]
+%       \shade [inner color=color2,outer color=color3] (0,0) rectangle (\columnwidth,0.3cm);
+     \end{tikzpicture}
+     \end{flushleft}
+%
+     \begin{center}
+     %\vskip1cm
+     {\textcolor{color6}{\textbf{\Large #1}}}
+     {\parskip0pt\par}
+     \end{center}
+%
+     \begin{flushleft}
+     \vskip-1cm
+     \begin{tikzpicture}[remember picture,overlay]
+       \shade [inner color=color2,outer color=color2] (0,0) rectangle (\columnwidth,0.15cm);
+     \end{tikzpicture}
+     \end{flushleft}
+%
+  {\parskip0pt\par}
+  \justifying
+}
+
+%%%
+\renewcommand{\subsection}[1]{
+\par\vskip\medskipamount%
+     \begin{center}
+     \vskip0.8cm
+     {\textcolor{color1}{\textbf{\textsl{\large #1}}}}
+     {\parskip0pt\par}
+     \end{center}
+%
+  \justifying
+}
+
+%==============================================================================
+

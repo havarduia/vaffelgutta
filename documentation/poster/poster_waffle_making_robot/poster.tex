@@ -1,0 +1,64 @@
+%==============================================================================
+%== template for LATEX poster =================================================
+%==============================================================================
+%% Modified by Morten H. Rudolfsen, University of Agder
+%
+%--A0 beamer slide-------------------------------------------------------------
+\documentclass[final]{beamer}
+\usepackage[orientation=portrait,size=a0,
+            scale=1.25         % font scale factor
+           ]{beamerposter}
+           
+\geometry{
+  hmargin=2.5cm, bottom=10cm % little modification of margins
+}
+
+%==The poster style============================================================
+\usetheme{sharelatex}
+\usecolortheme{default}
+
+\input{chapters/header}
+\usepackage{parskip}
+\usepackage{float}
+\usepackage{svg}
+\begin{document}
+\begin{frame}[t]
+
+%==============================================================================
+
+\begin{multicols}{3}
+
+%==============================================================================
+%==The poster content==========================================================
+%==============================================================================
+\vspace{-5cm}
+
+\input{chapters/introduction}
+
+\input{chapters/SOTA}
+
+\input{chapters/methods}
+
+\input{chapters/results}
+
+\input{chapters/conclusion}
+
+%==============================================================================
+%==End of content==============================================================
+%==============================================================================
+
+%--References------------------------------------------------------------------
+    
+%\subsection{References}
+
+\printbibliography[heading=none]
+
+%--End of references-----------------------------------------------------------
+
+\end{multicols}
+
+%==============================================================================
+\end{frame}
+\end{document}
+
+

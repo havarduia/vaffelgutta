@@ -58,12 +58,12 @@ json open_boxes(int filechoice)
 
 class CollisionChecker : public rclcpp::Node
 {
-public:
+  public:
     CollisionChecker() : Node("collision_checker_node")
-    {
-        service_ = this->create_service<std_srvs::srv::Trigger>(
-            "publish_boxes", std::bind(&CollisionChecker::handle_service, this, std::placeholders::_1, std::placeholders::_2));    
-    }
+  {
+    service_ = this->create_service<std_srvs::srv::Trigger>(
+        "publish_boxes", std::bind(&CollisionChecker::handle_service, this, std::placeholders::_1, std::placeholders::_2));    
+  }
 
 private:
     void handle_service(const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
@@ -126,10 +126,15 @@ private:
         }
     return true;
     }
+    // Add the collision object into the planning scene
+    planning_scene_interface.applyCollisionObjects(collision_objects);
+  }
+  return true;
+}
 
 private:
-    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr service_;
-    moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr service_;
+moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
 };
 
 

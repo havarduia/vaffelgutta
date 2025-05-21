@@ -12,7 +12,9 @@ from robot.robot_controllers.Wafflebot.moveit.MotionPlanner import MotionPlanner
 from robot.robot_controllers.Wafflebot.add_collisionobjects import add_collisionobjects
 from robot.robot_controllers.Wafflebot.moveit.create_collisionobjects import CollisionObjectPublisher
 from rclpy.logging import LoggingSeverity
-from robot.tools.file_manipulation import Jsonreader
+from threading import Event
+
+from robot.tools.file_manipulation import Jsonreader, table_print
 import numpy as numphy
 
 class Wafflebot:
@@ -37,13 +39,14 @@ class Wafflebot:
         robot_startup()
 
         # Keep a look out for the emergency stop
-        self.launch_emergency_stop_monitor()
+        self.emergency_stop = Event()
+        emergency_stop.run_emergency_stop_monitor(self.emergency_stop)
         # Define shorthands to call bot functions intuitively
         self.arm = self.bot.arm
         self.gripper = self.bot.gripper
         self.core = self.bot.core
         # misc inits
-        self.speed = 0.5
+        self.speed = 1.5
         self.detect_collisions = detect_collisions
         self.debug_print = debug_print
         self.home_pose = self.arm.robot_des.M if self.automatic_mode else [0]*6
@@ -135,10 +138,13 @@ class Wafflebot:
         string - name of the pose in the recordings folder
         joints - joint states.
         """
+        if self.emergency_stop.isSet():
+            raise FloatingPointError # unused error used as signal.
         if isinstance(target,str):
             camerareadings = Jsonreader().read("recordings")
             if (target+"_0") in camerareadings.keys():
-                self.movetotrajectory(target,speed_scaling)
+                return self.movetotrajectory(target,speed_scaling)
+                
         use_joints = not self.automatic_mode
         (target, returncode) = interpret_target_command.interpret_target_command(target, use_joints,self.debug_print)
         if returncode == -1:
@@ -156,23 +162,27 @@ class Wafflebot:
         moves the bot to a given pose matrix.
         the "move" function should be used instend for robustness.
         """
-        if self.automatic_mode:
-            if self.detect_collisions:
-                add_collisionobjects(ignore)
-                success = self.collision_publisher.publish_collisionobjects() 
-            else: 
-                success = True
-            if success:
-                self.motionplanner.move(target, speed_scaling*self.speed, blocking)
-                return self.motionplanner.movement_success
-            elif self.debug_print:
-                print("Wafflebot: Collision publishing failed")
-            return False
-        else:
-            raise RuntimeError("This feature is only avaliable in dynamic mode")
-            return False
+        if self.emergency_stop.isSet():
+            raise FloatingPointError # unused error used as signal.
+        assert (self.automatic_mode), "This feature is only avaliable in automatic mode"
+        if self.detect_collisions:
+            add_collisionobjects(ignore)
+            success = self.collision_publisher.publish_collisionobjects() 
+        else: 
+            success = True
+        if success:
+            self.motionplanner.move(target, speed_scaling*self.speed, blocking)
+            return self.motionplanner.movement_success
+        elif self.debug_print:
+            print("Wafflebot: Collision publishing failed")
+        return False
+
+
 
     def move_to_joints(self, target: list[float], ignore: Optional[list[str]] = None, speed_scaling: float = 1.0, blocking: bool = True) -> bool: 
+        if self.emergency_stop.isSet():
+            raise FloatingPointError # unused error used as signal.
+           
         assert (not self.automatic_mode), "This function is intended for manual mode only"
         if self.detect_collisions:
             start_joints = self.bot.arm.get_joint_positions()
@@ -182,7 +192,7 @@ class Wafflebot:
                 execute_movement = input("Do you want to proceed anyway? (y/n): ")
                 if not (execute_movement.lower() == "y" or execute_movement.lower() == "yes"):
                     return False
-        success = self.arm.set_joint_positions(target, moving_time=2.0/(speed_scaling*self.speed), blocking = blocking)
+        success = self.arm.set_joint_positions(target, blocking = blocking, moving_time = 2.0/(self.speed*speed_scaling))
         if not blocking:
             sleep(0.1)
         return success
@@ -196,18 +206,16 @@ class Wafflebot:
         self.bot.arm.set_joint_positions(waypoints[-1], moving_time=2.0)
 
     def grasp(self):
-        if self.automatic_mode:
-            for _ in range(500):
-                self.bot.gripper.grasp(0.005)
-        else:
-            self.bot.gripper.grasp()
+        for _ in range(500):
+            self.bot.gripper.grasp(0.005)
 
     def release(self):
-        if self.automatic_mode:
-            for _ in range(500):
-                self.bot.gripper.release(0.005)
-        else:
-            self.bot.gripper.release()
+        for _ in range(500):
+            self.bot.gripper.release(0.005)
 
-    def launch_emergency_stop_monitor(self):
-        emergency_stop.run_emergency_stop_monitor(self.safe_stop)
+    def clear_error(self):
+        if self.emergency_stop.is_set():
+            self.emergency_stop.clear()
+            self.emergency_stop_pressed = False
+            emergency_stop.run_emergency_stop_monitor(self.emergency_stop)
+

@@ -39,7 +39,7 @@ def interpret_target_command(
                     return (positions[target]["basepose"], 1)
                 else:
                     tags = reader.read("camera_readings")
-                    tag_matrix = tags[tagid]
+                    tag_matrix = tags[str(tagid)]
                     offset = positions[target]["offset"]
                     absolute_matrix = abs_position_from_offset(tag_matrix, offset)
                     return (absolute_matrix, 1)

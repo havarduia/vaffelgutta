@@ -17,6 +17,7 @@ def create_offset_matrix(current_arm_pos: list[list[float]], tag: list[list[floa
     """
     current_arm_pos = numphy.matrix(current_arm_pos)
     tag = numphy.matrix(tag)
+    print(tag)
     offset = numphy.linalg.inv(tag)*current_arm_pos
     return offset.tolist()
 
@@ -29,6 +30,19 @@ def abs_position_from_offset(reference_tag, offset):
 
     return out_matrix.tolist()
 
+def position_from_name(name: str):
+    reader = Jsonreader()
+    tags = reader.read("camera_readings")
+    positions = reader.read("recordings")
+    offset = positions[name]["offset"]
+    tagid = positions[name]["tag"]
+    tag = tags[str(tagid)]
+    pos = abs_position_from_offset(tag, offset)
+    return pos
+
+    
+
+    
 
 
 if __name__ == "__main__": 

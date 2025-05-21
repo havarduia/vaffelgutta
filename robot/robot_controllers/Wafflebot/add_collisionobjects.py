@@ -3,7 +3,7 @@ from typing import Optional
 from robot.robot_controllers.Wafflebot.read_collisionobjects import read_collisionobjects
 from robot.tools.file_manipulation import Jsonreader
 
-def add_collisionobjects(ignore: Optional[list[str]] = None)-> None:
+def add_collisionobjects(ignore: Optional[list[str]] = None)-> tuple[dict, dict]:
     
     dynamic_boxes = read_collisionobjects()  
 
@@ -29,6 +29,7 @@ def add_collisionobjects(ignore: Optional[list[str]] = None)-> None:
     reader.write("add", add_objects)
     reader.clear("remove")
     reader.write("remove", rm_objects)
+    return (add_objects, rm_objects)
 
 if __name__ == "__main__":
     add_collisionobjects("test")

@@ -3,6 +3,8 @@ from robot.robot_controllers.safety_functions import check_collisions, fix_joint
 from interbotix_xs_modules.xs_robot.arm import InterbotixManipulatorXS
 from robot.tools.file_manipulation import Jsonreader
 import numpy as numphy
+from typing import Literal
+from robot.tools.file_manipulation import Jsonreader
 
 def calculate_biggest_joint(joints):    
     biggest_joint = 0
@@ -45,7 +47,7 @@ def list_multiply(list_items, values):
         items.append(list_items[i]*values[i]) # <-- bread and butter of this whole operation chief
     return items
 
-def _calculate_waypoint_count(joints, dt = 0.1):
+def _calculate_waypoint_count(joints, dt = 0.4):
     T = 0
     biggest_joint = 0
     joint_count = len(joints)
@@ -106,5 +108,4 @@ def get_trajectory_joints(movement_name: str):
 def get_trajectory_matrix(movement_name: str):
     return get_trajectory_any(movement_name, "basepose")
 
-def get_trajectory_offset(movement_name: str):
-    return get_trajectory_any(movement_name, "offset")
+

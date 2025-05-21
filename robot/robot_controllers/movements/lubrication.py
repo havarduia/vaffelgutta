@@ -1,12 +1,16 @@
 from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
-from robot.robot_controllers.movements.waffle_iron import _check_if_waffle_iron_open
-from robot.tools.camera_interface import get_tag_from_camera
 from robot.tools.file_manipulation import Jsonreader
+from robot.tools.update_tagoffsets import position_from_name
+from sys import modules as sysmodules
+if "Jetson.GPIO" in sysmodules:
+    import Jetson.GPIO as GPIO
+from time import sleep
+
 
 import numpy as numphy
 
 
-def pick_up_lube(bot: Wafflebot, reverse: bool = False)-> bool:
+def pick_up_lube(bot: Wafflebot, reverse: bool = False):
     """
     picks up the lube from the tool station OR 
     places the lube back in the tool station.
@@ -17,75 +21,92 @@ def pick_up_lube(bot: Wafflebot, reverse: bool = False)-> bool:
     :returns bool: True if movement success, False if movement failed. 
     """
     reader = Jsonreader()
-    offsets = reader.read("offsets")
-    static_objects = reader.read("static_objects")
+    positions = reader.read("recordings")
 
-    if reverse:
-        lube_origin = static_objects["lube_toolstation"]
-    else:
-        lube_origin = get_tag_from_camera("lube")
-
-    # todo call update_offsets() or sumn
-    lube_prep_offset = numphy.matrix(offsets["lube_prep"])
-    lube_grab_offset = numphy.matrix(offsets["lube_grab"])
-    
-    lube_prep_pos = lube_origin * lube_prep_offset
-
-    
-    # calculate where to go to:
-    lube_prep_pos = lube_origin * lube_prep_offset
-    # move to prep
-    bot.move_old(lube_prep_pos, ["lube"])
+    #ensure gripper is open for the movement 
     if not reverse:
-        bot.gripper.release()
-        # update target
-        lube_origin = get_tag_from_camera("lube")
-        lube_prep_pos = lube_origin * lube_prep_offset
-    lube_grab_pos = lube_origin * lube_grab_offset
-    # Go to lube
-    bot.move_old(lube_grab_pos, ["lube"])
-    if reverse:
-        bot.gripper.release()
+        bot.release()
+    # move to prep
+    if bot.automatic_mode:
+        if reverse:
+            top_of_lube_pos = positions["top_of_lube"]["basepose"]
+        else:
+            top_of_lube_pos = position_from_name("top_of_lube") 
     else:
-        bot.gripper.grasp()    
-    bot.move_old(lube_prep_pos, ["lube"])
+        top_of_lube_pos = positions["top_of_lube"]["joints"]
 
-def spray_lube(bot:Wafflebot) -> bool:
+    bot.move(top_of_lube_pos, ignore=["lube", "toolstation"])
+
+    # Go to lube
+
+    if bot.automatic_mode:
+        if reverse:
+            lube_toolstation_pos= positions["lube_toolstation"]["basepose"]
+        else:
+            lube_toolstation_pos = position_from_name("lube_toolstation") 
+    else:
+        lube_toolstation_pos = positions["lube_toolstation"]["joints"]
+
+    bot.move(lube_toolstation_pos, ["lube", "toolstation"])
+
+    if reverse:
+        bot.release()
+        bot.move(top_of_lube_pos, ignore=["lube", "toolstation"])
+    else:
+        bot.grasp()    
+
+
+def spray():
+    if "Jetson.GPIO" in sysmodules:
+        servo_pin = 33
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(servo_pin, GPIO.OUT)
+        pwm = GPIO.PWM(servo_pin, 50)
+        pwm.start(0)
+        pwm.ChangeDutyCycle(10)        
+        sleep(0.1)
+        pwm.ChangeDutyCycle(17)        
+        sleep(0.5)
+        pwm.ChangeDutyCycle(10)        
+        sleep(0.5)
+        pwm.ChangeDutyCycle(0)
+
+
+
+
+
+    else:
+        raise NotImplementedError("The spray hardware does not exist.")
+
+def spray_lube(bot:Wafflebot): 
     """
     sprays the lube into the waffle iron. 
-
-    :returns bool: True if movement success, False if movement failed. 
-    """
-    """
-    if not _check_if_waffle_iron_open():
-        print("robot_movements/lubrication: waffle iron is not open. aborting movement.")
-        return False
     """
     reader = Jsonreader()
-    offsets = reader.read("offsets")
+    positions = reader.read("recordings")
     
-    # Todo change to static objects
-    waffle_iron_origin = get_tag_from_camera("waffle_iron")
-    front_of_waffle_iron_offset = numphy.matrix(offsets["front_of_waffle_iron"])
-    spray_offsets = [
-         numphy.matrix(offsets["spray_a"]),
-         numphy.matrix(offsets["spray_b"]),
-         numphy.matrix(offsets["spray_c"]),
-         numphy.matrix(offsets["spray_d"]),
+    pose_type = "basepose" if bot.automatic_mode else "joints"
+    spray_positions = [
+         positions["spray_1"][pose_type],
+         positions["spray_2"][pose_type],
+         positions["spray_3"][pose_type],
+         positions["spray_4"][pose_type],
     ]
 
-    front_of_waffle_iron_pos = waffle_iron_origin * front_of_waffle_iron_offset
+    #move to the front of the waffle iron
+    front_of_waffle_iron_pos = positions["front_of_waffle_iron"][pose_type]
+    bot.move(front_of_waffle_iron_pos, ["waffle_iron","lube"])
     
-    spray_positions = [0,0,0,0]
-    for i in range(len(spray_offsets)):
-        spray_positions[i] = waffle_iron_origin * spray_offsets[i]
+    #apply spray
+    for pos in spray_positions:
+        bot.move(pos, ignore=["waffle_iron", "lube"])
+        try:
+            spray()
+        except NotImplementedError:
+            print("IM SPRAYING AAHHHHH")
     
-    bot.move_old(front_of_waffle_iron_pos, ["waffle_iron", "lube"])
-    
-    for i in range(len(spray_offsets)):
-        bot.move_old(spray_positions[i], ["waffle_iron", "lube"])
-        #spray()
-    bot.move_old(front_of_waffle_iron_pos, ["waffle_iron","lube"])
+    #move to the front of the waffle iron
+    bot.move(front_of_waffle_iron_pos, ["waffle_iron","lube"])
 
     
 

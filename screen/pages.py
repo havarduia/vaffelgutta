@@ -2,6 +2,8 @@ import os
 from PIL import Image
 import customtkinter as ctk
 
+from robot.tools.maleman import MaleMan
+
 # Global appearance
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -12,9 +14,10 @@ FONT_BUTTON = ("Arial", 36)
 FONT_PIN_ENTRY = ("Arial", 48)
 
 class BasePage(ctk.CTkFrame):
-    def __init__(self, master, title, background_image_filename=None, **kwargs):
+    def __init__(self, master, title, background_image_filename=None, app=None, **kwargs):
         super().__init__(master, **kwargs)
         self.title = title
+        self.app = app  # Store reference to the main app
 
         # Handle background image (do NOT pass it to super().__init__)
         if background_image_filename:
@@ -55,15 +58,132 @@ class BasePage(ctk.CTkFrame):
             self.bg_label = ctk.CTkLabel(self, image=self.bg_image, text="")
             self.bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)
 
+    def show_notification(self, message, popup_type="info", auto_hide=True, position="top"):
+        """Show a notification popup using the app's notification manager."""
+        if self.app:
+            self.app.show_notification(message, popup_type, auto_hide, position)
+
+    def show_marker_status(self, detected=True, marker_id=None, position="top"):
+        """Show a notification about marker detection status using the app's notification manager."""
+        if self.app:
+            self.app.show_marker_status(detected, marker_id, position)
+
+    def show_confirmation(self, message, callback=None, position="center"):
+        """Show a confirmation dialog with Yes/No buttons using the app's notification manager.
+
+        Args:
+            message: The message to display
+            callback: A function to call with the result (True for Yes, False for No)
+            position: Where to position the dialog ("top", "center", "bottom")
+        """
+        if self.app:
+            self.app.show_confirmation(message, callback, position)
+
 
 class HomePage(BasePage):
     def __init__(self, master, **kwargs):
         super().__init__(master, title="Home Page", background_image_filename="background.jpg", **kwargs)
 
+        # Add demo buttons to show the notification popups
+        self.error_button = ctk.CTkButton(
+            self,
+            text="Show Marker Not Detected",
+            font=("Arial", 20),
+            command=self.show_marker_not_detected,
+            width=300,
+            height=50
+        )
+        self.error_button.place(relx=0.5, rely=0.4, anchor="center")
+
+        self.success_button = ctk.CTkButton(
+            self,
+            text="Show Marker Detected",
+            font=("Arial", 20),
+            command=self.show_marker_detected,
+            width=300,
+            height=50
+        )
+        self.success_button.place(relx=0.5, rely=0.5, anchor="center")
+
+        # Add a button to show a custom notification
+        self.custom_button = ctk.CTkButton(
+            self,
+            text="Show Custom Notification",
+            font=("Arial", 20),
+            command=self.show_custom_notification,
+            width=300,
+            height=50
+        )
+        self.custom_button.place(relx=0.5, rely=0.6, anchor="center")
+
+        self.hagle_button = ctk.CTkButton(
+            self,
+            text="HAGLE",
+            font=("Arial", 20),
+            command=self.shout_hagle,
+            width=300,
+            height=50
+        )
+        self.hagle_button.place(relx=0.5, rely=0.7, anchor="center")
+
+        # Add a button to show a confirmation dialog
+        self.confirm_button = ctk.CTkButton(
+            self,
+            text="Show Confirmation Dialog",
+            font=("Arial", 20),
+            command=self.show_confirmation_demo,
+            width=300,
+            height=50
+        )
+        self.confirm_button.place(relx=0.5, rely=0.8, anchor="center")
+
+    def show_marker_not_detected(self):
+            """Show a notification that a marker was not detected."""
+            self.show_marker_status(detected=False)
+
+    def show_marker_detected(self):
+        """Show a notification that a marker was detected."""
+        self.show_marker_status(detected=True, marker_id=42)
+
+    def show_custom_notification(self):
+        """Show a custom notification."""
+        self.show_notification(
+            message="This is a custom notification that can be shown from any page.",
+            popup_type="info",
+            auto_hide=True,
+            position="center"
+        )
+
+    def shout_hagle(self):
+        """Show a custom notification."""
+        self.show_notification(
+            message="HAGLE",
+            popup_type="info",
+            auto_hide=True,
+            position="center"
+        )
+
+    def show_confirmation_demo(self):
+        """Show a confirmation dialog demo."""
+        self.show_confirmation(
+            message="Vil du skyte deg selv?",
+            callback=self.handle_confirmation_result
+        )
+
+    def handle_confirmation_result(self, result):
+        """Handle the result of the confirmation dialog.
+
+        Args:
+            result: True if the user clicked Yes, False if the user clicked No
+        """
+        self.app.maleman.txmsg("robot", "collision_detected_response", result)    
+
+
 class EmergencyPage(BasePage):
     def __init__(self, master, **kwargs):
         super().__init__(master, title="Emergency Page", background_image_filename="background.jpg", **kwargs)
 
+        ctk.CTkButton(self, text="Emergency Stop", font=FONT_BUTTON, height=100, width=300).pack(pady=20)
 
 class StatsPage(BasePage):
     def __init__(self, master, **kwargs):

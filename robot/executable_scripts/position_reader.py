@@ -11,6 +11,7 @@ from typing import Literal
 from threading import Thread, Event
 from queue import Queue
 import numpy as numphy
+from robot.robot_controllers.safety_functions import fix_joint_limits
 
 
 def printmenu():
@@ -62,27 +63,52 @@ def playposition(bot: Wafflebot, data_type: Literal["joints", "basepose"]):
         sleep(1)
     return    
 
+def replicate_movement(bot, tagid, vision, offset):
+    vision.run_once()
+    tagmat = Jsonreader().read("camera_readings")[str(tagid)]
+    tagmat = numphy.array(tagmat)
+    offset = numphy.array(offset)
+    target = tagmat @ offset
+    print(target)
+    bot.arm.set_ee_pose_matrix(target.tolist(), custom_guess = bot.arm.get_joint_positions())
+    
+
+
 def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
     # detorque arm
-    
     bot.core.robot_torque_enable("group", "arm", False)
+    reader = Jsonreader()
+    reader.pop("recordings", "0")
+    vision.run_once()
     sleep(0.25)    
     # wait for input before retorquing
     input("\nPress enter to record") 
-    bot.core.robot_torque_enable("group", "arm", True)
-    sleep(2.5)
-
     vision.run_once()
+    tags = reader.read("camera_readings")
+    if not "0" in tags.keys():
+        print("Could not see origin!")
+        return
     # Record position
     bot.arm.capture_joint_positions()
-    position_joints = bot.arm.get_joint_positions()
-    
+    position_joints = bot.get_joint_positions()
+    position_mat = bot.arm.get_ee_pose().tolist()
+    bot.core.robot_torque_enable("group", "arm", True)
+    sleep(0.5)
+
     # Test for valid position
-    if bot.arm._check_joint_limits(position_joints):
-        bot.set_joint_positions(position_joints)
-        position_mat = bot.arm.get_ee_pose().tolist()
+    position_joints = fix_joint_limits(position_joints)
+    if not position_joints is False:  # if not "False" (tech debt...)
+        temp_joints = position_joints.copy()
+        temp_joints[1] -= 0.15 
+        bot.move(temp_joints, speed_scaling=5.0)
+        sleep(1)
+        bot.move(position_joints, speed_scaling=2.0)
         if tagid != 100:
-            tag = Jsonreader().read("camera_readings")[str(tagid)]
+            try:
+                tag = tags[str(tagid)]
+            except KeyError:
+                print("Tag not found")
+                return
             position_offset = create_offset_matrix(position_mat, tag)
         else:
             position_offset = 100
@@ -90,6 +116,9 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
         print("Joints are not within their limits. Try again bozo.")
         bot.core.robot_torque_enable("group", "arm", False)
         return
+    if input("test movement? (y/n)\n").lower() == "y":
+        bot.move(temp_joints, speed_scaling=5.0)
+        replicate_movement(bot, tagid, vision, position_offset)
     # Get the user to name the positions
     name = input("Write the name of your position:\n"
                 + "Press enter to cancel recording\n").lower().strip()
@@ -109,7 +138,6 @@ def recordposition(bot: Wafflebot, tagid: int, vision: Vision):
         )
         jsonreader.write("recordings", data)
         print(f'Successfully written "{name}" to recordings.')
-    
     
     return name
 
@@ -141,7 +169,7 @@ def _recordtrajectory(bot: Wafflebot, tagid: int, pose_name: str, event: Event, 
                           "offset" : position_offset 
                       }})
         poseindex+=1
-        sleep(0.02)
+        sleep(0.0_250)
         if event.is_set():
             queue.put(poses)
             return 
@@ -191,6 +219,7 @@ def main(bot):
             recordposition(bot, tagid, vision)
         elif userinput == str(2):
             tagid = int(input("New ID: "))
+            vision.run_once()
         elif userinput == str(3):
             playposition(bot, "joints")
         elif userinput == str(4):

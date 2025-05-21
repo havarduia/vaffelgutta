@@ -1,6 +1,8 @@
 import customtkinter as ctk
+from robot.tools.maleman import MaleMan
 from screen.pages import EmergencyPage, StatsPage, HomePage, DevModePage
 # Global appearance
+
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
@@ -18,11 +20,14 @@ class PageController(ctk.CTkFrame):
         self.create_pages()
 
     def create_pages(self):
+        # Get the root app instance
+        app = self.master
+
         self.pages = {
-            "Emergency": EmergencyPage(self),
-            "Home": HomePage(self),
-            "Stats": StatsPage(self),
-            "Dev Mode": DevModePage(self),
+            "Emergency": EmergencyPage(self, app=app),
+            "Home": HomePage(self, app=app),
+            "Stats": StatsPage(self, app=app),
+            "Dev Mode": DevModePage(self, app=app),
         }
 
         for page in self.pages.values():

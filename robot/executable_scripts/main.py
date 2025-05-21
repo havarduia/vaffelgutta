@@ -21,9 +21,9 @@ def main(bot,cam,aruco,coordsys):
     movements.batter.place_cup_at_filling_station(bot,True)    
     sleep(2)
     """
-    movements.batter.pick_up_cup_from_filling_station(bot)
+    movements.batter.pick_up_ladle(bot)
     movements.batter.pour_batter(bot)
-    movements.batter.place_cup_at_filling_station(bot, is_holding_cup=True)    
+    movements.batter.put_ladle_in_bowl(bot, is_holding_cup=True)    
     movements.waffle_iron.open_waffle_iron(bot, reverse=True)
 
     sleep(5)    

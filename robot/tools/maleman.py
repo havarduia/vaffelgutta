@@ -10,7 +10,7 @@ class MaleMan:
         try:
             self.recievers[reciever].rxmsg(operation, msg)
         except AttributeError:
-            print("There is no rxmsg function in this object!")
+            print(f"There is no rxmsg function in the {reciever} object!")
     # Define aliases
     txmsg = send_male 
     send_message = send_male 

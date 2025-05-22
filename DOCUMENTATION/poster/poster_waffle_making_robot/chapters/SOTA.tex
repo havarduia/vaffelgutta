@@ -1,8 +1,7 @@
 \section{State of the art}
 
-When automating the process of waffle-making, more hardware is needed compared to making waffles by hand. A ViperX 300S, six degree of fredom, robotic arm was used as a primary actuator. A RealSense D455 camera was used to sense objects. The control of these components was performed using a Jetson Orin Nano microcomputer. These three components together form a system following the sense-think-act (camera-microcomputer-robot) model of robotics. \\
+When automating the process of waffle-making, more hardware is needed compared to making waffles by hand. A ViperX 300S, six degree of freedom, robotic arm was used as a primary actuator. A RealSense D455 camera was used to sense objects. The control of these components was performed using a Jetson Orin Nano microcomputer. These three components together form a system following the sense-think-act (camera-microcomputer-robot) model of robotics. \\
 
-
-The software was developed on top of existing frameworks. The robot was hosted on the Robot Operating System (ROS) using MoveIt and a open-source API provided by the manufacturer of the robot to control movements. The camera software used the OpenCV computer vision library to locate objects in 3D space. 
-The novel designs made to adapt the system for automation relied heavily on 3D printing technology for manufacturing. Special heat resistant filaments like Onyx were used where needed. 
+The software was developed on top of existing frameworks. The robot was hosted on the Robot Operating System (ROS 2) using MoveIt and a open-source API provided by the manufacturer of the robot to control movements. The camera software used the OpenCV computer vision library to locate objects in 3D space. 
+The novel mechanical designs made to adapt the system for automation relied heavily on 3D printing technology for manufacturing. Special heat resistant filaments like Onyx were used where needed. 
 

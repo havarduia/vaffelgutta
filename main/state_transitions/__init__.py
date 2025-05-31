@@ -1,4 +1,4 @@
-from .sleepstate import sleepstate
+from .sleepstate import start
 from .rest import rest
 from .close_iron import close_iron
 from .error import error

@@ -1,127 +1,149 @@
 """
-This script outlines main()
+Waffle Making Robot Main Control Script
 
-It should however be viewed as a template and not funtional
+This script integrates the robot control system with a touchscreen GUI interface.
+It uses an object-oriented approach to manage the robot and GUI components.
 """
 
-from rclpy.action.server import RCLError
-from camera.vision import Vision
+import threading
+import queue
+import customtkinter as ctk
 from robot.tools.errorhandling import handle_error
-from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
-from main.waffle_states.waffle_states import State, CurrentState
-from main.state_transitions import *
+from screen.sidebar import Sidebar
+from screen.pagecontroller import PageController
+from main.robot_controller import Robot
+from main.page_connector import Screen
+
+# Global appearance for the GUI
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
+
+# Font constants
+FONT_TITLE = ("Arial", 48)
+FONT_BUTTON = ("Arial", 36)
+FONT_PIN_ENTRY = ("Arial", 48)
 
 
-def init():
-    # Inits the camera systems and inserts the instance to Wafflebot.
-    vision = Vision()
-    userstate_input = input("Input the start state: \n")
-    try:
-        # Try to match the input to a state enum
-        userstate_input = userstate_input.upper()
-        # If the input is a function name (like 'sleepstate'), try to match it to the corresponding state
-        if userstate_input == 'SLEEPSTATE':
-            userstate = State.SLEEP
-        elif userstate_input == 'RESTSTATE':
-            userstate = State.REST
-        elif userstate_input == 'HOMESTATE':
-            userstate = State.HOME
-        elif userstate_input == 'OPENIRON':
-            userstate = State.OPEN_IRON
+class WaffleApp(ctk.CTk):
+    """Main application class that integrates the touchscreen GUI with the robot control system."""
+
+    def __init__(self, command_queue, state_queue, status_queue, stop_event):
+        """Initialize the application.
+
+        Args:
+            command_queue: Queue for sending commands to the robot controller
+            state_queue: Queue for receiving state updates from the robot controller
+            status_queue: Queue for receiving status messages from the robot controller
+            stop_event: Event for signaling the application to stop
+        """
+        super().__init__()
+        self.title("Waffle Making Robot")
+        self.attributes("-fullscreen", True)
+
+        # Store communication queues
+        self.command_queue = command_queue
+        self.state_queue = state_queue
+        self.status_queue = status_queue
+        self.stop_event = stop_event
+
+        # Configure the grid layout
+        self.grid_columnconfigure(0, minsize=300)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        # Create the sidebar and page controller
+        self.sidebar = Sidebar(self, button_callback=self.on_button_click)
+        self.sidebar.grid(row=0, column=0, sticky="nsew")
+        self.page_controller = PageController(self)
+        self.page_controller.grid(row=0, column=1, sticky="nsew")
+
+        # Initialize status display
+        self.status_var = ctk.StringVar(value="Initializing...")
+        self.status_label = ctk.CTkLabel(
+            self,
+            textvariable=self.status_var,
+            font=("Arial", 16),
+            fg_color="#333333",
+            corner_radius=8
+        )
+        self.status_label.place(relx=0.5, rely=0.95, anchor="center", relwidth=0.9, relheight=0.05)
+
+        # Start the status update thread
+        self.status_update_thread = threading.Thread(target=self.update_status, daemon=True)
+        self.status_update_thread.start()
+
+    def on_button_click(self, button_name):
+        """Handle sidebar button clicks."""
+        if button_name == "Back":
+            self.page_controller.go_back()
+        elif button_name == "Emergency":
+            # Put emergency stop command in the queue
+            self.command_queue.put(("EMERGENCY_STOP", None))
+            self.page_controller.show_page("Emergency")
         else:
-            # Otherwise, try to match it directly to a state enum
-            userstate = State[userstate_input]
-        state = CurrentState(userstate)
-    except KeyError:
-        print(f"State '{userstate_input}' not found. Defaulting to SLEEP state.")
-        state = CurrentState(State.SLEEP)
-    return vision, state
+            self.page_controller.show_page(button_name)
+
+    def update_status(self):
+        """Update the status display from the status queue."""
+        while not self.stop_event.is_set():
+            try:
+                status = self.status_queue.get(timeout=0.1)
+                self.status_var.set(status)
+            except queue.Empty:
+                pass
+
+    def send_command(self, command, data=None):
+        """Send a command to the robot control thread."""
+        print(f"DEBUG: Sending command to robot: {command}, data: {data}")
+        self.command_queue.put((command, data))
+        print(f"DEBUG: Command {command} added to queue")
+
+    def exit_application(self):
+        """Clean exit of the application."""
+        self.stop_event.set()
+        self.quit()
 
 
-def main(bot: Wafflebot):
-    """
-    Executes the next action in the actions list.
-    """
-    vision, state = init()
-    bot.go_to_home_pose()
-    while True:
-        current_state = state.get()
-        match current_state:
+def main():
+    """Main function that starts the GUI and robot control threads."""
+    # Create communication queues
+    command_queue = queue.Queue()
+    state_queue = queue.Queue()
+    status_queue = queue.Queue()
+    stop_event = threading.Event()
 
-            case State.REST:
-                print("I am resting, dammit. These youngins...")
-                rest(state, bot)
+    # Create the robot controller
+    robot_controller = Robot(command_queue, state_queue, status_queue, stop_event)
 
-            case State.HOME:
-                print("Opening IRON!!")
-                home(state, bot, vision)
+    # Start the robot control thread
+    robot_thread = threading.Thread(target=robot_controller.run, daemon=True)
+    robot_thread.start()
 
-            case State.SLEEP:
-                print("I am risin up")
-                sleepstate(state, bot)
+    # Create and start the GUI
+    app = WaffleApp(command_queue, state_queue, status_queue, stop_event)
 
-            case State.OPEN_IRON:
-                print("Picking up spray 👺")
-                open_iron(state, bot, vision)
+    # Connect the GUI pages to the robot controller
+    page_connector = Screen(
+        app,
+        app.page_controller,
+        app.send_command,
+        state_queue,
+        status_queue
+    )
 
-            case State.PICK_UP_SPRAY:
-                print("Im spraying AHHHH!")
-                pick_up_spray(state, bot, vision)
+    # Start periodic updates for the stats page
+    page_connector.start_stats_updates(robot_controller)
 
-            case State.SPRAY:
-                print("Sorry i dont have anything left to spray...")
-                spray(state, bot)
+    # Start the GUI main loop
+    app.mainloop()
 
-            case State.PUT_DOWN_SPRAY:
-                print("IM PICKING UP THE LADLE AHSAHASDHHAHHHHH")
-                put_down_spray(state, bot, vision)
-                
-            case State.PICK_UP_LADLE:
-                print("IM POURING AHHHH")
-                pick_up_ladle(state, bot)
+    # Set the stop event to terminate the robot thread
+    stop_event.set()
+    robot_thread.join(timeout=5.0)  # Wait for robot thread to terminate
 
-            case State.CLOSE_IRON:
-                print("Its all going well, This is where the fun begins 😏")
-                close_iron(state, bot)
-
-            case State.FUN_TIME:
-                print("Waffle is done!")
-                fun_time(state, bot)
-            
-            case State.POUR_BATTER:
-                print("IM RETURNING LADLE AHHH")
-                pour_batter(state, bot)
-                
-            case State.RETURN_LADLE:
-                print("Closing IRON!")
-                return_ladle(state, bot, vision)
-
-            case State.OPEN_IRON2:
-                print("Opening iron! 🥴")
-                open_iron2(state, bot)
-
-            case State.RETURN_STICK:
-                print("I have Returned the stick!")
-                return_stick(state, bot, vision)
-                
-            case State.PICK_UP_WAFFLE:
-                print("I have picked up the waffle!")
-                pick_up_waffle(state,bot,vision)
-
-            case State.ERROR:
-                print("Hagle!")
-                error(state, bot)
-
-            case _:
-                print("An unknown state was encountered!")
-                bot.safe_stop(slow=True)
-                break
-
-    bot.safe_stop()
 
 if __name__ == "__main__":
     try:
-        bot = Wafflebot(automatic_mode=False, detect_collisions=False)
-        main(bot)
-    except (Exception, KeyboardInterrupt, RCLError) as e:
-        handle_error(e, bot)
+        main()
+    except Exception as e:
+        handle_error(e)

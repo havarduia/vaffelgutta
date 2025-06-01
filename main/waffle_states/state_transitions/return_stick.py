@@ -1,15 +1,14 @@
+from main.waffle_states.waffle_states import State, Tags
 from robot.tools.file_manipulation import Jsonreader
 from robot.robot_controllers.movements.action_header import Actions
-from main.waffle_states.waffle_states import State, Tags
 from camera.vision import Vision
 
+# TODO
+# placeholder = 1
 
-def home(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
-
-    actions = Actions(bot)
+def return_stick(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
+    # TODO finish logic
     reader = Jsonreader()
-
-    
     reader.clear("camera_readings")
     
     if bot.automatic_mode:
@@ -17,18 +16,20 @@ def home(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
         
     tags = reader.read("camera_readings")
 
+    if not input("Do another round? (y/n)\n").lower().startswith("y"):
+        bot.safe_stop()
+        return
+
+
     # Check for iron tag (both as string and integer)
     iron_tag_value = Tags.IRON_TAG.value
-    if iron_tag_value in tags.keys() or int(iron_tag_value) in tags.keys() or not bot.automatic_mode:
-        try:
-            bot.move("bottom_of_waffle_iron")
-            actions.open_waffle_iron()
-            bot.move("top_of_waffle_iron")
-        except FloatingPointError: # unused error used as signal.
-            state.set(State.ERROR)
-            return
+    iron_tag_present = iron_tag_value in tags.keys() or int(iron_tag_value) in tags.keys()
 
-    state.set(State.OPEN_IRON)
+    if not iron_tag_present or not bot.automatic_mode:
+        state.set(State.OPEN_IRON)
+    else:
+        state.set(State.HOME)
+
 
 if __name__ == "__main__":
     # to resolve type annotation

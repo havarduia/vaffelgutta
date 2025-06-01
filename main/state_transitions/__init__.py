@@ -1,3 +1,4 @@
+from .sleepstate import start
 from .sleepstate import sleepstate
 from .rest import rest
 from .close_iron import close_iron

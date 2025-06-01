@@ -22,12 +22,14 @@ from robot.tools.maleman import MaleMan
 class Wafflebot:
     def __init__(
         self,
-        maleman: MaleMan,
         automatic_mode : bool,
-        use_rviz: bool = False,
+        detect_collisions: Optional[bool] = False,
+        maleman: Optional[MaleMan] = None,
+        debug_print: bool = False,
     ):
         # Initialize robot:
         self.automatic_mode = automatic_mode
+        use_rviz = False
         interbotix_process = robot_boot_manager.robot_launch(use_rviz=use_rviz, use_moveit = self.automatic_mode)
 
         self.bot = InterbotixManipulatorXS(
@@ -48,9 +50,9 @@ class Wafflebot:
         self.core = self.bot.core
         # misc inits
         self.speed = 1.5
-        self.detect_collisions = detect_collisions
+        self.detect_collisions = detect_collisions 
         self.debug_print = debug_print
-        self.maleman = maleman
+        self.maleman = maleman 
         self.male = None
         self.home_pose = self.arm.robot_des.M if self.automatic_mode else [0]*6
         if self.automatic_mode:
@@ -90,6 +92,9 @@ class Wafflebot:
         male = self.male
         self.empty_malebox()
         return male
+
+    def set_maleman(self, maleman):
+        self.maleman = maleman
 
     def get_joint_positions(self):
         if self.automatic_mode:

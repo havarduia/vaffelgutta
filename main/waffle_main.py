@@ -13,6 +13,9 @@ from screen.sidebar import Sidebar
 from screen.pagecontroller import PageController
 from main.robot_controller import Robot
 from main.page_connector import Screen
+from rclpy._rclpy_pybind11 import RCLError
+import signal
+
 
 # Global appearance for the GUI
 ctk.set_appearance_mode("dark")
@@ -23,6 +26,21 @@ FONT_TITLE = ("Arial", 48)
 FONT_BUTTON = ("Arial", 36)
 FONT_PIN_ENTRY = ("Arial", 48)
 
+
+class DelayedKeyboardInterrupt:
+
+    def __enter__(self):
+        self.signal_received = False
+        self.old_handler = signal.signal(signal.SIGINT, self.handler)
+                
+    def handler(self, sig, frame):
+        self.signal_received = (sig, frame)
+        logging.debug('SIGINT received. Delaying KeyboardInterrupt.')
+    
+    def __exit__(self, type, value, traceback):
+        signal.signal(signal.SIGINT, self.old_handler)
+        if self.signal_received:
+            self.old_handler(*self.signal_received)
 
 class WaffleApp(ctk.CTk):
     """Main application class that integrates the touchscreen GUI with the robot control system."""
@@ -138,12 +156,15 @@ def main():
     app.mainloop()
 
     # Set the stop event to terminate the robot thread
-    stop_event.set()
-    robot_thread.join(timeout=5.0)  # Wait for robot thread to terminate
 
+
+    stop_event.set()
+
+    with DelayedKeyboardInterrupt():
+        robot_thread.join(timeout=11.0)  # Wait for robot thread to terminate
 
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
+    except (Exception, KeyboardInterrupt, RCLError) as e:
         handle_error(e)

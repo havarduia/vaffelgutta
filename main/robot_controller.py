@@ -48,7 +48,7 @@ class Robot:
             # Initialize robot
             self.status_queue.put("Initializing robot...")
             try:
-                self.bot = Wafflebot(automatic_mode=True, detect_collisions=True)
+                self.bot = Wafflebot(automatic_mode=False, detect_collisions=False)
                 self.status_queue.put("Robot hardware initialized successfully")
             except Exception as robot_error:
                 self.status_queue.put(f"ERROR initializing robot hardware: {str(robot_error)}")

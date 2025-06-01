@@ -138,11 +138,11 @@ class HomePage(BasePage):
 
         self.settings_btn = ctk.CTkButton(
             self.button_frame,
-            text="Change State",
+            text="Show Camera Feed",
             fg_color="#2196F3",  # Blue for settings/state changes
             border_color="#1565C0",  # Darker blue border
             hover_color="#1565C0",  # Darker blue on hover
-            command=lambda: self._on_change_state_click(),  # Use a lambda to call a private method
+            command=None,  # Use a lambda to call a private method
             **button_config
         )
         self.settings_btn.grid(row=0, column=1, padx=30, pady=30, sticky="nsew")
@@ -150,9 +150,9 @@ class HomePage(BasePage):
         self.status_btn = ctk.CTkButton(
             self.button_frame,
             text="Stop Robot",
-            fg_color="#000000",  # Orange for caution/pause
-            border_color="#E65100",  # Darker orange border
-            hover_color="#E65100",  # Darker orange on hover
+            fg_color="#FF0000",  # Orange for caution/pause
+            border_color="#000000",  # Darker orange border
+            hover_color="#8A2828",  # Darker orange on hover
             command=lambda: self._on_stop_robot_click(),  # Use a lambda to call a private method
             **button_config
         )
@@ -262,7 +262,7 @@ class EmergencyPage(BasePage):
             height=100,
             fg_color="#757575",
             hover_color="#424242",
-            command=self.exit_program
+            command=self.master.master.quit()
         )
         self.exit_btn.pack(side="left", padx=20)
 
@@ -342,19 +342,6 @@ class StatsPage(BasePage):
             text_color="#F9A825"
         )
         self.counter_label.pack(pady=(0, 20))
-
-        # Refresh button
-        self.refresh_btn = ctk.CTkButton(
-            self.stats_frame,
-            text="Refresh Status",
-            font=FONT_BUTTON,
-            width=300,
-            height=80,
-            fg_color="#2196F3",
-            hover_color="#1565C0",
-            command=self.refresh_status
-        )
-        self.refresh_btn.pack(pady=30)
 
     def refresh_status(self):
         """Refresh the robot status display."""

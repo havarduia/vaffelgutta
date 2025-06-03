@@ -141,114 +141,9 @@ class Robot:
             self.state.set(new_state)
             self.status_queue.put(f"State changed to {new_state.name}")
 
-            # Enable state processing
+            # Enable state processing - let the main loop handle execution
             self.process_states = True
-
-            # Directly execute the state action based on the state
-            self.status_queue.put(f"Directly executing action for {new_state.name}...")
-            try:
-                # Set the processing flag
-                Robot._processing_state_action = True
-
-                # Direct execution of state actions
-                if new_state == State.REST:
-                    self.status_queue.put("Robot is resting")
-                    print("Calling rest() function directly")
-                    rest(self.state, self.bot)
-
-                elif new_state == State.HOME:
-                    self.status_queue.put("Moving to home position")
-                    print("Calling home() function directly")
-                    home(self.state, self.bot, self.vision)
-
-                elif new_state == State.SLEEP:
-                    self.status_queue.put("Robot is in sleep state")
-                    print("Calling start() function directly")
-                    start(self.state, self.bot, self.vision)
-
-                elif new_state == State.OPEN_IRON:
-                    self.status_queue.put("Opening waffle iron")
-                    print("Calling open_iron() function directly")
-                    open_iron(self.state, self.bot, self.vision)
-
-                elif new_state == State.PICK_UP_SPRAY:
-                    self.status_queue.put("Picking up spray")
-                    print("Calling pick_up_spray() function directly")
-                    pick_up_spray(self.state, self.bot, self.vision)
-
-                elif new_state == State.SPRAY:
-                    self.status_queue.put("Spraying waffle iron")
-                    print("Calling spray() function directly")
-                    spray(self.state, self.bot)
-
-                elif new_state == State.PUT_DOWN_SPRAY:
-                    self.status_queue.put("Putting down spray")
-                    print("Calling put_down_spray() function directly")
-                    put_down_spray(self.state, self.bot, self.vision)
-
-                elif new_state == State.PICK_UP_LADLE:
-                    self.status_queue.put("Picking up ladle")
-                    print("Calling pick_up_ladle() function directly")
-                    pick_up_ladle(self.state, self.bot)
-
-                elif new_state == State.CLOSE_IRON:
-                    self.status_queue.put("Closing waffle iron")
-                    print("Calling close_iron() function directly")
-                    close_iron(self.state, self.bot)
-
-                elif new_state == State.FUN_TIME:
-                    self.status_queue.put("Cooking waffle")
-                    print("Calling fun_time() function directly")
-                    fun_time(self.state, self.bot)
-
-                elif new_state == State.POUR_BATTER:
-                    self.status_queue.put("Pouring batter")
-                    print("Calling pour_batter() function directly")
-                    pour_batter(self.state, self.bot)
-
-                elif new_state == State.RETURN_LADLE:
-                    self.status_queue.put("Returning ladle")
-                    print("Calling return_ladle() function directly")
-                    return_ladle(self.state, self.bot, self.vision)
-
-                elif new_state == State.OPEN_IRON2:
-                    self.status_queue.put("Opening iron to check waffle")
-                    print("Calling open_iron2() function directly")
-                    open_iron2(self.state, self.bot)
-
-                elif new_state == State.RETURN_STICK:
-                    self.status_queue.put("Returning stick")
-                    print("Calling return_stick() function directly")
-                    return_stick(self.state, self.bot, self.vision)
-
-                elif new_state == State.PICK_UP_WAFFLE:
-                    self.status_queue.put("Picking up waffle")
-                    print("Calling pick_up_waffle() function directly")
-                    pick_up_waffle(self.state, self.bot, self.vision)
-                    # Increment waffle counter
-                    self.waffle_counter += 1
-
-                elif new_state == State.ERROR:
-                    self.status_queue.put("ERROR: Robot needs attention!")
-                    print("Calling error() function directly")
-                    error(self.state, self.bot)
-
-                else:
-                    self.status_queue.put("Unknown state encountered")
-                    print("Unknown state, calling safe_stop() directly")
-                    self.bot.safe_stop(slow=True)
-
-                self.status_queue.put(f"State action for {new_state.name} executed successfully")
-                Robot._processing_state_action = False
-
-            except Exception as e:
-                error_message = f"Error executing state action for {new_state.name}: {str(e)}"
-                self.status_queue.put(f"ERROR: {error_message}")
-                print(error_message)
-                import traceback
-                print(traceback.format_exc())
-                self.state.set(State.ERROR)
-                Robot._processing_state_action = False
+            self.status_queue.put(f"State processing enabled for {new_state.name} - will be executed by main loop")
 
         except Exception as e:
             error_message = f"Error changing state to {state_name}: {str(e)}"
@@ -305,32 +200,11 @@ class Robot:
         # Enable state processing to start the sequence
         self.process_states = True
         self.status_queue.put("State set to SLEEP, beginning waffle sequence...")
-
-        # Directly execute the start function
-        try:
-            self.status_queue.put("Directly executing SLEEP state action...")
-            print("Directly calling start() function for waffle making")
-
-            # Set the processing flag
-            Robot._processing_state_action = True
-
-            # Direct call to start function
-            start(self.state, self.bot, self.vision)
-
-            self.status_queue.put("SLEEP state action executed successfully")
-            Robot._processing_state_action = False
-        except Exception as e:
-            error_message = f"Error executing SLEEP state action: {str(e)}"
-            self.status_queue.put(f"ERROR: {error_message}")
-            print(error_message)
-            import traceback
-            print(traceback.format_exc())
-            self.state.set(State.ERROR)
-            Robot._processing_state_action = False
+        self.status_queue.put("Waffle making sequence will be handled by main state machine loop")
 
     def _show_camera_feed(self):
         """Handle show camera feed command."""
-        self.status_queue.put("Starting camera feed...")
+        self.status_queue.put("Starting touchscreen camera feed...")
 
         # Check if vision system is initialized
         if self.vision is None:
@@ -343,12 +217,26 @@ class Robot:
                 return
 
         try:
-            # Start camera feed in a separate thread to avoid blocking the main GUI
+            # Import the touchscreen camera feed
+            from camera.touchscreen_feed import TouchscreenCameraFeed
+
+            # Create status callback to update main GUI
+            def status_callback(message):
+                self.status_queue.put(f"Camera Feed: {message}")
+
+            # Start touchscreen-friendly camera feed
             def camera_feed_thread():
                 try:
-                    self.status_queue.put("Camera feed started. Press ESC in the camera window to close.")
-                    # Run the vision system with camera feed display
-                    self.vision.run(show_image=True, draw_cubes=True, detect_hands=False, detect_gestures=False)
+                    self.status_queue.put("Touchscreen camera feed started. Use touch controls to interact.")
+
+                    # Create and start the touchscreen camera feed
+                    camera_feed = TouchscreenCameraFeed(self.vision, status_callback)
+                    camera_feed.start_feed()
+
+                    # Keep the thread alive while the window is open
+                    while camera_feed.running and camera_feed.window:
+                        time.sleep(0.1)
+
                     self.status_queue.put("Camera feed closed.")
                 except Exception as e:
                     self.status_queue.put(f"ERROR in camera feed: {str(e)}")

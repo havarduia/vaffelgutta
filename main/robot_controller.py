@@ -68,6 +68,21 @@ class Robot:
         try:
             self.bot = Wafflebot(automatic_mode=False, detect_collisions=False)
             self.status_queue.put("Robot hardware initialized successfully")
+
+            # CRITICAL: Release the gripper IMMEDIATELY after initialization
+            # The robot starts with gripper in "Home" state (partially closed) from SRDF config
+            # Must release BEFORE any movements to ensure proper grasping capability
+            self.status_queue.put("Releasing gripper immediately to ensure fully open state...")
+            try:
+                self.bot.release()
+                # Give extra time for gripper to fully release
+                import time
+                time.sleep(1.5)  # Ensure gripper is completely released
+                self.status_queue.put("Gripper fully released - ready for grasping operations")
+            except Exception as gripper_error:
+                self.status_queue.put(f"WARNING: Failed to release gripper: {str(gripper_error)}")
+                # Continue anyway - this is not critical for basic operation
+
             return True
         except Exception as robot_error:
             self.status_queue.put(f"ERROR: Robot hardware initialization failed: {str(robot_error)}")

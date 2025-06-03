@@ -14,6 +14,7 @@ from robot.tools.errorhandling import handle_error
 from robot.robot_controllers.Wafflebot.Wafflebot import Wafflebot
 from main.waffle_states.waffle_states import State, CurrentState
 from main.state_transitions import *
+from sys import exit as sysexit
 
 
 class Robot:
@@ -311,7 +312,10 @@ class Robot:
     def _exit(self):
         """Handle exit command."""
         self.status_queue.put("Shutting down...")
-        self.bot.safe_stop()
+        try:
+            self.bot.safe_stop()
+        finally:
+            sysexit()
         # The main loop will check the stop_event and exit
 
     # Flag to track if we're currently processing a state action

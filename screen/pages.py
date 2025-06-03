@@ -1,6 +1,7 @@
 import os
 from PIL import Image
 import customtkinter as ctk
+from sys import exit as sysexit
 
 from robot.tools.maleman import MaleMan
 
@@ -164,7 +165,7 @@ class HomePage(BasePage):
             fg_color="#757575",  # Gray for exit
             border_color="#424242",  # Darker gray border
             hover_color="#424242",  # Darker gray on hover
-            command=lambda: self._on_exit_click(),  # Use a lambda to call a private method
+            command= self._on_exit_click,  # Use a lambda to call a private method
             **button_config
         )
         self.help_btn.grid(row=1, column=1, padx=30, pady=30, sticky="nsew")
@@ -212,6 +213,7 @@ class HomePage(BasePage):
         """Public method that will be overridden by the page connector"""
         print("Exit button clicked - public handler")
         # This method will be overridden by the page connector
+        sysexit()
         self.master.master.quit()  # This will exit the application
 
 class EmergencyPage(BasePage):
@@ -262,7 +264,7 @@ class EmergencyPage(BasePage):
             height=100,
             fg_color="#757575",
             hover_color="#424242",
-            command=self.master.master.quit()
+            command=sysexit
         )
         self.exit_btn.pack(side="left", padx=20)
 
@@ -275,8 +277,9 @@ class EmergencyPage(BasePage):
         """Exit the program."""
         print("Exiting program after emergency stop")
         # This will be connected to the robot control system in waffle_main.py
-
         ctk.CTkButton(self, text="Emergency Stop", font=FONT_BUTTON, height=100, width=300).pack(pady=20)
+        self.master.master.quit()  # This will exit the application
+        sysexit()
 
 class StatsPage(BasePage):
     def __init__(self, master, **kwargs):

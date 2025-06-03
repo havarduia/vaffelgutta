@@ -1,8 +1,8 @@
 import customtkinter as ctk
-
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
+from sys import exit as sysexit
 # Font constants
 FONT_TITLE = ("Arial", 48)
 FONT_BUTTON = ("Arial", 36)
@@ -34,7 +34,7 @@ class Sidebar(ctk.CTkFrame):
                 btn = SidebarButton(
                     self,
                     name=name,
-                    command=lambda n=name: self.button_callback(n),
+                    command=sysexit,
                     fg_color="#E53935",  # Red color
                     hover_color="#C62828",  # Darker red on hover
                     border_width=2,

@@ -30,7 +30,7 @@ def get_positionconstraint(pose_goal: PoseStamped) -> PositionConstraint:
 
     circle = SolidPrimitive()
     circle.type = SolidPrimitive.SPHERE
-    circle.dimensions = [0.01]  # 1 cm tolerance.
+    circle.dimensions = [0.002]  # 1 cm tolerance.
     
     pos_constraint.constraint_region.primitives.append(circle)
     pos_constraint.constraint_region.primitive_poses.append(pose_goal.pose)

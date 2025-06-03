@@ -51,4 +51,15 @@ This repository contains the code and documentation for our bachelor's project a
    ./setup_3.sh
 10. **Done!**
     
-   You can now run main.py!
+   You can now run waffle_main.py!
+
+---
+
+## Contact Info
+
+For question about the system, email:
+
+haavardkso@gmail.com 
+
+andreas.c.thors1@gmail.com
+

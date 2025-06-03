@@ -11,14 +11,9 @@ def return_stick(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
     reader = Jsonreader()
     reader.clear("camera_readings")
     
-    if bot.automatic_mode:
-        vision.run_once()
+    vision.run_once()
         
     tags = reader.read("camera_readings")
-
-    if not input("Do another round? (y/n)\n").lower().startswith("y"):
-        bot.safe_stop()
-        return
 
 
     # Check for iron tag (both as string and integer)

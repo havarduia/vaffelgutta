@@ -1,13 +1,15 @@
 from main.waffle_states.waffle_states import State 
+from time import sleep
 
 from robot.robot_controllers.movements.action_header import Actions
 
 def fun_time(state: "CurrentState", bot: "Wafflebot"):
 
+    # Wait for the waffle to finish cooking
+    waffle_cooking_time_seconds = 250
+    sleep(waffle_cooking_time_seconds)
 
-    input("Press enter when waffle ready")
     actions = Actions(bot)
-
     try:
         bot.move("front_of_waffle_iron")
         actions.open_waffle_iron()

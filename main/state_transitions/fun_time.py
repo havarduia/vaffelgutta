@@ -1,11 +1,13 @@
 from main.waffle_states.waffle_states import State 
+from time import sleep
 
 from robot.robot_controllers.movements.action_header import Actions
 
 def fun_time(state: "CurrentState", bot: "Wafflebot"):
 
 
-    input("Press enter when waffle ready")
+    sleep(250)
+
     actions = Actions(bot)
 
     try:

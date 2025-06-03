@@ -7,25 +7,18 @@ from camera.vision import Vision
 # placeholder = 1
 
 def return_stick(state: "CurrentState", bot: "Wafflebot", vision: "Vision"):
-    # TODO finish logic
     reader = Jsonreader()
     reader.clear("camera_readings")
     
-    if bot.automatic_mode:
-        vision.run_once()
-        
+    vision.run_once()
+
     tags = reader.read("camera_readings")
-
-    if not input("Do another round? (y/n)\n").lower().startswith("y"):
-        bot.safe_stop()
-        return
-
 
     # Check for iron tag (both as string and integer)
     iron_tag_value = Tags.IRON_TAG.value
     iron_tag_present = iron_tag_value in tags.keys() or int(iron_tag_value) in tags.keys()
 
-    if not iron_tag_present or not bot.automatic_mode:
+    if not iron_tag_present: 
         state.set(State.OPEN_IRON)
     else:
         state.set(State.HOME)

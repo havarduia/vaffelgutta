@@ -44,36 +44,34 @@ class Robot:
         self.waffle_counter = 0
 
     def initialize(self):
-        """Initialize the robot and vision systems."""
+        """Initialize the vision system independently from robot hardware."""
+        # Skip robot hardware initialization - only initialize vision system
+        self.status_queue.put("Initializing vision system (robot hardware will be initialized only when needed)...")
+
         try:
-            # Initialize robot
-            self.status_queue.put("Initializing robot...")
-            try:
-                self.bot = Wafflebot(automatic_mode=False, detect_collisions=False)
-                self.status_queue.put("Robot hardware initialized successfully")
-            except Exception as robot_error:
-                self.status_queue.put(f"ERROR initializing robot hardware: {str(robot_error)}")
-                raise robot_error
-
-            # Initialize vision and state
-            self.status_queue.put("Initializing vision system...")
-            try:
-                self.vision = Vision()
-                self.status_queue.put("Vision system initialized successfully")
-            except Exception as vision_error:
-                self.status_queue.put(f"ERROR initializing vision system: {str(vision_error)}")
-                raise vision_error
-
+            self.vision = Vision()
+            self.status_queue.put("Vision system initialized successfully")
             self.state = CurrentState(State.SLEEP)
-
-            # Send status updates
-            self.status_queue.put("Robot initialized in SLEEP state - Waiting for user input")
-            self.status_queue.put("Robot and vision systems initialized - Ready for operation")
-
+            self.status_queue.put("System ready - Camera feed available")
             return True
-        except Exception as e:
-            self.status_queue.put(f"Error initializing robot: {str(e)}")
-            handle_error(e)
+        except Exception as vision_error:
+            self.status_queue.put(f"ERROR initializing vision system: {str(vision_error)}")
+            self.vision = None
+            return False
+
+    def initialize_robot_hardware(self):
+        """Initialize robot hardware separately (only when needed for robot operations)."""
+        if self.bot is not None:
+            return True  # Already initialized
+
+        self.status_queue.put("Initializing robot hardware...")
+        try:
+            self.bot = Wafflebot(automatic_mode=False, detect_collisions=False)
+            self.status_queue.put("Robot hardware initialized successfully")
+            return True
+        except Exception as robot_error:
+            self.status_queue.put(f"ERROR: Robot hardware initialization failed: {str(robot_error)}")
+            self.bot = None
             return False
 
     def process_command(self, command: str, data: Optional[str] = None):
@@ -97,6 +95,9 @@ class Robot:
             elif command == "MAKE_WAFFLE":
                 print("DEBUG: Processing MAKE_WAFFLE command")
                 self._make_waffle()
+            elif command == "SHOW_CAMERA_FEED":
+                print("DEBUG: Processing SHOW_CAMERA_FEED command")
+                self._show_camera_feed()
             elif command == "EXIT":
                 print("DEBUG: Processing EXIT command")
                 self._exit()
@@ -116,13 +117,18 @@ class Robot:
             state_name: The name of the state to change to
         """
         try:
-            # Check if robot and vision are initialized
-            if self.bot is None or self.vision is None:
-                self.status_queue.put("ERROR: Robot or vision system not initialized. Reinitializing...")
-                if not self.initialize():
-                    self.status_queue.put("ERROR: Failed to initialize robot. Cannot change state.")
+            # Check if robot hardware is initialized for state changes
+            if self.bot is None:
+                self.status_queue.put("Robot hardware not initialized. Initializing robot hardware...")
+                if not self.initialize_robot_hardware():
+                    self.status_queue.put("ERROR: Failed to initialize robot hardware. Cannot change state.")
                     return
-                self.status_queue.put("Reinitialization successful. Continuing with state change.")
+                self.status_queue.put("Robot hardware initialization successful. Continuing with state change.")
+
+            # Check if vision system is available
+            if self.vision is None:
+                self.status_queue.put("ERROR: Vision system not available. Cannot change state.")
+                return
 
             # Get the new state from the enum
             try:
@@ -254,32 +260,45 @@ class Robot:
     def _emergency_stop(self):
         """Handle emergency stop command."""
         self.status_queue.put("EMERGENCY STOP ACTIVATED")
-        self.bot.safe_stop(slow=True)
+        if self.bot is not None:
+            self.bot.safe_stop(slow=True)
+        else:
+            self.status_queue.put("Robot hardware not connected - Emergency stop signal sent")
         # Stop processing states after emergency stop
         self.process_states = False
         # Reset to SLEEP state
-        self.state.set(State.SLEEP)
+        if self.state is not None:
+            self.state.set(State.SLEEP)
 
     def _stop_robot(self):
         """Handle stop robot command."""
         self.status_queue.put("Robot stopped")
-        self.bot.safe_stop()
+        if self.bot is not None:
+            self.bot.safe_stop()
+        else:
+            self.status_queue.put("Robot hardware not connected - Stop signal sent")
         # Stop processing states after robot stop
         self.process_states = False
         # Reset to SLEEP state
-        self.state.set(State.SLEEP)
+        if self.state is not None:
+            self.state.set(State.SLEEP)
 
     def _make_waffle(self):
         """Handle make waffle command."""
         self.status_queue.put("Starting waffle making sequence")
 
-        # Check if robot is properly initialized
-        if self.bot is None or self.vision is None:
-            self.status_queue.put("ERROR: Robot or vision system not initialized. Reinitializing...")
-            if not self.initialize():
-                self.status_queue.put("ERROR: Failed to initialize robot. Cannot make waffle.")
+        # Check if robot hardware is initialized (vision should already be initialized)
+        if self.bot is None:
+            self.status_queue.put("Robot hardware not initialized. Initializing robot hardware...")
+            if not self.initialize_robot_hardware():
+                self.status_queue.put("ERROR: Failed to initialize robot hardware. Cannot make waffle.")
                 return
-            self.status_queue.put("Reinitialization successful. Continuing with waffle making.")
+            self.status_queue.put("Robot hardware initialization successful. Continuing with waffle making.")
+
+        # Check if vision system is available
+        if self.vision is None:
+            self.status_queue.put("ERROR: Vision system not available. Cannot make waffle.")
+            return
 
         # Set the state to start the waffle making sequence
         self.state.set(State.SLEEP)
@@ -309,11 +328,51 @@ class Robot:
             self.state.set(State.ERROR)
             Robot._processing_state_action = False
 
+    def _show_camera_feed(self):
+        """Handle show camera feed command."""
+        self.status_queue.put("Starting camera feed...")
+
+        # Check if vision system is initialized
+        if self.vision is None:
+            self.status_queue.put("Vision system not initialized. Attempting to initialize vision only...")
+            try:
+                self.vision = Vision()
+                self.status_queue.put("Vision system initialized successfully.")
+            except Exception as vision_error:
+                self.status_queue.put(f"ERROR: Failed to initialize vision system: {str(vision_error)}")
+                return
+
+        try:
+            # Start camera feed in a separate thread to avoid blocking the main GUI
+            def camera_feed_thread():
+                try:
+                    self.status_queue.put("Camera feed started. Press ESC in the camera window to close.")
+                    # Run the vision system with camera feed display
+                    self.vision.run(show_image=True, draw_cubes=True, detect_hands=False, detect_gestures=False)
+                    self.status_queue.put("Camera feed closed.")
+                except Exception as e:
+                    self.status_queue.put(f"ERROR in camera feed: {str(e)}")
+                    print(f"Camera feed error: {e}")
+                    import traceback
+                    print(traceback.format_exc())
+
+            # Start the camera feed thread as a daemon thread
+            camera_thread = threading.Thread(target=camera_feed_thread, daemon=True)
+            camera_thread.start()
+
+        except Exception as e:
+            error_message = f"Error starting camera feed: {str(e)}"
+            self.status_queue.put(f"ERROR: {error_message}")
+            print(error_message)
+            import traceback
+            print(traceback.format_exc())
+
     def _exit(self):
         """Handle exit command."""
         self.status_queue.put("Shutting down...")
         try:
-            self.bot.safe_stop()
+            if self.bot is not None:
+                self.bot.safe_stop()
         finally:
             sysexit()
         # The main loop will check the stop_event and exit

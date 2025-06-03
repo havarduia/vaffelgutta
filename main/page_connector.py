@@ -53,6 +53,7 @@ class Screen:
         home_page.on_make_waffle = make_waffle_handler
         home_page.change_state = lambda: self.page_controller.show_page("Dev Mode")  # Use Dev Mode for state changes
         home_page.stop_robot = lambda: self.command_sender("STOP_ROBOT")
+        home_page.show_camera_feed = lambda: self.command_sender("SHOW_CAMERA_FEED")
         home_page.exit = lambda: (self.command_sender("EXIT"), self.app.after(1000, self.app.exit_application))
 
     def _connect_dev_page(self):

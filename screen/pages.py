@@ -143,7 +143,7 @@ class HomePage(BasePage):
             fg_color="#2196F3",  # Blue for settings/state changes
             border_color="#1565C0",  # Darker blue border
             hover_color="#1565C0",  # Darker blue on hover
-            command=None,  # Use a lambda to call a private method
+            command=lambda: self._on_show_camera_feed_click(),  # Use a lambda to call a private method
             **button_config
         )
         self.settings_btn.grid(row=0, column=1, padx=30, pady=30, sticky="nsew")
@@ -215,6 +215,17 @@ class HomePage(BasePage):
         # This method will be overridden by the page connector
         sysexit()
         self.master.master.quit()  # This will exit the application
+
+    def _on_show_camera_feed_click(self):
+        """Private method to handle the Show Camera Feed button click event"""
+        print("Show Camera Feed button clicked - private handler")
+        # Call the public method that will be overridden by the page connector
+        self.show_camera_feed()
+
+    def show_camera_feed(self):
+        """Public method that will be overridden by the page connector"""
+        print("Show Camera Feed button clicked - public handler")
+        # This method will be overridden by the page connector
 
 class EmergencyPage(BasePage):
     def __init__(self, master, **kwargs):
